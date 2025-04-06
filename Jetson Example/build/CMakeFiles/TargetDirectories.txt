@@ -1,3 +1,0 @@
-/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build/CMakeFiles/rebuild_cache.dir
-/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build/CMakeFiles/CameraTest.dir
-/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build/CMakeFiles/edit_cache.dir

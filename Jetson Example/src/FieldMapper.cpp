@@ -13,7 +13,9 @@ FieldMapper::FieldMapper(Camera& Camera, RobotPosition& Position)
       plane_ransac_n(3),
       plane_num_iterations(1000),
       min_height_threshold(0.1f),
-      max_height_threshold(1.5f)
+      max_height_threshold(1.5f),
+      ground_threshold(.95)
+        
 {
     start();
 }
@@ -115,36 +117,73 @@ bool FieldMapper::processPointCloud()
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void FieldMapper::segmentPlanes()
+bool FieldMapper::segmentPlanes()
 {
     std::lock_guard<std::mutex> lock(data_mutex);
-    std::vector<std::tuple<Eigen::Vector4d, open3d::geometry::PointCloud>> detected_planes;   
+
+    open3d::t::geometry::PointCloud processing_cloud = current_tensor_cloud.Clone();
+    
+    std::vector<std::tuple<Eigen::Vector4d, open3d::core::Tensor>> potential_walls;
+    std::tuple<open3d::core::Tensor, open3d::core::Tensor> segment_result;
+
+        
     const int max_planes = 3;
+    bool ground_plane_found = false;
 
     for (int i = 0; i < max_planes; ++i) 
     {
-        if (current_tensor_cloud.GetPointPositions().GetLength() < plane_ransac_n);
+        if (processing_cloud.GetPointPositions().GetLength() < plane_ransac_n);
+        {
             break;
-    
-        // Perform plane segmentation using RANSAC
-        std::tuple< open3d::core::Tensor, open3d::core::Tensor> 
-        result = current_tensor_cloud.SegmentPlane(
-                                            plane_distance_threshold,                  // Maximum distance from the plane
-                                            plane_ransac_n,                            // Number of points to sample
-                                            plane_num_iterations);                     // Number of RANSAC iterations
+        }
+        try{
             
-        open3d::core::Tensor plane_tensor = std::get<0>(result);
-        open3d::core::Tensor plane_indices = std::get<1>(result);
+            segment_result = processing_cloud.SegmentPlane(
+                                                    plane_distance_threshold,                  // Maximum distance from the plane
+                                                    plane_ransac_n,                            // Number of points to sample
+                                                    plane_num_iterations);                     // Number of RANSAC iterations
+        } catch (const std::exception& e) 
+        {
+            std::cerr << "Failed to segment a plane from pointcloud " << e.what() << std::endl;
+            break;
+        }
 
+        open3d::core::Tensor plane_tensor = std::get<0>(segment_result);
+        open3d::core::Tensor plane_indices = std::get<1>(segment_result);
+
+        // Extract plane equation (ax + by + cz + d = 0)
         float* data_ptr = static_cast<float*>(plane_tensor.GetDataPtr());
         Eigen::Vector4d plane_equation(data_ptr[0], data_ptr[1], data_ptr[2], data_ptr[3]);
+        Eigen::Vector3d plane_normal(plane_equation[0], plane_equation[1], plane_equation[2]);
 
-        open3d::t::geometry::PointCloud plane_cloud = current_tensor_cloud.SelectByIndex(plane_indices, false, true);
-
-        std::tuple<Eigen::Vector4d, open3d::geometry::PointCloud> current_plane = std::make_tuple(plane_equation, plane_cloud.ToLegacy());
-        
-        detected_planes.push_back(current_plane);
+        plane_normal.normalize();
+        float dot_product = plane_normal.dot(Eigen::Vector3d(0, 0, 1));
+      
+        if(!ground_plane_found && dot_product > ground_threshold) 
+        {
+            ground_plane = std::make_tuple(plane_equation, plane_indices);
+            ground_plane_found = true;
+        }
+        else
+        {
+            potential_walls.push_back(std::make_tuple(plane_equation, plane_indices));
+        }
+       
+        processing_cloud = processing_cloud.SelectByIndex(plane_indices, true);
     }
+
+
+    if (ground_plane_found && !potential_walls.empty()) 
+    {
+        //identifyWalls(potential_walls);
+    }
+    
+    return ground_plane_found;
+
 }
+
                 
             
+
+
+

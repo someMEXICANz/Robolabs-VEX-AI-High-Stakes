@@ -1,4 +1,4 @@
-# Install script for directory: /home/robolabs/JetsonExample
+# Install script for directory: /home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/robolabs/JetsonExample/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

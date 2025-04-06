@@ -551,7 +551,7 @@ void RobotPosition::updateVelocity(const Position& current_position) {
 
 float RobotPosition::getHeadingFromIMU() const {
     float mx, my, mz;
-    if (pos_imu.readMagnetometer(mx, my, mz)) {
+    if (pos_imu.getMagnetometer(mx, my, mz)) {
         // Calculate heading from magnetometer
         float heading = atan2(my, mx) * 180.0f / M_PI;
         
@@ -575,7 +575,7 @@ float RobotPosition::getHeadingFromIMU() const {
 bool RobotPosition::isRobotStationary() const {
     // Read accelerometer and gyroscope
     float ax, ay, az, gx, gy, gz;
-    if (!pos_imu.readAccelerometer(ax, ay, az) || !pos_imu.readGyroscope(gx, gy, gz)) {
+    if (!pos_imu.getAccelerometer(ax, ay, az) || !pos_imu.getGyroscope(gx, gy, gz)) {
         return false;
     }
     

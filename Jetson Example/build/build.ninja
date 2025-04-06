@@ -39,7 +39,7 @@ include CMakeFiles/rules.ninja
 # Utility command for rebuild_cache
 
 build CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /home/robolabs/JetsonExample/build && /usr/local/bin/cmake --regenerate-during-build -S/home/robolabs/JetsonExample -B/home/robolabs/JetsonExample/build
+  COMMAND = cd "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build" && /usr/local/bin/cmake --regenerate-during-build -S"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example" -B"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build"
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -175,7 +175,7 @@ build CameraTest: CXX_EXECUTABLE_LINKER__CameraTest_Debug CMakeFiles/CameraTest.
 # Utility command for edit_cache
 
 build CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /home/robolabs/JetsonExample/build && /usr/local/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+  COMMAND = cd "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build" && /usr/local/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
   DESC = No interactive CMake dialog available...
   restat = 1
 
@@ -190,7 +190,7 @@ build edit_cache: phony CMakeFiles/edit_cache.util
 # =============================================================================
 
 #############################################
-# Folder: /home/robolabs/JetsonExample/build
+# Folder: /home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build
 
 build all: phony CameraTest
 

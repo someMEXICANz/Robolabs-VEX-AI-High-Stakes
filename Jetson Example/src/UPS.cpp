@@ -24,15 +24,31 @@
 #define ADCRES_12BIT_32S  0x0D  // ADC: 12-bit, 32 samples
 #define MODE_SANDBVOLT_CONTINUOUS 0x07  // Mode: Shunt and bus voltage continuous
 
-UPS::UPS(uint8_t addr, const std::string& i2c_device) : addr(addr), i2c_fd(-1) {
-    // Open I2C device
-    i2c_fd = open(i2c_device.c_str(), O_RDWR);
-    if (i2c_fd < 0) {
-        setError("Failed to open I2C device: " + i2c_device);
+UPS::UPS(const std::string& i2cBus_) 
+    : i2c_bus(i2cBus_),
+      i2c_fd(-1),
+      cal_value(0),
+      current_lsb(0),
+      power_lsb(0),
+      running(false),
+      connected(false)
+
+{
+    sensor_data.shuntVoltage = 0.0f;
+    sensor_data.busVoltage = 0.0f;
+    sensor_data.current = 0.0f;
+    sensor_data.power = 0.0f;
+    sensor_data.batteryLevel = 0.0f;
+    sensor_data.valid = false;
+
+    // Try to initialize if bus is provided
+    if (!i2c_bus.empty()) 
+    {
+        if(initialize())
+        {
+            start();
+        }
     }
-    initialize();
-
-
 }
 
 UPS::~UPS() {
@@ -49,34 +65,154 @@ bool UPS::initialize() {
     }
 
     // Set I2C slave address
-    if (ioctl(i2c_fd, I2C_SLAVE, addr) < 0) {
+    if (ioctl(i2c_fd, I2C_SLAVE, UPS_ADDR) < 0) {
         setError("Failed to set I2C slave address");
         return false;
     }
 
-    // Initialize calibration values
-    _cal_value = 0;
-    _current_lsb = 0;
-    _power_lsb = 0;
-    
-    // Set default configuration
     set_calibration_32V_2A();
     
     return true;
 }
 
+
+
+bool UPS::start() 
+{
+    if (running) return true;
+    
+    if (i2c_fd < 0 && !reconnect()) 
+    {
+        return false;
+    }
+    
+    running = true;
+    read_thread = std::make_unique<std::thread>(&UPS::readLoop, this);
+
+    sleep(1);
+    
+    return true;
+}
+
+
+void UPS::stop() 
+{
+    running = false;
+    
+    if (read_thread&& read_thread->joinable()) {
+        read_thread->join();
+    }
+    
+    read_thread.reset();
+}
+
+bool UPS::restart() 
+{
+    stop();
+    return start();
+}
+
+bool UPS::reconnect() 
+{
+    if (i2c_fd>= 0) 
+    {
+        close(i2c_fd);
+        i2c_fd= -1;
+    }
+    return initialize();
+}
+
+
+
+// Main reading loop that runs in a separate thread
+void UPS::readLoop() {
+    std::cerr << "IMU read loop started" << std::endl;
+    
+    const std::chrono::milliseconds read_interval(10); // 100Hz update rate
+    
+    while (running) {
+        auto start_time = std::chrono::steady_clock::now();
+        
+        if (!connected && !reconnect()) 
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            continue;
+        }
+        
+        readData();
+        
+        // Calculate time to sleep
+        auto elapsed = std::chrono::steady_clock::now() - start_time;
+        if (elapsed < read_interval) {
+            std::this_thread::sleep_for(read_interval - elapsed);
+        }
+    }
+    
+    std::cerr << "IMU read loop stopped" << std::endl;
+}
+
+float calculateBatteryLevel(float current_busV)
+{
+
+    // Calculate percentage using the formula in your Python code
+    float p = (current_busV - 6.0f) / 2.4f * 100.0f;
+    
+    // Clamp between 0% and 100%
+    if (p > 100.0f) p = 100.0f;
+    if (p < 0.0f) p = 0.0f;
+
+    return p;
+}
+
+
+
+bool UPS::readData()
+{
+
+    if (writeWord(REG_CALIBRATION, cal_value)) {
+        return false;
+    }
+
+    int16_t shunt_value = readWord(REG_SHUNTVOLTAGE);
+    float shunt_voltage =  shunt_value * 0.01f;  // LSB = 10uV
+    uint16_t busV_value = readWord(REG_BUSVOLTAGE);
+    float bus_voltage = (busV_value >> 3) * 0.004f;
+    int16_t current_value = readWord(REG_CURRENT);
+    float current = current_value * current_lsb;
+    int16_t power_value = readWord(REG_POWER);
+    float power = power_value * power_lsb;
+    float battery_level = calculateBatteryLevel(bus_voltage);
+
+    // Update data structure with mutex protection
+    {
+        std::lock_guard<std::mutex> lock(data_mutex);
+        sensor_data.shuntVoltage = shunt_voltage;
+        sensor_data.busVoltage = bus_voltage;
+        sensor_data.current = current;
+        sensor_data.power = power;
+        sensor_data.batteryLevel = battery_level;
+        sensor_data.valid = true;
+    }
+    
+    return true;
+
+}
+
+
+
+
 void UPS::set_calibration_32V_2A() {
     // Current LSB = 100uA per bit
-    _current_lsb = 0.1;
+    current_lsb = 0.1;
     
     // Calibration value calculation
-    _cal_value = 4096;
+    cal_value = 4096;
     
     // Power LSB = 20 * Current LSB = 2mW per bit
-    _power_lsb = 0.002;
+    power_lsb = 0.002;
     
     // Set Calibration register
-    writeWord(REG_CALIBRATION, _cal_value);
+    writeWord(REG_CALIBRATION, cal_value);
     
     // Set Config register
     bus_voltage_range = RANGE_32V;
@@ -94,44 +230,83 @@ void UPS::set_calibration_32V_2A() {
     writeWord(REG_CONFIG, config);
 }
 
-float UPS::getShuntVoltage_mV() {
-    writeWord(REG_CALIBRATION, _cal_value);
-    int16_t value = readWord(REG_SHUNTVOLTAGE);
-    return value * 0.01f;  // LSB = 10uV
-}
-
-float UPS::getBusVoltage_V() {
-    writeWord(REG_CALIBRATION, _cal_value);
-    uint16_t value = readWord(REG_BUSVOLTAGE);
-    return ((value >> 3) * 0.004f);  // LSB = 4mV, shift right 3 to drop status bits
-}
-
-float UPS::getCurrent_mA() {
-    int16_t value = readWord(REG_CURRENT);
-    return value * _current_lsb;
-}
-
-float UPS::getPower_W() {
-    writeWord(REG_CALIBRATION, _cal_value);
-    int16_t value = readWord(REG_POWER);
-    return value * _power_lsb;
-}
-
-float UPS::getBatteryPercentage() {
-    float bus_voltage = getBusVoltage_V();
+float UPS::getShuntVoltage_mV() 
+{
+   std::lock_guard<std::mutex> lock(data_mutex);
     
-    // Calculate percentage using the formula in your Python code
-    float p = (bus_voltage - 6.0f) / 2.4f * 100.0f;
+    if (!sensor_data.valid && !running) {
+        std::cerr << "No valid sensor data available" << std::endl;
+        return -1;
+    }
+    return sensor_data.shuntVoltage;
+}
+
+float UPS::getBusVoltage_V() 
+{
+   std::lock_guard<std::mutex> lock(data_mutex);
     
-    // Clamp between 0% and 100%
-    if (p > 100.0f) p = 100.0f;
-    if (p < 0.0f) p = 0.0f;
+    if (!sensor_data.valid && !running) {
+        std::cerr << "No valid sensor data available" << std::endl;
+        return -1;
+    }
+    return sensor_data.busVoltage;
+}
+
+float UPS::getCurrent_mA() 
+{
+    std::lock_guard<std::mutex> lock(data_mutex);
     
-    return p;
+    if (!sensor_data.valid && !running) {
+        std::cerr << "No valid sensor data available" << std::endl;
+        return -1;
+    }
+    return sensor_data.current;
+}
+
+float UPS::getPower_W() 
+{
+    std::lock_guard<std::mutex> lock(data_mutex);
+    
+    if (!sensor_data.valid && !running) {
+        std::cerr << "No valid sensor data available" << std::endl;
+        return -1;
+    }
+    return sensor_data.power;
+}
+
+float UPS::getBatteryPercentage() 
+{
+    std::lock_guard<std::mutex> lock(data_mutex);
+    
+    if (!sensor_data.valid && !running) {
+        std::cerr << "No valid sensor data available" << std::endl;
+        return -1;
+    }
+    return sensor_data.batteryLevel;
+}
+
+bool UPS::getAll(float& shuntVoltage, float& busVoltage, float& current,
+            float& power, float& batteryLevel)
+{
+     std::lock_guard<std::mutex> lock(data_mutex);
+    
+    if (!sensor_data.valid && !running) {
+        std::cerr << "No valid sensor data available" << std::endl;
+        return false;
+    }
+
+    shuntVoltage = sensor_data.shuntVoltage;
+    busVoltage = sensor_data.busVoltage;
+    current = sensor_data.current;
+    power = sensor_data.power;
+    batteryLevel = sensor_data.batteryLevel;
+
+    return true;
+
 }
 
 bool UPS::writeByte(uint8_t reg, uint8_t data) {
-    if (ioctl(i2c_fd, I2C_SLAVE, addr) < 0) {
+    if (ioctl(i2c_fd, I2C_SLAVE, UPS_ADDR) < 0) {
         setError("Failed to set I2C slave address");
         return false;
     }
@@ -146,7 +321,7 @@ bool UPS::writeByte(uint8_t reg, uint8_t data) {
 }
 
 bool UPS::writeWord(uint8_t reg, uint16_t data) {
-    if (ioctl(i2c_fd, I2C_SLAVE, addr) < 0) {
+    if (ioctl(i2c_fd, I2C_SLAVE, UPS_ADDR) < 0) {
         setError("Failed to set I2C slave address");
         return false;
     }
@@ -165,7 +340,7 @@ bool UPS::writeWord(uint8_t reg, uint16_t data) {
 }
 
 int16_t UPS::readWord(uint8_t reg) {
-    if (ioctl(i2c_fd, I2C_SLAVE, addr) < 0) {
+    if (ioctl(i2c_fd, I2C_SLAVE, UPS_ADDR) < 0) {
         setError("Failed to set I2C slave address");
         return -1;
     }
@@ -187,10 +362,6 @@ int16_t UPS::readWord(uint8_t reg) {
 }
 
 void UPS::setError(const std::string& error) {
-    _lastError = error;
+    last_error = error;
     std::cerr << "UPS Error: " << error << std::endl;
-}
-
-std::string UPS::getLastError() const {
-    return _lastError;
 }

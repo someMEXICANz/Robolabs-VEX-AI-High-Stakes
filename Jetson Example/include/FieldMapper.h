@@ -59,7 +59,7 @@ private:
    
     // Data Storage
     open3d::t::geometry::PointCloud current_tensor_cloud;
-    std::tuple<Eigen::Vector4d, open3d::geometry::PointCloud> ground_plane_cloud;
+    std::tuple<Eigen::Vector4d, open3d::core::Tensor> ground_plane;
     cv::Mat occupancy_map;
     
     // DBSCAN clustering parameters
@@ -74,10 +74,12 @@ private:
     // // Filtering parameters
     float min_height_threshold;
     float max_height_threshold;
+
+    const float ground_threshold; // cos(~18 degrees)
     
     // Processing methods
     bool processPointCloud();
-    void segmentPlanes();
+    bool segmentPlanes();
     void refinePosition();
     void ClusterObstacles();
     void updateOccupancyMap();

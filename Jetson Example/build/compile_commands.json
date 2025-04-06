@@ -1,62 +1,62 @@
 [
 {
-  "directory": "/home/robolabs/JetsonExample/build",
-  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/main.cpp.o -c /home/robolabs/JetsonExample/src/main.cpp",
-  "file": "/home/robolabs/JetsonExample/src/main.cpp"
+  "directory": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/main.cpp.o -c \"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/main.cpp\"",
+  "file": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/main.cpp"
 },
 {
-  "directory": "/home/robolabs/JetsonExample/build",
-  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/Camera.cpp.o -c /home/robolabs/JetsonExample/src/Camera.cpp",
-  "file": "/home/robolabs/JetsonExample/src/Camera.cpp"
+  "directory": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/Camera.cpp.o -c \"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/Camera.cpp\"",
+  "file": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/Camera.cpp"
 },
 {
-  "directory": "/home/robolabs/JetsonExample/build",
-  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/Model.cpp.o -c /home/robolabs/JetsonExample/src/Model.cpp",
-  "file": "/home/robolabs/JetsonExample/src/Model.cpp"
+  "directory": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/Model.cpp.o -c \"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/Model.cpp\"",
+  "file": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/Model.cpp"
 },
 {
-  "directory": "/home/robolabs/JetsonExample/build",
-  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/ObjectDetection.cpp.o -c /home/robolabs/JetsonExample/src/ObjectDetection.cpp",
-  "file": "/home/robolabs/JetsonExample/src/ObjectDetection.cpp"
+  "directory": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/ObjectDetection.cpp.o -c \"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/ObjectDetection.cpp\"",
+  "file": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/ObjectDetection.cpp"
 },
 {
-  "directory": "/home/robolabs/JetsonExample/build",
-  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/GPS.cpp.o -c /home/robolabs/JetsonExample/src/GPS.cpp",
-  "file": "/home/robolabs/JetsonExample/src/GPS.cpp"
+  "directory": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/GPS.cpp.o -c \"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/GPS.cpp\"",
+  "file": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/GPS.cpp"
 },
 {
-  "directory": "/home/robolabs/JetsonExample/build",
-  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/Position.cpp.o -c /home/robolabs/JetsonExample/src/Position.cpp",
-  "file": "/home/robolabs/JetsonExample/src/Position.cpp"
+  "directory": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/Position.cpp.o -c \"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/Position.cpp\"",
+  "file": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/Position.cpp"
 },
 {
-  "directory": "/home/robolabs/JetsonExample/build",
-  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/RobotPosition.cpp.o -c /home/robolabs/JetsonExample/src/RobotPosition.cpp",
-  "file": "/home/robolabs/JetsonExample/src/RobotPosition.cpp"
+  "directory": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/RobotPosition.cpp.o -c \"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/RobotPosition.cpp\"",
+  "file": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/RobotPosition.cpp"
 },
 {
-  "directory": "/home/robolabs/JetsonExample/build",
-  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/BrainCommStats.cpp.o -c /home/robolabs/JetsonExample/src/BrainCommStats.cpp",
-  "file": "/home/robolabs/JetsonExample/src/BrainCommStats.cpp"
+  "directory": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/BrainCommStats.cpp.o -c \"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/BrainCommStats.cpp\"",
+  "file": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/BrainCommStats.cpp"
 },
 {
-  "directory": "/home/robolabs/JetsonExample/build",
-  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/BrainComm.cpp.o -c /home/robolabs/JetsonExample/src/BrainComm.cpp",
-  "file": "/home/robolabs/JetsonExample/src/BrainComm.cpp"
+  "directory": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/BrainComm.cpp.o -c \"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/BrainComm.cpp\"",
+  "file": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/BrainComm.cpp"
 },
 {
-  "directory": "/home/robolabs/JetsonExample/build",
-  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/IMU.cpp.o -c /home/robolabs/JetsonExample/src/IMU.cpp",
-  "file": "/home/robolabs/JetsonExample/src/IMU.cpp"
+  "directory": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/IMU.cpp.o -c \"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/IMU.cpp\"",
+  "file": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/IMU.cpp"
 },
 {
-  "directory": "/home/robolabs/JetsonExample/build",
-  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/UPS.cpp.o -c /home/robolabs/JetsonExample/src/UPS.cpp",
-  "file": "/home/robolabs/JetsonExample/src/UPS.cpp"
+  "directory": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/UPS.cpp.o -c \"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/UPS.cpp\"",
+  "file": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/UPS.cpp"
 },
 {
-  "directory": "/home/robolabs/JetsonExample/build",
-  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/FieldMapper.cpp.o -c /home/robolabs/JetsonExample/src/FieldMapper.cpp",
-  "file": "/home/robolabs/JetsonExample/src/FieldMapper.cpp"
+  "directory": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -o CMakeFiles/CameraTest.dir/src/FieldMapper.cpp.o -c \"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/FieldMapper.cpp\"",
+  "file": "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/src/FieldMapper.cpp"
 }
 ]

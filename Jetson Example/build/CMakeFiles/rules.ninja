@@ -42,7 +42,7 @@ rule CXX_EXECUTABLE_LINKER__CameraTest_Debug
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /usr/local/bin/cmake --regenerate-during-build -S/home/robolabs/JetsonExample -B/home/robolabs/JetsonExample/build
+  command = /usr/local/bin/cmake --regenerate-during-build -S"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example" -B"/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build"
   description = Re-running CMake...
   generator = 1
 

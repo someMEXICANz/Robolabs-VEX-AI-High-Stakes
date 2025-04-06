@@ -1,11 +1,11 @@
 Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
-Change Dir: /home/robolabs/JetsonExample/build/CMakeFiles/CMakeTmp
+Change Dir: /home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/ninja cmTC_37ade && [1/2] Building C object CMakeFiles/cmTC_37ade.dir/src.c.o
-[2/2] Linking C executable cmTC_37ade
-FAILED: cmTC_37ade 
-: && /usr/bin/aarch64-linux-gnu-gcc   CMakeFiles/cmTC_37ade.dir/src.c.o -o cmTC_37ade   && :
-CMakeFiles/cmTC_37ade.dir/src.c.o: In function `main':
+Run Build Command(s):/usr/bin/ninja cmTC_32d25 && [1/2] Building C object CMakeFiles/cmTC_32d25.dir/src.c.o
+[2/2] Linking C executable cmTC_32d25
+FAILED: cmTC_32d25 
+: && /usr/bin/aarch64-linux-gnu-gcc   CMakeFiles/cmTC_32d25.dir/src.c.o -o cmTC_32d25   && :
+CMakeFiles/cmTC_32d25.dir/src.c.o: In function `main':
 src.c:(.text+0x48): undefined reference to `pthread_create'
 src.c:(.text+0x50): undefined reference to `pthread_detach'
 src.c:(.text+0x58): undefined reference to `pthread_cancel'
@@ -37,12 +37,12 @@ int main(void)
 }
 
 Determining if the function pthread_create exists in the pthreads failed with the following output:
-Change Dir: /home/robolabs/JetsonExample/build/CMakeFiles/CMakeTmp
+Change Dir: /home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/ninja cmTC_8e81d && [1/2] Building C object CMakeFiles/cmTC_8e81d.dir/CheckFunctionExists.c.o
-[2/2] Linking C executable cmTC_8e81d
-FAILED: cmTC_8e81d 
-: && /usr/bin/aarch64-linux-gnu-gcc -DCHECK_FUNCTION_EXISTS=pthread_create  CMakeFiles/cmTC_8e81d.dir/CheckFunctionExists.c.o -o cmTC_8e81d  -lpthreads && :
+Run Build Command(s):/usr/bin/ninja cmTC_d1f33 && [1/2] Building C object CMakeFiles/cmTC_d1f33.dir/CheckFunctionExists.c.o
+[2/2] Linking C executable cmTC_d1f33
+FAILED: cmTC_d1f33 
+: && /usr/bin/aarch64-linux-gnu-gcc -DCHECK_FUNCTION_EXISTS=pthread_create  CMakeFiles/cmTC_d1f33.dir/CheckFunctionExists.c.o -o cmTC_d1f33  -lpthreads && :
 /usr/bin/ld: cannot find -lpthreads
 collect2: error: ld returned 1 exit status
 ninja: build stopped: subcommand failed.

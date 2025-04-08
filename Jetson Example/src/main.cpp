@@ -11,43 +11,56 @@
 #include <ObjectDetection.h>
 #include <Camera.h>
 #include <FieldMapper.h>
+#include <RobotVisualizer.h>
 
 using namespace std;
 
 int main() {
+            
+            
+    Camera camera; // (threaded)
+
     boost::asio::io_service myService;
 
     // UPS ups; // (threaded)
-    // IMU imu; // (threaded)
+    IMU imu; // (threaded)
     Brain::BrainComm brain(myService); // (threaded)
-    // RobotPosition robotPosition(brain, imu, myService); // (threaded) 
+    RobotPosition robotPosition(brain, imu, myService); // (threaded) 
    
     Model model;
     ObjectDetection objdet;
 
-    Camera camera; // (threaded)
-
-    // FieldMapper mapper(camera, robotPosition); // (threaded)
+    FieldMapper mapper(camera, robotPosition); // (threaded)
 
 
     while (true) 
     {
-        if(camera.isConnected() && camera.isRunning())
+
+        
+        //std::cout << "Camera is connected and running" << std::endl;
+        camera.preprocessFrames(model.inferInput);
+        model.runInference();
+        std::vector<DetectedObject> Det = objdet.decodeOutputs(model.inferOutput1, model.inferOutput2);
+        camera.displayDetections(Det);
+
+        if (cv::waitKey(1) == 27)
         {
-            camera.preprocessFrames(model.inferInput);
-            model.runInference();
-            std::vector<DetectedObject> Det = objdet.decodeOutputs(model.inferOutput1, model.inferOutput2);
+            break;
         }
-        if(brain.isConnected() && brain.isRunning())
-        {
-            // brain.setJetsonBattery(ups.getBatteryPercentage());
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));    
+      
+    
+    
+        // if(brain.isConnected() && brain.isRunning())
+        // {
+        //     brain.setJetsonBattery(ups.getBatteryPercentage());
+        // }
+
+        //std::this_thread::sleep_for(std::chrono::milliseconds(100));    
     }
     
     camera.stop();
     // robotPosition.stop();
-    brain.stop();
+    // brain.stop();
     // imu.stop();
     // ups.stop();
     

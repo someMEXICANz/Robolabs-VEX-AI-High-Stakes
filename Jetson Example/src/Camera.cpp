@@ -1,11 +1,12 @@
 #include <Camera.h>
 
 Camera::Camera() 
-: align_to(RS2_STREAM_COLOR), 
-  color_fps(0),
-  depth_fps(0),
+: align_to(RS2_STREAM_COLOR),
+  frame_width(640),
+  frame_height(480),
   running(false),
-  connected(false)
+  connected(false),
+  fps(0.0f)
 {
     initialize();
     start();
@@ -22,8 +23,8 @@ bool Camera::initialize()
 {
     try {
         // Configure the pipeline for color and depth streams
-        config.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
-        config.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);
+        config.enable_stream(RS2_STREAM_COLOR, frame_width, frame_height, RS2_FORMAT_BGR8, 30);
+        config.enable_stream(RS2_STREAM_DEPTH, frame_width, frame_height, RS2_FORMAT_Z16, 30);
 
         // Retrieve the depth scale from a temporary pipeline start
         rs2::pipeline_profile pipe_profile = pipe.start(config);
@@ -41,6 +42,7 @@ bool Camera::initialize()
         o3d_intrinsic.SetIntrinsics(rs_intrinsic.width, rs_intrinsic.height, 
                                      rs_intrinsic.fx, rs_intrinsic.fy, 
                                      rs_intrinsic.ppx, rs_intrinsic.ppy);
+        o3d_extrinsic.s
 
         std::cerr << "Realsense camera connected and initialized" << std::endl;
         return true;
@@ -137,6 +139,7 @@ void Camera::updateLoop()
             }
         }
         updateStreams();
+    
     }
 
 }
@@ -147,7 +150,6 @@ void Camera::updateLoop()
 cv::Mat Camera::convertFrameToMat(const rs2::frame &frame)
 {
     // Get frame dimensions
-    std::lock_guard<std::mutex> lock(stream_mutex);
     int width = frame.as<rs2::video_frame>().get_width();
     int height = frame.as<rs2::video_frame>().get_height();
     // Convert to OpenCV Mat
@@ -170,7 +172,16 @@ void Camera::updateStreams()
     depth_frame = frameset.get_depth_frame();
     depth_scale = rs_sensor->get_depth_scale();
 
+    std::chrono::time_point currentTime = std::chrono::steady_clock::now();
+    float deltaTime = std::chrono::duration<float>(currentTime - lastFrameTime).count();
+    lastFrameTime = currentTime;
+    float currentFPS = 1.0f / deltaTime;
+    fps = (fps * (1.0f - 0.1f)) + (currentFPS * 0.1f);
+    
+    
+
 }
+
 
 
 void Camera::preprocessFrames(std::vector<float> &output)
@@ -197,6 +208,7 @@ void Camera::preprocessFrames(std::vector<float> &output)
     std::memcpy(output.data(), blob.ptr<float>(0), 320 * 320 * 3 * sizeof(float));
 }
 
+
 std::shared_ptr<open3d::geometry::PointCloud> Camera::getPointCloud()
 {
     std::lock_guard<std::mutex> lock(stream_mutex);
@@ -212,3 +224,51 @@ std::shared_ptr<open3d::geometry::PointCloud> Camera::getPointCloud()
 }
 
 
+void Camera::displayDetections(const std::vector<DetectedObject>& detections)
+{      
+
+    std::lock_guard<std::mutex> lock(stream_mutex);
+    cv::Mat color_mat = convertFrameToMat(color_frame);
+
+    cv::Mat display_image = color_mat.clone();
+    std::string fps_text = "FPS: " + std::to_string(static_cast<int>(fps));
+    cv::putText(color_mat, fps_text, cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
+    
+    for (const auto& det : detections) 
+    {
+        // Rest of your drawing code, but use scaled_bbox instead of det.bbox
+        cv::Scalar color;
+        std::string label;
+        
+        switch(det.classId) 
+        {
+            case 0:
+                color = cv::Scalar(0, 255, 0);
+                label = "MobileGoal";
+                break;
+            case 1:
+                color = cv::Scalar(0, 0, 255);
+                label = "RedRing";
+                break;
+            case 2:
+                color = cv::Scalar(255, 0, 0);
+                label = "BlueRing";
+                break;
+        }
+
+        cv::rectangle(display_image, det.bbox, color, 2);
+        label += " " + std::to_string(static_cast<int>(det.confidence * 100)) + "%";
+
+        cv::Point text_origin(det.bbox.x, det.bbox.y - 5);
+        cv::Size text_size = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 2, nullptr);
+        cv::rectangle(display_image, 
+                     cv::Point(text_origin.x, text_origin.y - text_size.height),
+                     cv::Point(text_origin.x + text_size.width, text_origin.y + 5),
+                     color, -1);
+
+        cv::putText(display_image, label, text_origin,cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
+    }
+
+    cv::imshow("Color Frame", display_image);
+ 
+}

@@ -1,0 +1,201 @@
+[build] [2/3  33% :: 28.490] Building CXX object CMakeFiles/CameraTest.dir/src/RobotVisualizer.cpp.o
+[build] FAILED: CMakeFiles/CameraTest.dir/src/RobotVisualizer.cpp.o 
+[build] /usr/bin/aarch64-linux-gnu-g++ -DEIGEN_USE_THREADS -DFMT_HEADER_ONLY=0 -DFMT_STRING_ALIAS=1 -DFMT_USE_WINDOWS_H=0 -DOPEN3D_STATIC -D_GLIBCXX_USE_CXX11_ABI=1 -I../include -I/usr/include/eigen3 -I/usr/local/cuda/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include/open3d/3rdparty -g -Wno-deprecated-declarations -std=gnu++1z -MD -MT CMakeFiles/CameraTest.dir/src/RobotVisualizer.cpp.o -MF CMakeFiles/CameraTest.dir/src/RobotVisualizer.cpp.o.d -o CMakeFiles/CameraTest.dir/src/RobotVisualizer.cpp.o -c ../src/RobotVisualizer.cpp
+[build] ../src/RobotVisualizer.cpp: In member function ‘bool RobotVisualizer::Initialize()’:
+[build] ../src/RobotVisualizer.cpp:21:38: error: cannot convert ‘std::shared_ptr<open3d::visualization::rendering::Open3DScene>’ to ‘open3d::visualization::rendering::Scene*’ in assignment
+[build]      scene_ = scene_widget_->GetScene();
+[build]                                       ^
+[build] ../src/RobotVisualizer.cpp:24:27: error: ‘class open3d::visualization::rendering::Material’ has no member named ‘shader’
+[build]      point_cloud_material_.shader = "defaultLit";
+[build]                            ^~~~~~
+[build] ../src/RobotVisualizer.cpp:27:21: error: ‘class open3d::visualization::rendering::Material’ has no member named ‘shader’
+[build]      image_material_.shader = "unlitTexture";
+[build]                      ^~~~~~
+[build] ../src/RobotVisualizer.cpp: In lambda function:
+[build] ../src/RobotVisualizer.cpp:56:65: error: ‘open3d::visualization::gui::KeyAction’ has not been declared
+[build]          if (key == 'T' && action == open3d::visualization::gui::KeyAction::KEY_DOWN) {
+[build]                                                                  ^~~~~~~~~
+[build] ../src/RobotVisualizer.cpp: In member function ‘bool RobotVisualizer::Initialize()’:
+[build] ../src/RobotVisualizer.cpp:61:6: error: no matching function for call to ‘open3d::visualization::gui::Window::SetOnKeyEvent(RobotVisualizer::Initialize()::<lambda(int, int, int)>)’
+[build]      });
+[build]       ^
+[build] In file included from /usr/local/include/open3d/Open3D.h:119:0,
+[build]                  from ../include/RobotVisualizer.h:4,
+[build]                  from ../src/RobotVisualizer.cpp:1:
+[build] /usr/local/include/open3d/visualization/gui/Window.h:133:10: note: candidate: void open3d::visualization::gui::Window::SetOnKeyEvent(std::function<bool(const open3d::visualization::gui::KeyEvent&)>)
+[build]      void SetOnKeyEvent(std::function<bool(const KeyEvent&)> callback);
+[build]           ^~~~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/gui/Window.h:133:10: note:   no known conversion for argument 1 from ‘RobotVisualizer::Initialize()::<lambda(int, int, int)>’ to ‘std::function<bool(const open3d::visualization::gui::KeyEvent&)>’
+[build] ../src/RobotVisualizer.cpp: In member function ‘void RobotVisualizer::UpdatePointCloud(const std::shared_ptr<open3d::geometry::PointCloud>&)’:
+[build] ../src/RobotVisualizer.cpp:96:55: error: no matching function for call to ‘open3d::visualization::gui::Application::PostToMainThread(std::shared_ptr<open3d::visualization::gui::Window>&, RobotVisualizer::UpdatePointCloud(const std::shared_ptr<open3d::geometry::PointCloud>&)::<lambda()>)’
+[build]              window_, [this]() { this->UpdateScene(); });
+[build]                                                        ^
+[build] In file included from /usr/local/include/open3d/Open3D.h:100:0,
+[build]                  from ../include/RobotVisualizer.h:4,
+[build]                  from ../src/RobotVisualizer.cpp:1:
+[build] /usr/local/include/open3d/visualization/gui/Application.h:83:10: note: candidate: void open3d::visualization::gui::Application::PostToMainThread(open3d::visualization::gui::Window*, std::function<void()>)
+[build]      void PostToMainThread(Window *window, std::function<void()> f);
+[build]           ^~~~~~~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/gui/Application.h:83:10: note:   no known conversion for argument 1 from ‘std::shared_ptr<open3d::visualization::gui::Window>’ to ‘open3d::visualization::gui::Window*’
+[build] ../src/RobotVisualizer.cpp: In member function ‘void RobotVisualizer::UpdateVideoFrame(const cv::Mat&)’:
+[build] ../src/RobotVisualizer.cpp:133:55: error: no matching function for call to ‘open3d::visualization::gui::Application::PostToMainThread(std::shared_ptr<open3d::visualization::gui::Window>&, RobotVisualizer::UpdateVideoFrame(const cv::Mat&)::<lambda()>)’
+[build]              window_, [this]() { this->UpdateScene(); });
+[build]                                                        ^
+[build] In file included from /usr/local/include/open3d/Open3D.h:100:0,
+[build]                  from ../include/RobotVisualizer.h:4,
+[build]                  from ../src/RobotVisualizer.cpp:1:
+[build] /usr/local/include/open3d/visualization/gui/Application.h:83:10: note: candidate: void open3d::visualization::gui::Application::PostToMainThread(open3d::visualization::gui::Window*, std::function<void()>)
+[build]      void PostToMainThread(Window *window, std::function<void()> f);
+[build]           ^~~~~~~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/gui/Application.h:83:10: note:   no known conversion for argument 1 from ‘std::shared_ptr<open3d::visualization::gui::Window>’ to ‘open3d::visualization::gui::Window*’
+[build] ../src/RobotVisualizer.cpp: In member function ‘void RobotVisualizer::ToggleView()’:
+[build] ../src/RobotVisualizer.cpp:153:51: error: no matching function for call to ‘open3d::visualization::gui::Application::PostToMainThread(std::shared_ptr<open3d::visualization::gui::Window>&, RobotVisualizer::ToggleView()::<lambda()>)’
+[build]          window_, [this]() { this->UpdateScene(); });
+[build]                                                    ^
+[build] In file included from /usr/local/include/open3d/Open3D.h:100:0,
+[build]                  from ../include/RobotVisualizer.h:4,
+[build]                  from ../src/RobotVisualizer.cpp:1:
+[build] /usr/local/include/open3d/visualization/gui/Application.h:83:10: note: candidate: void open3d::visualization::gui::Application::PostToMainThread(open3d::visualization::gui::Window*, std::function<void()>)
+[build]      void PostToMainThread(Window *window, std::function<void()> f);
+[build]           ^~~~~~~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/gui/Application.h:83:10: note:   no known conversion for argument 1 from ‘std::shared_ptr<open3d::visualization::gui::Window>’ to ‘open3d::visualization::gui::Window*’
+[build] ../src/RobotVisualizer.cpp: In member function ‘void RobotVisualizer::UpdateScene()’:
+[build] ../src/RobotVisualizer.cpp:160:13: error: ‘class open3d::visualization::rendering::Scene’ has no member named ‘ClearGeometry’; did you mean ‘HasGeometry’?
+[build]      scene_->ClearGeometry();
+[build]              ^~~~~~~~~~~~~
+[build]              HasGeometry
+[build] ../src/RobotVisualizer.cpp:166:81: error: no matching function for call to ‘open3d::visualization::rendering::Scene::AddGeometry(const char [12], std::__shared_ptr<open3d::geometry::PointCloud, (__gnu_cxx::_Lock_policy)2>::element_type*, open3d::visualization::rendering::Material&)’
+[build]                  "point_cloud", current_point_cloud_.get(), point_cloud_material_);
+[build]                                                                                  ^
+[build] In file included from /usr/local/include/open3d/visualization/rendering/Open3DScene.h:16:0,
+[build]                  from /usr/local/include/open3d/Open3D.h:122,
+[build]                  from ../include/RobotVisualizer.h:4,
+[build]                  from ../src/RobotVisualizer.cpp:1:
+[build] /usr/local/include/open3d/visualization/rendering/Scene.h:74:18: note: candidate: virtual bool open3d::visualization::rendering::Scene::AddGeometry(const string&, const open3d::geometry::Geometry3D&, const open3d::visualization::rendering::MaterialRecord&, const string&, size_t)
+[build]      virtual bool AddGeometry(const std::string& object_name,
+[build]                   ^~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/rendering/Scene.h:74:18: note:   no known conversion for argument 2 from ‘std::__shared_ptr<open3d::geometry::PointCloud, (__gnu_cxx::_Lock_policy)2>::element_type* {aka open3d::geometry::PointCloud*}’ to ‘const open3d::geometry::Geometry3D&’
+[build] /usr/local/include/open3d/visualization/rendering/Scene.h:79:18: note: candidate: virtual bool open3d::visualization::rendering::Scene::AddGeometry(const string&, const open3d::t::geometry::Geometry&, const open3d::visualization::rendering::MaterialRecord&, const string&, size_t)
+[build]      virtual bool AddGeometry(const std::string& object_name,
+[build]                   ^~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/rendering/Scene.h:79:18: note:   no known conversion for argument 2 from ‘std::__shared_ptr<open3d::geometry::PointCloud, (__gnu_cxx::_Lock_policy)2>::element_type* {aka open3d::geometry::PointCloud*}’ to ‘const open3d::t::geometry::Geometry&’
+[build] /usr/local/include/open3d/visualization/rendering/Scene.h:84:18: note: candidate: virtual bool open3d::visualization::rendering::Scene::AddGeometry(const string&, const open3d::visualization::rendering::TriangleMeshModel&)
+[build]      virtual bool AddGeometry(const std::string& object_name,
+[build]                   ^~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/rendering/Scene.h:84:18: note:   candidate expects 2 arguments, 3 provided
+[build] ../src/RobotVisualizer.cpp:173:67: error: no matching function for call to ‘open3d::visualization::gui::SceneWidget::SetupCamera(double, Eigen::Vector3d&, const Eigen::CwiseBinaryOp<Eigen::internal::scalar_sum_op<double, double>, const Eigen::Matrix<double, 3, 1>, const Eigen::Matrix<double, 3, 1> >, Eigen::Vector3d)’
+[build]                                           Eigen::Vector3d(0, -1, 0));
+[build]                                                                    ^
+[build] In file included from /usr/local/include/open3d/Open3D.h:112:0,
+[build]                  from ../include/RobotVisualizer.h:4,
+[build]                  from ../src/RobotVisualizer.cpp:1:
+[build] /usr/local/include/open3d/visualization/gui/SceneWidget.h:80:10: note: candidate: void open3d::visualization::gui::SceneWidget::SetupCamera(float, const open3d::geometry::AxisAlignedBoundingBox&, const Vector3f&)
+[build]      void SetupCamera(float verticalFoV,
+[build]           ^~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/gui/SceneWidget.h:80:10: note:   candidate expects 3 arguments, 4 provided
+[build] /usr/local/include/open3d/visualization/gui/SceneWidget.h:83:10: note: candidate: void open3d::visualization::gui::SceneWidget::SetupCamera(const open3d::camera::PinholeCameraIntrinsic&, const Matrix4d&, const open3d::geometry::AxisAlignedBoundingBox&)
+[build]      void SetupCamera(const camera::PinholeCameraIntrinsic& intrinsic,
+[build]           ^~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/gui/SceneWidget.h:83:10: note:   candidate expects 3 arguments, 4 provided
+[build] /usr/local/include/open3d/visualization/gui/SceneWidget.h:86:10: note: candidate: void open3d::visualization::gui::SceneWidget::SetupCamera(const Matrix3d&, const Matrix4d&, int, int, const open3d::geometry::AxisAlignedBoundingBox&)
+[build]      void SetupCamera(const Eigen::Matrix3d& intrinsic,
+[build]           ^~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/gui/SceneWidget.h:86:10: note:   candidate expects 5 arguments, 4 provided
+[build] ../src/RobotVisualizer.cpp:183:79: error: ‘Texture’ is not a member of ‘open3d::visualization::rendering’
+[build]              auto texture = std::make_shared<open3d::visualization::rendering::Texture>();
+[build]                                                                                ^~~~~~~
+[build] ../src/RobotVisualizer.cpp:183:88: error: no matching function for call to ‘make_shared<<expression error> >()’
+[build]              auto texture = std::make_shared<open3d::visualization::rendering::Texture>();
+[build]                                                                                         ^
+[build] In file included from /usr/include/c++/7/memory:81:0,
+[build]                  from /usr/local/include/open3d/3rdparty/fmt/format.h:40,
+[build]                  from /usr/local/include/open3d/utility/IJsonConvertible.h:10,
+[build]                  from /usr/local/include/open3d/camera/PinholeCameraIntrinsic.h:12,
+[build]                  from /usr/local/include/open3d/Open3D.h:12,
+[build]                  from ../include/RobotVisualizer.h:4,
+[build]                  from ../src/RobotVisualizer.cpp:1:
+[build] /usr/include/c++/7/bits/shared_ptr.h:703:5: note: candidate: template<class _Tp, class ... _Args> std::shared_ptr<_Tp> std::make_shared(_Args&& ...)
+[build]      make_shared(_Args&&... __args)
+[build]      ^~~~~~~~~~~
+[build] /usr/include/c++/7/bits/shared_ptr.h:703:5: note:   template argument deduction/substitution failed:
+[build] ../src/RobotVisualizer.cpp:183:88: error: template argument 1 is invalid
+[build]              auto texture = std::make_shared<open3d::visualization::rendering::Texture>();
+[build]                                                                                         ^
+[build] ../src/RobotVisualizer.cpp:187:29: error: ‘class open3d::visualization::rendering::Material’ has no member named ‘SetTexture’; did you mean ‘SetTextureMap’?
+[build]              image_material_.SetTexture("albedo", texture);
+[build]                              ^~~~~~~~~~
+[build]                              SetTextureMap
+[build] ../src/RobotVisualizer.cpp:190:80: error: no matching function for call to ‘open3d::visualization::rendering::Scene::AddGeometry(const char [12], std::__shared_ptr<open3d::geometry::TriangleMesh, (__gnu_cxx::_Lock_policy)2>::element_type*, open3d::visualization::rendering::Material&)’
+[build]              scene_->AddGeometry("video_frame", quad_mesh.get(), image_material_);
+[build]                                                                                 ^
+[build] In file included from /usr/local/include/open3d/visualization/rendering/Open3DScene.h:16:0,
+[build]                  from /usr/local/include/open3d/Open3D.h:122,
+[build]                  from ../include/RobotVisualizer.h:4,
+[build]                  from ../src/RobotVisualizer.cpp:1:
+[build] /usr/local/include/open3d/visualization/rendering/Scene.h:74:18: note: candidate: virtual bool open3d::visualization::rendering::Scene::AddGeometry(const string&, const open3d::geometry::Geometry3D&, const open3d::visualization::rendering::MaterialRecord&, const string&, size_t)
+[build]      virtual bool AddGeometry(const std::string& object_name,
+[build]                   ^~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/rendering/Scene.h:74:18: note:   no known conversion for argument 2 from ‘std::__shared_ptr<open3d::geometry::TriangleMesh, (__gnu_cxx::_Lock_policy)2>::element_type* {aka open3d::geometry::TriangleMesh*}’ to ‘const open3d::geometry::Geometry3D&’
+[build] /usr/local/include/open3d/visualization/rendering/Scene.h:79:18: note: candidate: virtual bool open3d::visualization::rendering::Scene::AddGeometry(const string&, const open3d::t::geometry::Geometry&, const open3d::visualization::rendering::MaterialRecord&, const string&, size_t)
+[build]      virtual bool AddGeometry(const std::string& object_name,
+[build]                   ^~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/rendering/Scene.h:79:18: note:   no known conversion for argument 2 from ‘std::__shared_ptr<open3d::geometry::TriangleMesh, (__gnu_cxx::_Lock_policy)2>::element_type* {aka open3d::geometry::TriangleMesh*}’ to ‘const open3d::t::geometry::Geometry&’
+[build] /usr/local/include/open3d/visualization/rendering/Scene.h:84:18: note: candidate: virtual bool open3d::visualization::rendering::Scene::AddGeometry(const string&, const open3d::visualization::rendering::TriangleMeshModel&)
+[build]      virtual bool AddGeometry(const std::string& object_name,
+[build]                   ^~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/rendering/Scene.h:84:18: note:   candidate expects 2 arguments, 3 provided
+[build] ../src/RobotVisualizer.cpp:196:63: error: no matching function for call to ‘open3d::visualization::gui::SceneWidget::SetupCamera(double, Eigen::Vector3d, Eigen::Vector3d, Eigen::Vector3d)’
+[build]                                       Eigen::Vector3d(0, -1, 0));
+[build]                                                                ^
+[build] In file included from /usr/local/include/open3d/Open3D.h:112:0,
+[build]                  from ../include/RobotVisualizer.h:4,
+[build]                  from ../src/RobotVisualizer.cpp:1:
+[build] /usr/local/include/open3d/visualization/gui/SceneWidget.h:80:10: note: candidate: void open3d::visualization::gui::SceneWidget::SetupCamera(float, const open3d::geometry::AxisAlignedBoundingBox&, const Vector3f&)
+[build]      void SetupCamera(float verticalFoV,
+[build]           ^~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/gui/SceneWidget.h:80:10: note:   candidate expects 3 arguments, 4 provided
+[build] /usr/local/include/open3d/visualization/gui/SceneWidget.h:83:10: note: candidate: void open3d::visualization::gui::SceneWidget::SetupCamera(const open3d::camera::PinholeCameraIntrinsic&, const Matrix4d&, const open3d::geometry::AxisAlignedBoundingBox&)
+[build]      void SetupCamera(const camera::PinholeCameraIntrinsic& intrinsic,
+[build]           ^~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/gui/SceneWidget.h:83:10: note:   candidate expects 3 arguments, 4 provided
+[build] /usr/local/include/open3d/visualization/gui/SceneWidget.h:86:10: note: candidate: void open3d::visualization::gui::SceneWidget::SetupCamera(const Matrix3d&, const Matrix4d&, int, int, const open3d::geometry::AxisAlignedBoundingBox&)
+[build]      void SetupCamera(const Eigen::Matrix3d& intrinsic,
+[build]           ^~~~~~~~~~~
+[build] /usr/local/include/open3d/visualization/gui/SceneWidget.h:86:10: note:   candidate expects 5 arguments, 4 provided
+[build] In file included from /usr/include/aarch64-linux-gnu/c++/7/bits/c++allocator.h:33:0,
+[build]                  from /usr/include/c++/7/bits/allocator.h:46,
+[build]                  from /usr/include/c++/7/string:41,
+[build]                  from /usr/include/c++/7/bits/locale_classes.h:40,
+[build]                  from /usr/include/c++/7/bits/ios_base.h:41,
+[build]                  from /usr/include/c++/7/ios:42,
+[build]                  from /usr/include/c++/7/istream:38,
+[build]                  from /usr/include/c++/7/sstream:38,
+[build]                  from /usr/include/c++/7/complex:45,
+[build]                  from /usr/include/eigen3/Eigen/Core:80,
+[build]                  from /usr/local/include/open3d/camera/PinholeCameraIntrinsic.h:10,
+[build]                  from /usr/local/include/open3d/Open3D.h:12,
+[build]                  from ../include/RobotVisualizer.h:4,
+[build]                  from ../src/RobotVisualizer.cpp:1:
+[build] /usr/include/c++/7/ext/new_allocator.h: In instantiation of ‘void __gnu_cxx::new_allocator<_Tp>::construct(_Up*, _Args&& ...) [with _Up = open3d::visualization::gui::Application; _Args = {}; _Tp = open3d::visualization::gui::Application]’:
+[build] /usr/include/c++/7/bits/alloc_traits.h:475:4:   required from ‘static void std::allocator_traits<std::allocator<_CharT> >::construct(std::allocator_traits<std::allocator<_CharT> >::allocator_type&, _Up*, _Args&& ...) [with _Up = open3d::visualization::gui::Application; _Args = {}; _Tp = open3d::visualization::gui::Application; std::allocator_traits<std::allocator<_CharT> >::allocator_type = std::allocator<open3d::visualization::gui::Application>]’
+[build] /usr/include/c++/7/bits/shared_ptr_base.h:526:39:   required from ‘std::_Sp_counted_ptr_inplace<_Tp, _Alloc, _Lp>::_Sp_counted_ptr_inplace(_Alloc, _Args&& ...) [with _Args = {}; _Tp = open3d::visualization::gui::Application; _Alloc = std::allocator<open3d::visualization::gui::Application>; __gnu_cxx::_Lock_policy _Lp = (__gnu_cxx::_Lock_policy)2]’
+[build] /usr/include/c++/7/bits/shared_ptr_base.h:637:4:   required from ‘std::__shared_count<_Lp>::__shared_count(std::_Sp_make_shared_tag, _Tp*, const _Alloc&, _Args&& ...) [with _Tp = open3d::visualization::gui::Application; _Alloc = std::allocator<open3d::visualization::gui::Application>; _Args = {}; __gnu_cxx::_Lock_policy _Lp = (__gnu_cxx::_Lock_policy)2]’
+[build] /usr/include/c++/7/bits/shared_ptr_base.h:1295:35:   required from ‘std::__shared_ptr<_Tp, _Lp>::__shared_ptr(std::_Sp_make_shared_tag, const _Alloc&, _Args&& ...) [with _Alloc = std::allocator<open3d::visualization::gui::Application>; _Args = {}; _Tp = open3d::visualization::gui::Application; __gnu_cxx::_Lock_policy _Lp = (__gnu_cxx::_Lock_policy)2]’
+[build] /usr/include/c++/7/bits/shared_ptr.h:344:64:   required from ‘std::shared_ptr<_Tp>::shared_ptr(std::_Sp_make_shared_tag, const _Alloc&, _Args&& ...) [with _Alloc = std::allocator<open3d::visualization::gui::Application>; _Args = {}; _Tp = open3d::visualization::gui::Application]’
+[build] /usr/include/c++/7/bits/shared_ptr.h:690:14:   required from ‘std::shared_ptr<_Tp> std::allocate_shared(const _Alloc&, _Args&& ...) [with _Tp = open3d::visualization::gui::Application; _Alloc = std::allocator<open3d::visualization::gui::Application>; _Args = {}]’
+[build] /usr/include/c++/7/bits/shared_ptr.h:706:39:   required from ‘std::shared_ptr<_Tp> std::make_shared(_Args&& ...) [with _Tp = open3d::visualization::gui::Application; _Args = {}]’
+[build] ../src/RobotVisualizer.cpp:12:70:   required from here
+[build] /usr/include/c++/7/ext/new_allocator.h:136:4: error: ‘open3d::visualization::gui::Application::Application()’ is private within this context
+[build]   { ::new((void *)__p) _Up(std::forward<_Args>(__args)...); }
+[build]     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[build] In file included from /usr/local/include/open3d/Open3D.h:100:0,
+[build]                  from ../include/RobotVisualizer.h:4,
+[build]                  from ../src/RobotVisualizer.cpp:1:
+[build] /usr/local/include/open3d/visualization/gui/Application.h:185:5: note: declared private here
+[build]      Application();
+[build]      ^~~~~~~~~~~
+[build] [2/3  66% :: 38.273] Building CXX object CMakeFiles/CameraTest.dir/src/main.cpp.o
+[build] ninja: build stopped: subcommand failed.
+[proc] The command: /usr/local/bin/cmake --build "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build" --config Debug --target all -- exited with code: 1
+[driver] Build completed: 00:00:38.401
+[build] Build finished with exit code 1

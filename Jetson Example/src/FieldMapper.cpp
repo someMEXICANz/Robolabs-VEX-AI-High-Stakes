@@ -78,7 +78,12 @@ void FieldMapper::updateLoop()
         {
             if (processPointCloud())
             {
-                segmentPlanes();
+                if(segmentPlanes())
+                {
+                   
+                    // fIlterPoints();
+                    // clusterObstacles()
+                }
             }
         }
     }

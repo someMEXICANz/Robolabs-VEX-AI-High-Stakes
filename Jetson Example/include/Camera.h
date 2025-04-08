@@ -32,15 +32,10 @@ public:
     Camera(const Camera&) = delete;
     Camera& operator=(const Camera&) = delete;
 
-
-    int color_fps;
-    int depth_fps;                                          
-    
     void updateStreams();                                      
     void preprocessFrames(std::vector<float> &output); // Prepare & Process frame for Tensorrt engine
     std::shared_ptr<open3d::geometry::PointCloud> getPointCloud();
-    int getColorFPS();
-    int getDepthFPS();
+    void displayDetections(const std::vector<DetectedObject>& detections);
 
     // Thread Operations
     bool start();
@@ -65,6 +60,10 @@ private:
     rs2::video_stream_profile depth_profile;
     rs2::video_stream_profile color_profile;
 
+    int frame_width;
+    int frame_height;
+    
+
     rs2::frame color_frame; 
     rs2::frame depth_frame;                      
             
@@ -73,19 +72,19 @@ private:
     Eigen::Matrix4d o3d_extrinsic;
     float depth_scale;    
 
-
-    
-    void updateLoop();
-    bool initialize();
-    bool reconnect();    
-
     bool running;
     bool connected;
+    float fps;
+    std::chrono::steady_clock::time_point lastFrameTime;
 
     std::unique_ptr<std::thread> update_thread;
     std::mutex stream_mutex;
-    
+
+    void updateLoop();
+    bool initialize();
+    bool reconnect();    
     cv::Mat convertFrameToMat(const rs2::frame& frame); // Convert RealSense frame to OpenCV Mat
+    
     const std::chrono::milliseconds RECONNECT_DELAY{2500};
 
 

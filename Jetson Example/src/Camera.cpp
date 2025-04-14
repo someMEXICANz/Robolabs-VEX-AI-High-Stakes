@@ -145,6 +145,8 @@ void Camera::updateLoop()
                 continue;
             }
 
+            updateRGBDImage();
+            
         }
 
         int64 elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_time).count();
@@ -157,6 +159,33 @@ void Camera::updateLoop()
         }
     }
 }
+
+
+bool Camera::updateRGBDImage()
+{
+    std::lock_guard<std::mutex> lock(stream_mutex);
+    // Create color tensor
+    open3d::core::Tensor color_tensor = open3d::core::Tensor(
+    static_cast<const uint8_t*>(color_frame.get_data()),
+    {frame_height, frame_width, 3},
+    open3d::core::Dtype::UInt8,
+    open3d::core::Device("CPU:0"));
+
+    current_RGBDImage.color_ = color_tensor;
+
+    // Create depth tensor
+    open3d::core::Tensor depth_tensor = open3d::core::Tensor(
+    static_cast<const uint16_t*>(depth_frame.get_data()),
+    {frame_height, frame_width},
+    open3d::core::Dtype::UInt16,
+    open3d::core::Device("CPU:0"));
+
+    current_RGBDImage.depth_ = depth_tensor;
+
+    return !current_RGBDImage.IsEmpty();
+}
+
+
 
 bool Camera::findDevice()
 {
@@ -265,42 +294,21 @@ void Camera::getInferFrame(std::vector<float> &output)
 
 open3d::t::geometry::PointCloud Camera::getPointCloud()
 {
-
-    if(!connected)
+    std::lock_guard<std::mutex> lock(stream_mutex);
+    if(current_RGBDImage.IsEmpty())
     {
-        std::cerr << "Could not retrieve point cloud, camera is not connected" << std::endl;
         return open3d::t::geometry::PointCloud();
-
     }
     else
-    {
-        std::lock_guard<std::mutex> lock(stream_mutex);
-
-        // Create color tensor
-        open3d::core::Tensor color_tensor = open3d::core::Tensor(
-        static_cast<const uint8_t*>(color_frame.get_data()),
-        {frame_height, frame_width, 3},
-        open3d::core::Dtype::UInt8,
-        open3d::core::Device("CPU:0"));
-
-        // Create depth tensor
-        open3d::core::Tensor depth_tensor = open3d::core::Tensor(
-        static_cast<const uint16_t*>(depth_frame.get_data()),
-        {frame_height, frame_width},
-        open3d::core::Dtype::UInt16,
-        open3d::core::Device("CPU:0"));
-
-        open3d::t::geometry::RGBDImage RGBDImage(color_tensor, depth_tensor);
-        
-        return open3d::t::geometry::PointCloud::CreateFromRGBDImage(RGBDImage, 
-                                                                    intrinsic, 
-                                                                    extrinsic, 
-                                                                    depth_scale,
-                                                                    10.0f, 1,
-                                                                    false);
-
+    {   
+        return open3d::t::geometry::PointCloud::CreateFromRGBDImage
+        (current_RGBDImage, intrinsic, extrinsic, depth_scale, 10.0f, 1, false);
     }
+
+
 }
+
+
 
 int Camera::getFPS()
 {

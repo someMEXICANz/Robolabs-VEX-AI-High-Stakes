@@ -174,9 +174,14 @@ bool FieldMapper::segmentPlanes()
     }
 
 
-    if (ground_plane_found && !potential_walls.empty()) 
+    if (ground_plane_found) 
     {
+        std::cerr << "Found Ground Plane and " << potential_walls.size() << " potential walls" << std::endl;
         //identifyWalls(potential_walls);
+    }
+    else
+    {
+        std::cerr << "No Ground Plane detected" << std::endl;
     }
     
     return ground_plane_found;

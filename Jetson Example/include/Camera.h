@@ -38,6 +38,9 @@ public:
     int getFPS();
     void getInferFrame(std::vector<float> &output); // Prepare & Process frame for Tensorrt engine
     open3d::t::geometry::PointCloud getPointCloud();
+    open3d::t::geometry::RGBDImage getRGBDImage();
+    
+    
 
     
 
@@ -68,6 +71,9 @@ private:
 
     int FPS;
     float depth_scale;
+
+    bool updateRGBDImage();
+    open3d::t::geometry::RGBDImage current_RGBDImage;
 
     
     void updateLoop();   

@@ -18,12 +18,12 @@ using namespace std;
 int main() 
 {
             
-    // boost::asio::io_service myService;
+    boost::asio::io_service myService;
 
     // UPS ups; // (threaded)
     // IMU imu; // (threaded)
-    // Brain::BrainComm brain(myService); // (threaded)
-    // RobotPosition robotPosition(brain, imu, myService); // (threaded) 
+    Brain::BrainComm brain(myService); // (threaded)
+    //RobotPosition robotPosition(brain, imu, myService); // (threaded) 
     
     Model model;
     ObjectDetection objdet;
@@ -36,20 +36,19 @@ int main()
     camera.setExtrinsic(0.0f, 90.0f, 0.0f, 0.0f, 0.05f, 0.0f);
     std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
-    // FieldMapper mapper(camera, robotPosition); // (threaded)
+    FieldMapper mapper(camera); //, robotPosition); // (threaded)
 
 
     while (true) 
     {
 
-        // if(camera.isConnected())
-        // {
+        if(camera.isConnected())
+        {
         std::cout << "Camera FPS: " << camera.getFPS() << std::endl;
         camera.getInferFrame(model.inferInput);
         model.runInference();
         std::vector<DetectedObject> Det = objdet.decodeOutputs(model.inferOutput1, model.inferOutput2);
-        camera.getPointCloud();
-        // }
+        }
 
         // if (cv::waitKey(1) == 27)
         // {

@@ -35,8 +35,10 @@ public:
     void setExtrinsic(float roll, float pitch, float yaw, 
                       float x,    float y,     float z);     
 
+    int getFPS();
     void getInferFrame(std::vector<float> &output); // Prepare & Process frame for Tensorrt engine
     open3d::t::geometry::PointCloud getPointCloud();
+
     
 
     // Thread Operations
@@ -63,6 +65,9 @@ private:
     void setIntrinsic(const rs2_intrinsics &intrinsics); 
     open3d::core::Tensor intrinsic;
     open3d::core::Tensor extrinsic;
+
+    int FPS;
+    float depth_scale;
 
     
     void updateLoop();   

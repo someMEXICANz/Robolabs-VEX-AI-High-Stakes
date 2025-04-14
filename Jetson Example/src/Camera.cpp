@@ -1,15 +1,19 @@
 #include <Camera.h>
 
 Camera::Camera() 
-: align_to(RS2_STREAM_COLOR), 
+: 
+  align_to(RS2_STREAM_COLOR), 
+  FPS(0),
   device(nullptr),
+//   intrinsic(Eigen::Matrix4d::Identity()),
+//   extrinsic(Eigen::Matrix4d::Identity()),
+  depth_scale(0.0f),
   running(false),
   connected(false),
   initialized(false),
   frame_width(640),
   frame_height(480)
 {
-    //findDevice();
     start();
 }
 
@@ -37,6 +41,7 @@ void Camera::initialize()
         rs2::stream_profile color_stream = pipe_profile.get_stream(RS2_STREAM_COLOR);
         rs2::video_stream_profile color_profile = color_stream.as<rs2::video_stream_profile>();
         setIntrinsic(color_profile.get_intrinsics());
+        depth_scale = device->first<rs2::depth_sensor>().get_depth_scale();
         initialized = true;
         std::cerr << "Realsense camera initialized" << std::endl;
        
@@ -102,9 +107,11 @@ bool Camera::reconnect()
 void Camera::updateLoop() 
 {
     std::cerr << "Camera update loop started" << std::endl;
+    int frame_count = 0;
+    std::chrono::time_point last_time = std::chrono::high_resolution_clock::now();
+
     while(running)
     {
-        std::lock_guard<std::mutex> lock(stream_mutex);
 
 
         if (!connected) 
@@ -115,14 +122,30 @@ void Camera::updateLoop()
         }
         else 
         {
+            //std::cerr << "Getting Frames" << std::endl;
             try{
-                std::cerr << "Getting Realsense frame " << std::endl;
                 rs2::frameset frameset = pipe.wait_for_frames();
                 frameset = align_to.process(frameset);
-
+                
                 // Get color and depth frames
+                std::lock_guard<std::mutex> lock(stream_mutex);
                 color_frame = frameset.get_color_frame();
                 depth_frame = frameset.get_depth_frame();
+                frame_count++;
+            
+                std::chrono::high_resolution_clock::now();
+
+                std::chrono::time_point current_time = std::chrono::high_resolution_clock::now();
+                auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_time).count();
+
+                if(elapsed >= 1000)
+                {
+                    FPS = static_cast<int>(frame_count * 1000 / elapsed);
+                    frame_count = 0;
+                    last_time = current_time;
+                }
+            
+            
             }catch(const rs2::camera_disconnected_error e)
             {
                 std::cerr << "Realsense error: " << e.what() << std::endl;
@@ -137,6 +160,7 @@ void Camera::updateLoop()
 bool Camera::findDevice()
 {
     rs2::device_list devices = context.query_devices();
+    std::lock_guard<std::mutex> lock(stream_mutex);
 
     if(devices.size() < 1)
     {
@@ -182,18 +206,7 @@ bool Camera::findDevice()
     return connected;
 }
 
-// cv::Mat Camera::convertFrameToMat(const rs2::frame &frame)
-// {
-//     // Get frame dimensions
-//     std::lock_guard<std::mutex> lock(stream_mutex);
-//     int width = frame.as<rs2::video_frame>().get_width();
-//     int height = frame.as<rs2::video_frame>().get_height();
-//     // Convert to OpenCV Mat
-//     if(frame.get_profile().format() == RS2_FORMAT_BGR8) 
-//         return cv::Mat(cv::Size(width, height), CV_8UC3, (void*)frame.get_data(), cv::Mat::AUTO_STEP);
-//     else if(frame.get_profile().format() == RS2_FORMAT_Z16) 
-//         return cv::Mat(cv::Size(width, height), CV_16U, (void*)frame.get_data(), cv::Mat::AUTO_STEP);
-// }
+
 
 
 void Camera::setIntrinsic(const rs2_intrinsics &intrinsics)
@@ -207,9 +220,29 @@ void Camera::setIntrinsic(const rs2_intrinsics &intrinsics)
 
 } 
 
-void Camera::setExtrinsic(float roll, float pitch, float yaw, float x, float y, float z) 
+void Camera::setExtrinsic(float roll, float pitch, float yaw, float x, float y, float z)
 {
- 
+    // Convert roll, pitch, yaw (in radians) to rotation matrix using Eigen
+    Eigen::AngleAxisf rollAngle(roll, Eigen::Vector3f::UnitZ());
+    Eigen::AngleAxisf pitchAngle(pitch, Eigen::Vector3f::UnitX());
+    Eigen::AngleAxisf yawAngle(yaw, Eigen::Vector3f::UnitY());
+    
+    Eigen::Matrix3f rotation_matrix = (yawAngle * pitchAngle * rollAngle).toRotationMatrix();
+    
+    // Create full 4x4 transformation matrix
+    float extrinsic_data[16] = {
+        rotation_matrix(0,0), rotation_matrix(0,1), rotation_matrix(0,2), x,
+        rotation_matrix(1,0), rotation_matrix(1,1), rotation_matrix(1,2), y,
+        rotation_matrix(2,0), rotation_matrix(2,1), rotation_matrix(2,2), z,
+        0, 0, 0, 1
+    };
+    
+    // Create the extrinsic tensor
+    extrinsic = open3d::core::Tensor(
+        extrinsic_data,
+        {4, 4},
+        open3d::core::Dtype::Float32,
+        open3d::core::Device("CPU:0"));
 }
 
 void Camera::getInferFrame(std::vector<float> &output)
@@ -268,30 +301,33 @@ open3d::t::geometry::PointCloud Camera::getPointCloud()
         open3d::core::Dtype::UInt16,
         open3d::core::Device("CPU:0"));
 
-        open3d::t::geometry::RGBDImage current_rgbd(color_tensor, depth_tensor);
+        open3d::t::geometry::RGBDImage RGBDImage(color_tensor, depth_tensor);
         
-        return open3d::t::geometry::PointCloud();
-
-        // return CreateFromRGBDImage()
-
-
+        return open3d::t::geometry::PointCloud::CreateFromRGBDImage(RGBDImage, 
+                                                                    intrinsic, 
+                                                                    extrinsic, 
+                                                                    depth_scale,
+                                                                    10.0f, 1,
+                                                                    false);
 
     }
-
-
-
-
-
-
-    // const uint16_t* depth_data = reinterpret_cast<const uint16_t*>(depth_frame.get_data());
-    // open3d::geometry::Image depth_image;
-    // depth_image.Prepare(rs_intrinsic.width, rs_intrinsic.height, 1, 2);
-    // std::memcpy(depth_image.data_.data(), depth_data, rs_intrinsic.width * rs_intrinsic.height * 2);
-    // return open3d::geometry::PointCloud::CreateFromDepthImage(depth_image, 
-    //                                                            o3d_intrinsic, 
-    //                                                            o3d_extrinsic, 
-    //                                                            depth_scale, 
-    //                                                            1000, 1, true);
 }
 
+int Camera::getFPS()
+{
+    std::lock_guard<std::mutex> lock(stream_mutex);
+    return FPS;
+}
 
+// cv::Mat Camera::convertFrameToMat(const rs2::frame &frame)
+// {
+//     // Get frame dimensions
+//     std::lock_guard<std::mutex> lock(stream_mutex);
+//     int width = frame.as<rs2::video_frame>().get_width();
+//     int height = frame.as<rs2::video_frame>().get_height();
+//     // Convert to OpenCV Mat
+//     if(frame.get_profile().format() == RS2_FORMAT_BGR8) 
+//         return cv::Mat(cv::Size(width, height), CV_8UC3, (void*)frame.get_data(), cv::Mat::AUTO_STEP);
+//     else if(frame.get_profile().format() == RS2_FORMAT_Z16) 
+//         return cv::Mat(cv::Size(width, height), CV_16U, (void*)frame.get_data(), cv::Mat::AUTO_STEP);
+// }

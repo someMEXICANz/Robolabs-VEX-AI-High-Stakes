@@ -98,7 +98,7 @@ void FieldMapper::updateLoop()
 bool FieldMapper::processPointCloud() 
 {   
     // Grab Raw Point Cloud from camera 
-    std::shared_ptr<open3d::geometry::PointCloud> legacy_cloud = camera.getPointCloud();
+    std::shared_ptr<open3d::geometry::PointCloud> legacy_cloud ;//  = camera.getPointCloud();
     
     if (!legacy_cloud || legacy_cloud->IsEmpty()) 
     {

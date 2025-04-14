@@ -19,18 +19,19 @@ int main() {
             
             
     Camera camera; // (threaded)
-
+    // Add this to the public section of your Camera class in Camera.h
+    camera.setExtrinsic(0.0f, 90.0f, 0.0f, 0.0f, 0.05f, 0.0f);
     boost::asio::io_service myService;
 
     // UPS ups; // (threaded)
-    IMU imu; // (threaded)
-    Brain::BrainComm brain(myService); // (threaded)
-    RobotPosition robotPosition(brain, imu, myService); // (threaded) 
+    //IMU imu; // (threaded)
+   // Brain::BrainComm brain(myService); // (threaded)
+   // RobotPosition robotPosition(brain, imu, myService); // (threaded) 
    
     Model model;
     ObjectDetection objdet;
 
-    FieldMapper mapper(camera, robotPosition); // (threaded)
+    // FieldMapper mapper(camera, robotPosition); // (threaded)
 
 
     while (true) 
@@ -38,10 +39,10 @@ int main() {
 
         
         //std::cout << "Camera is connected and running" << std::endl;
-        camera.preprocessFrames(model.inferInput);
+        camera.getInferFrame(model.inferInput);
         model.runInference();
-        std::vector<DetectedObject> Det = objdet.decodeOutputs(model.inferOutput1, model.inferOutput2);
-        camera.displayDetections(Det);
+        std::vector<DetectedObject> Det; // = objdet.decodeOutputs(model.inferOutput1, model.inferOutput2);
+        //camera.displayDetections(Det);
 
         if (cv::waitKey(1) == 27)
         {

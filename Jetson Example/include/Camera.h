@@ -32,10 +32,12 @@ public:
     Camera(const Camera&) = delete;
     Camera& operator=(const Camera&) = delete;
 
-    void updateStreams();                                      
-    void preprocessFrames(std::vector<float> &output); // Prepare & Process frame for Tensorrt engine
-    std::shared_ptr<open3d::geometry::PointCloud> getPointCloud();
-    void displayDetections(const std::vector<DetectedObject>& detections);
+    void setExtrinsic(float roll, float pitch, float yaw, 
+                      float x,    float y,     float z);     
+
+    void getInferFrame(std::vector<float> &output); // Prepare & Process frame for Tensorrt engine
+    open3d::t::geometry::PointCloud getPointCloud();
+    
 
     // Thread Operations
     bool start();
@@ -48,43 +50,36 @@ public:
 
 
 private:
-
+    
     rs2::pipeline pipe;              // RealSense pipeline
     rs2::config config;              // Configuration for the pipeline
     rs2::align align_to;             // Align depth to color
+    rs2::context context;
+    rs2::device* device;
   
-
-    std::shared_ptr<rs2::depth_sensor> rs_sensor;
-    rs2::stream_profile depth_stream;
-    rs2::stream_profile color_stream;
-    rs2::video_stream_profile depth_profile;
-    rs2::video_stream_profile color_profile;
-
-    int frame_width;
-    int frame_height;
-    
-
     rs2::frame color_frame; 
     rs2::frame depth_frame;                      
-            
-    rs2_intrinsics rs_intrinsic;
-    open3d::camera::PinholeCameraIntrinsic o3d_intrinsic;
-    Eigen::Matrix4d o3d_extrinsic;
-    float depth_scale;    
+    
+    void setIntrinsic(const rs2_intrinsics &intrinsics); 
+    open3d::core::Tensor intrinsic;
+    open3d::core::Tensor extrinsic;
+
+    
+    void updateLoop();   
+    bool findDevice();
+    void initialize();
+    bool reconnect();    
 
     bool running;
     bool connected;
-    float fps;
-    std::chrono::steady_clock::time_point lastFrameTime;
+    bool initialized;
+
+    const int frame_width;
+    const int frame_height;
 
     std::unique_ptr<std::thread> update_thread;
     std::mutex stream_mutex;
 
-    void updateLoop();
-    bool initialize();
-    bool reconnect();    
-    cv::Mat convertFrameToMat(const rs2::frame& frame); // Convert RealSense frame to OpenCV Mat
-    
     const std::chrono::milliseconds RECONNECT_DELAY{2500};
 
 

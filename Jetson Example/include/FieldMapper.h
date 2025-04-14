@@ -23,7 +23,7 @@
 class FieldMapper {
 public:
     // Constructor and Destructor
-    explicit FieldMapper(Camera& Camera, RobotPosition& Position);
+    explicit FieldMapper(Camera& Camera); //, RobotPosition& Position);
     ~FieldMapper();
 
     // Delete copy constructor and assignment operator
@@ -45,7 +45,7 @@ public:
 private:
     // References to external components
     Camera& camera;
-    RobotPosition& robot_position;
+    // RobotPosition& robot_position;
 
     void updateLoop();
     std::unique_ptr<std::thread> update_thread;
@@ -58,7 +58,7 @@ private:
     float map_resolution;
    
     // Data Storage
-    open3d::t::geometry::PointCloud current_tensor_cloud;
+    open3d::t::geometry::PointCloud current_PointCloud;
     std::tuple<Eigen::Vector4d, open3d::core::Tensor> ground_plane;
     cv::Mat occupancy_map;
     

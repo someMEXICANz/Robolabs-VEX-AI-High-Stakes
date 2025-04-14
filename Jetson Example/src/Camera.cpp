@@ -98,7 +98,7 @@ bool Camera::restart() {
     return start();
 }
 
-bool Camera::reconnect() 
+bool Camera::connect() 
 {   
     std::cerr << "Attempting to connect Realsense camera..." << std::endl;
     return findDevice();
@@ -109,16 +109,16 @@ void Camera::updateLoop()
     std::cerr << "Camera update loop started" << std::endl;
     int frame_count = 0;
     std::chrono::time_point last_time = std::chrono::high_resolution_clock::now();
+    std::chrono::time_point current_time = std::chrono::high_resolution_clock::now();
 
     while(running)
     {
 
-
         if (!connected) 
         {
-                reconnect();
-                std::this_thread::sleep_for(RECONNECT_DELAY);
-                continue;
+            connect();
+            std::this_thread::sleep_for(RECONNECT_DELAY);
+            continue;
         }
         else 
         {
@@ -131,28 +131,29 @@ void Camera::updateLoop()
                 std::lock_guard<std::mutex> lock(stream_mutex);
                 color_frame = frameset.get_color_frame();
                 depth_frame = frameset.get_depth_frame();
+                
                 frame_count++;
-            
-                std::chrono::high_resolution_clock::now();
-
-                std::chrono::time_point current_time = std::chrono::high_resolution_clock::now();
-                auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_time).count();
-
-                if(elapsed >= 1000)
-                {
-                    FPS = static_cast<int>(frame_count * 1000 / elapsed);
-                    frame_count = 0;
-                    last_time = current_time;
-                }
+                current_time = std::chrono::high_resolution_clock::now();
+                
             
             
-            }catch(const rs2::camera_disconnected_error e)
+            }catch(const rs2::error e)
             {
                 std::cerr << "Realsense error: " << e.what() << std::endl;
+                pipe.stop();
                 connected = false;
                 continue;
             }
 
+        }
+
+        int64 elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_time).count();
+
+        if(elapsed >= 1000)
+        {
+            FPS = static_cast<int>(frame_count * 1000 / elapsed);
+            frame_count = 0;
+            last_time = current_time;
         }
     }
 }
@@ -166,7 +167,6 @@ bool Camera::findDevice()
     {
         if(initialized)
         {
-            pipe.stop();
             std::cerr << "Could not detect prevously connected camera" << std::endl;
             connected = false;
         }
@@ -190,17 +190,6 @@ bool Camera::findDevice()
             device = new rs2::device(devices[0]);
             connected = true;
             initialize();
-        }
-        else 
-        {
-            if(devices.contains(*device))
-            {
-              
-                connected = true;
-                pipe.start(config);
-            }
-            else
-                connected = false;
         }
     }
     return connected;

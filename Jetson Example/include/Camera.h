@@ -73,7 +73,7 @@ private:
     void updateLoop();   
     bool findDevice();
     void initialize();
-    bool reconnect();    
+    bool connect();    
 
     bool running;
     bool connected;

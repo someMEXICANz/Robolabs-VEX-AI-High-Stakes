@@ -107,9 +107,15 @@ bool FieldMapper::processPointCloud()
         return false;
     }
 
-    current_PointCloud.EstimateNormals(30,1.5);
+    else
+    {
+        std::cerr << "Received point cloud from camera estimating normals" << std::endl;
+        current_PointCloud.EstimateNormals(30,1.5);
+        return true;
+    }
 
-    return true;
+
+    
         
 }
 

@@ -95,27 +95,29 @@ void FieldMapper::updateLoop()
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-bool FieldMapper::processPointCloud() 
-{   
-   std::lock_guard<std::mutex> lock(data_mutex);
-
-   current_PointCloud = camera.getPointCloud();
+bool FieldMapper::processPointCloud() {
+    std::lock_guard<std::mutex> lock(data_mutex);
     
-    if (current_PointCloud == nullptr) 
-    {
+    // Get point cloud from camera
+    std::shared_ptr<open3d::geometry::PointCloud> raw_point_cloud = camera.getPointCloud();
+    
+    if (raw_point_cloud == nullptr || raw_point_cloud->IsEmpty()) {
         std::cerr << "Received empty point cloud from camera" << std::endl;
         return false;
     }
 
-    else
-    {
-        std::cerr << "Received point cloud from camera estimating normals" << std::endl;
-        return true;
-    }
-
-
+    // Create a slightly downsampled version (e.g., 1cm voxel size for detail preservation)
+    legacy_point_cloud = raw_point_cloud->VoxelDownSample(0.01);
+    std::cerr << "Downsampled from " << raw_point_cloud->points_.size() 
+              << " to " << legacy_point_cloud->points_.size() << " points" << std::endl;
     
-        
+    // Convert to tensor point cloud
+    tensor_point_cloud = open3d::t::geometry::PointCloud::FromLegacy(*legacy_point_cloud, 
+                                                                     open3d::core::Float32,
+                                                                     open3d::core::Device("CPU:0"));
+    
+    std::cerr << "Point cloud processed and ready for segmentation" << std::endl;
+    return true;
 }
 
 

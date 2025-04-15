@@ -58,7 +58,7 @@ private:
     float map_resolution;
    
     // Data Storage
-    open3d::t::geometry::PointCloud current_PointCloud;
+    std::shared_ptr<open3d::geometry::PointCloud> current_PointCloud;
     std::tuple<Eigen::Vector4d, open3d::core::Tensor> ground_plane;
     cv::Mat occupancy_map;
     

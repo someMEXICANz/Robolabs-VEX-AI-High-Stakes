@@ -37,7 +37,7 @@ public:
 
     int getFPS();
     void getInferFrame(std::vector<float> &output); // Prepare & Process frame for Tensorrt engine
-    open3d::geometry::PointCloud getPointCloud();
+    std::shared_ptr<open3d::geometry::PointCloud> getPointCloud();
     std::shared_ptr<open3d::geometry::RGBDImage> getRGBDImage();
     
     
@@ -52,6 +52,7 @@ public:
     // Status checks
     bool isConnected() const {return connected;}
     bool isRunning() const {return running;}
+    bool isInitialized() const {return initialized;}
 
     void debug();
 

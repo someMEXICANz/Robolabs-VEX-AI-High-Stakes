@@ -25,33 +25,27 @@ using namespace std;
 int main() 
 {
             
-    boost::asio::io_service myService;
+    
 
     // UPS ups; // (threaded)
     // IMU imu; // (threaded)
+    // boost::asio::io_service myService;
     // Brain::BrainComm brain(myService); // (threaded)
     // RobotPosition robotPosition(brain, imu, myService); // (threaded) 
-    // Model model;
-    // ObjectDetection objdet;
 
+    Model model;
+    ObjectDetection objdet;
 
-    open3d::utility::SetVerbosityLevel(open3d::utility::VerbosityLevel::Debug);
-
-    
     Camera camera; // (threaded)
-    while(!camera.isConnected())
+
+    while(!camera.isInitialized())
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    // camera.setExtrinsic(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-    // camera.debug();
+
+    camera.setExtrinsic(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     
-    // FieldMapper mapper(camera); //, robotPosition); // (threaded)
-    // std::this_thread::sleep_for(std::chrono::seconds(5));
-    
-
-
-
+    FieldMapper mapper(camera); //, robotPosition); // (threaded)
 
     while (true) 
     {
@@ -59,28 +53,13 @@ int main()
         if(camera.isConnected())
         {
         std::cout << "Camera FPS: " << camera.getFPS() << std::endl;
-        // open3d::geometry::RGBDImage rgbd_image = camera.getRGBDImage();
-        // if (!rgbd_image.IsEmpty()) 
-        // {
-
-           
-        // }
-
-
-
-        // camera.getInferFrame(model.inferInput);
-        // model.runInference();
-        // std::vector<DetectedObject> Det = objdet.decodeOutputs(model.inferOutput1, model.inferOutput2);
-        // camera.getPointCloud();
+        camera.getInferFrame(model.inferInput);
+        model.runInference();
+        std::vector<DetectedObject> Det = objdet.decodeOutputs(model.inferOutput1, model.inferOutput2);
+        camera.getPointCloud();
 
         }
 
-        // if (cv::waitKey(1) == 27)
-        // {
-        //     break;
-        // }
-      
-    
     
         // if(brain.isConnected() && brain.isRunning())
         // {

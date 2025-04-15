@@ -23,43 +23,6 @@ Camera::~Camera()
     stop();
 }
 
-
-void Camera::initialize()
-{
- 
-    if(device != nullptr)
-    {
-
-        pipe.set_device(device);
-
-        // Configure the pipeline for color and depth streams
-        config.enable_stream(RS2_STREAM_COLOR, frame_width, frame_height, RS2_FORMAT_BGR8, 30);
-        config.enable_stream(RS2_STREAM_DEPTH, frame_width, frame_height, RS2_FORMAT_Z16, 30);
-            
-        // Retrieve the profiles of the pipeline and color stream
-        rs2::pipeline_profile pipe_profile = pipe.start(config);
-        rs2::stream_profile color_stream = pipe_profile.get_stream(RS2_STREAM_COLOR);
-        rs2::video_stream_profile color_profile = color_stream.as<rs2::video_stream_profile>();
-        //setIntrinsic(color_profile.get_intrinsics());
-        depth_scale = device->first<rs2::depth_sensor>().get_depth_scale();
-        color_image = std::make_shared<open3d::geometry::Image>();
-        depth_image = std::make_shared<open3d::geometry::Image>();
-        color_image->Prepare(frame_width, frame_height, 3, sizeof(uint8_t));
-        color_image->Prepare(frame_width, frame_height, 1, sizeof(uint16_t));
-        current_RGBDImage = std::make_shared<open3d::geometry::RGBDImage>();
-        initialized = true;
-        std::cerr << "Realsense camera initialized" << std::endl;
-       
-    }
-    else 
-    {
-        initialized = false;
-        std::cerr << "Realsense camera can not be initialized no device connected" << std::endl;
-    }
-   
-}
-
-
 bool Camera::start() {
     if (running) 
     {
@@ -87,40 +50,16 @@ void Camera::stop()
 {
     running = false;
     
-    if (update_thread && update_thread->joinable()) {
+    if (update_thread && update_thread->joinable()) 
+    {
         update_thread->join();
+        update_thread.reset();
     }
-    update_thread.reset();
 
     pipe.stop();
     connected = false;
 
 }
-
-// void Camera::debug()
-// {
-//     if(running && connected)
-//     {
-//         float* intrinsic_data = static_cast<float*>(intrinsic.GetDataPtr());
-//         std::cerr << "Intrinsic matrix values:" << std::endl;
-//         std::cerr << intrinsic_data[0] << " " << intrinsic_data[1] << " " << intrinsic_data[2] << std::endl;
-//         std::cerr << intrinsic_data[3] << " " << intrinsic_data[4] << " " << intrinsic_data[5] << std::endl;
-//         std::cerr << intrinsic_data[6] << " " << intrinsic_data[7] << " " << intrinsic_data[8] << std::endl;
-
-//         float* extrinsic_data = static_cast<float*>(extrinsic.GetDataPtr());
-
-//         std::cerr << "Extrinsic matrix values:" << std::endl;
-//         for(int i = 0; i < 4; i++)
-//         {
-//             for(int j = 0; j < 4; j++)
-//             {
-//                 std::cerr << extrinsic_data[i*4+j] << " " ;
-
-//             }
-//             std::cerr << std::endl;
-//         }
-//     }
-// }
 
 bool Camera::restart() {
     std::cerr << "Restarting camera..." << std::endl;
@@ -134,73 +73,43 @@ bool Camera::connect()
     return findDevice();
 }
 
-void Camera::updateLoop() 
+void Camera::initialize()
 {
-    std::cerr << "Camera update loop started" << std::endl;
-    int frame_count = 0;
-    std::chrono::time_point last_time = std::chrono::high_resolution_clock::now();
-    std::chrono::time_point current_time = std::chrono::high_resolution_clock::now();
-
-    while(running)
+ 
+    if(device != nullptr)
     {
 
-        if (!connected) 
-        {
-            connect();
-            std::this_thread::sleep_for(RECONNECT_DELAY);
-            continue;
-        }
-        else 
-        {
-            
-            rs2::frameset frameset = pipe.wait_for_frames();
-            frameset = align_to.process(frameset);
-            
-            // Get color and depth frames
-            std::lock_guard<std::mutex> lock(stream_mutex);
-            color_frame = frameset.get_color_frame();
-            depth_frame = frameset.get_depth_frame();
-            
-            frame_count++;
-            current_time = std::chrono::high_resolution_clock::now();
-                
-            std::memcpy(color_image->data_.data(), color_frame.get_data(),
-                        frame_width * frame_height * sizeof(u_int8_t));
-            std::memcpy(depth_image->data_.data(), depth_frame.get_data(),
-                        frame_width * frame_height * sizeof(u_int16_t));
+        pipe.set_device(device);
 
-            current_RGBDImage = open3d::geometry::RGBDImage::CreateFromColorAndDepth(
-                                                            *color_image, *depth_image,
-                                                            depth_scale, 10, true);
+        // Configure the pipeline for color and depth streams
+        config.enable_stream(RS2_STREAM_COLOR, frame_width, frame_height, RS2_FORMAT_BGR8, 30);
+        config.enable_stream(RS2_STREAM_DEPTH, frame_width, frame_height, RS2_FORMAT_Z16, 30);
             
-        }
+        // Retrieve the profiles of the pipeline and color stream
+        rs2::pipeline_profile pipe_profile = pipe.start(config);
+        rs2::stream_profile color_stream = pipe_profile.get_stream(RS2_STREAM_COLOR);
+        rs2::video_stream_profile color_profile = color_stream.as<rs2::video_stream_profile>();
+        setIntrinsic(color_profile.get_intrinsics());
+        depth_scale = device->first<rs2::depth_sensor>().get_depth_scale();
 
-        int64 elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_time).count();
+        color_image = std::make_shared<open3d::geometry::Image>();
+        depth_image = std::make_shared<open3d::geometry::Image>();
 
-        if(elapsed >= 1000)
-        {
-            FPS = static_cast<int>(frame_count * 1000 / elapsed);
-            frame_count = 0;
-            last_time = current_time;
-        }
+        color_image->Prepare(frame_width, frame_height, 3, sizeof(uint8_t));
+        depth_image->Prepare(frame_width, frame_height, 1, sizeof(uint16_t));
+
+        current_RGBDImage = std::make_shared<open3d::geometry::RGBDImage>();
+        initialized = true;
+        std::cerr << "Realsense camera initialized" << std::endl;
+       
     }
+    else 
+    {
+        initialized = false;
+        std::cerr << "Realsense camera can not be initialized no device connected" << std::endl;
+    }
+   
 }
-
-
-// bool Camera::updateRGBDImage()
-// {
-//     std::lock_guard<std::mutex> lock(stream_mutex);
-
-//     shared_ptr<open3d::geometry::Image> color_image = make_shared<open3d::geometry::Image>();
-//     shared_ptr<open3d::geometry::Image> depth_image = make_shared<open3d::geometry::Image>();
-
-//     color_image->Prepare(frame_width, frame_height, 3, sizeof(uint8_t));
-
-
-
-//     return !current_RGBDImage.IsEmpty();
-// }
-
 
 
 bool Camera::findDevice()
@@ -235,49 +144,123 @@ bool Camera::findDevice()
 }
 
 
-
-
-// void Camera::setIntrinsic(const rs2_intrinsics &intrinsics)
+// void Camera::debug()
 // {
-//     float intrinsic_data[] = {intrinsics.fx, 0, intrinsics.ppx, 0,
-//                               intrinsics.fy, intrinsics.ppy, 0, 0, 1};  
-    
-//     intrinsic = open3d::core::Tensor(intrinsic_data, {3,3},
-//                                      open3d::core::Dtype::Float32,
-//                                      open3d::core::Device("CPU:0"));
+//     if(running && connected)
+//     {
+//         float* intrinsic_data = static_cast<float*>(intrinsic.GetDataPtr());
+//         std::cerr << "Intrinsic matrix values:" << std::endl;
+//         std::cerr << intrinsic_data[0] << " " << intrinsic_data[1] << " " << intrinsic_data[2] << std::endl;
+//         std::cerr << intrinsic_data[3] << " " << intrinsic_data[4] << " " << intrinsic_data[5] << std::endl;
+//         std::cerr << intrinsic_data[6] << " " << intrinsic_data[7] << " " << intrinsic_data[8] << std::endl;
 
-// } 
+//         float* extrinsic_data = static_cast<float*>(extrinsic.GetDataPtr());
 
-// void Camera::setExtrinsic(float roll, float pitch, float yaw, float x, float y, float z)
-// {
-//     float roll_rad = roll * M_PI / 180.0f;
-//     float pitch_rad = pitch * M_PI / 180.0f;
-//     float yaw_rad = yaw * M_PI / 180.0f;
-//     // Convert roll, pitch, yaw (in radians) to rotation matrix using Eigen
-//     Eigen::AngleAxisf rollAngle(roll_rad, Eigen::Vector3f::UnitZ());
-//     Eigen::AngleAxisf pitchAngle(pitch_rad, Eigen::Vector3f::UnitX());
-//     Eigen::AngleAxisf yawAngle(yaw_rad, Eigen::Vector3f::UnitY());
-    
-//     Eigen::Matrix3f rotation_matrix = (yawAngle * pitchAngle * rollAngle).toRotationMatrix();
-    
-//     // Create full 4x4 transformation matrix
-//     float extrinsic_data[16] = {
-//         rotation_matrix(0,0), rotation_matrix(0,1), rotation_matrix(0,2), x,
-//         rotation_matrix(1,0), rotation_matrix(1,1), rotation_matrix(1,2), y,
-//         rotation_matrix(2,0), rotation_matrix(2,1), rotation_matrix(2,2), z,
-//         0, 0, 0, 1
-//     };
-    
-//     // Create the extrinsic tensor
-//     extrinsic = open3d::core::Tensor(
-//         extrinsic_data,
-//         {4, 4},
-//         open3d::core::Dtype::Float32,
-//         open3d::core::Device("CPU:0"));
+//         std::cerr << "Extrinsic matrix values:" << std::endl;
+//         for(int i = 0; i < 4; i++)
+//         {
+//             for(int j = 0; j < 4; j++)
+//             {
+//                 std::cerr << extrinsic_data[i*4+j] << " " ;
 
-//     std::cerr << "Extrinsic matrix set with | Roll: " << roll << " Pitch: " << pitch << " Yaw: " << yaw <<
-//                  " (X,Y,Z): (" << x << y << z << ")" << std::endl;
+//             }
+//             std::cerr << std::endl;
+//         }
+//     }
 // }
+
+
+
+void Camera::updateLoop() 
+{
+    std::cerr << "Camera update loop started" << std::endl;
+    int frame_count = 0;
+    std::chrono::time_point last_time = std::chrono::high_resolution_clock::now();
+    std::chrono::time_point current_time = std::chrono::high_resolution_clock::now();
+
+    while(running)
+    {
+
+        if (!connected && !initialized) 
+        {
+            connect();
+            std::this_thread::sleep_for(RECONNECT_DELAY);
+            continue;
+        }
+        else 
+        {
+            
+            rs2::frameset frameset = pipe.wait_for_frames();
+            frameset = align_to.process(frameset);
+            
+            // Get color and depth frames
+            std::lock_guard<std::mutex> lock(stream_mutex);
+            color_frame = frameset.get_color_frame();
+            depth_frame = frameset.get_depth_frame();
+            
+            frame_count++;
+            current_time = std::chrono::high_resolution_clock::now();
+                
+            std::memcpy(color_image->data_.data(), color_frame.get_data(),
+                        frame_width * frame_height * 3 * sizeof(u_int8_t));
+            std::memcpy(depth_image->data_.data(), depth_frame.get_data(),
+                        frame_width * frame_height * sizeof(u_int16_t));
+
+            current_RGBDImage = open3d::geometry::RGBDImage::CreateFromColorAndDepth(
+                                                            *color_image, *depth_image,
+                                                            1/depth_scale, 10, true);
+            
+        }
+
+        int64 elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_time).count();
+
+        if(elapsed >= 1000)
+        {
+            FPS = static_cast<int>(frame_count * 1000 / elapsed);
+            frame_count = 0;
+            last_time = current_time;
+        }
+    }
+}
+
+
+
+
+
+
+
+void Camera::setIntrinsic(const rs2_intrinsics &intrinsics)
+{
+
+    intrinsic = open3d::camera::PinholeCameraIntrinsic(frame_width, frame_height, 
+                                                       intrinsics.fx, intrinsics.fy,
+                                                       intrinsics.ppx, intrinsics.ppy);
+
+} 
+
+void Camera::setExtrinsic(float roll, float pitch, float yaw, float x, float y, float z)
+{
+    float roll_rad = roll * M_PI / 180.0f;
+    float pitch_rad = pitch * M_PI / 180.0f;
+    float yaw_rad = yaw * M_PI / 180.0f;
+    // Convert roll, pitch, yaw (in radians) to rotation matrix using Eigen
+    Eigen::AngleAxisd rollAngle(roll_rad, Eigen::Vector3d::UnitZ());
+    Eigen::AngleAxisd pitchAngle(pitch_rad, Eigen::Vector3d::UnitX());
+    Eigen::AngleAxisd yawAngle(yaw_rad, Eigen::Vector3d::UnitY());
+    
+    Eigen::Matrix3d rotation_matrix = (yawAngle * pitchAngle * rollAngle).toRotationMatrix();
+    
+   
+    extrinsic = Eigen::Matrix4d::Identity();
+    extrinsic.block<3,3>(0,0) = rotation_matrix;
+
+    extrinsic(0,3) = x;
+    extrinsic(1,3) = y;
+    extrinsic(2,3) = z;
+
+    // std::cerr << "Extrinsic matrix set with | Roll: " << roll << " Pitch: " << pitch << " Yaw: " << yaw <<
+    //              " (X,Y,Z): (" << x << y << z << ")" << std::endl;
+}
 
 void Camera::getInferFrame(std::vector<float> &output)
 {
@@ -308,21 +291,38 @@ void Camera::getInferFrame(std::vector<float> &output)
     }
 }
 
-// open3d::t::geometry::PointCloud Camera::getPointCloud()
-// {
-//     std::lock_guard<std::mutex> lock(stream_mutex);
-//     if(current_RGBDImage.IsEmpty())
-//     {
-//         return open3d::t::geometry::PointCloud();
-//     }
-//     else
-//     {   
-//         return open3d::t::geometry::PointCloud::CreateFromRGBDImage
-//         (current_RGBDImage, intrinsic, extrinsic, depth_scale, 10.0f, 1, false);
-//     }
 
 
-// }
+
+
+
+std::shared_ptr<open3d::geometry::PointCloud> Camera::getPointCloud()
+{
+    std::lock_guard<std::mutex> lock(stream_mutex);
+    if(current_RGBDImage->IsEmpty())
+    {
+        return nullptr;
+    }
+    else
+    {   
+        std::shared_ptr<open3d::geometry::PointCloud> Point_Cloud  = std::make_shared<open3d::geometry::PointCloud>();
+        Point_Cloud = open3d::geometry::PointCloud::CreateFromRGBDImage(*current_RGBDImage, intrinsic, extrinsic);
+        if(Point_Cloud->IsEmpty())
+        {
+            std::cerr << "Point Cloud is empty" << std::endl;
+            return nullptr;
+        }
+        else 
+        {
+            std::cerr << "Point Cloud has " << Point_Cloud->points_.size() << " points" << std::endl;
+            return Point_Cloud;
+        }
+    }
+
+
+}
+
+
 std::shared_ptr<open3d::geometry::RGBDImage> Camera::getRGBDImage()
 {
     std::lock_guard<std::mutex> lock(stream_mutex);

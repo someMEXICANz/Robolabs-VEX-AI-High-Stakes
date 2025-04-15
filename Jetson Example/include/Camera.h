@@ -37,8 +37,8 @@ public:
 
     int getFPS();
     void getInferFrame(std::vector<float> &output); // Prepare & Process frame for Tensorrt engine
-    open3d::t::geometry::PointCloud getPointCloud();
-    open3d::t::geometry::RGBDImage getRGBDImage();
+    open3d::geometry::PointCloud getPointCloud();
+    std::shared_ptr<open3d::geometry::RGBDImage> getRGBDImage();
     
     
 
@@ -53,6 +53,8 @@ public:
     bool isConnected() const {return connected;}
     bool isRunning() const {return running;}
 
+    void debug();
+
 
 private:
     
@@ -63,17 +65,20 @@ private:
     rs2::device* device;
   
     rs2::frame color_frame; 
-    rs2::frame depth_frame;                      
+    rs2::frame depth_frame;  
+
+    std::shared_ptr<open3d::geometry::Image> color_image;
+    std::shared_ptr<open3d::geometry::Image> depth_image;                    
     
     void setIntrinsic(const rs2_intrinsics &intrinsics); 
-    open3d::core::Tensor intrinsic;
-    open3d::core::Tensor extrinsic;
+    open3d::camera::PinholeCameraIntrinsic intrinsic;
+    Eigen::Matrix4d extrinsic;
 
     int FPS;
     float depth_scale;
 
-    bool updateRGBDImage();
-    open3d::t::geometry::RGBDImage current_RGBDImage;
+    // bool updateRGBDImage();
+    std::shared_ptr<open3d::geometry::RGBDImage> current_RGBDImage;
 
     
     void updateLoop();   

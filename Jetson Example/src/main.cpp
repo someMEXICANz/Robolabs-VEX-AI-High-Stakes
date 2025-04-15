@@ -13,7 +13,14 @@
 #include <FieldMapper.h>
 #include <RobotVisualizer.h>
 
+
+#include <open3d/visualization/gui/Application.h>
+#include <open3d/visualization/gui/Window.h>
+#include <open3d/visualization/rendering/Scene.h>
+#include <open3d/visualization/visualizer/O3DVisualizer.h>
+
 using namespace std;
+
 
 int main() 
 {
@@ -22,21 +29,28 @@ int main()
 
     // UPS ups; // (threaded)
     // IMU imu; // (threaded)
-    Brain::BrainComm brain(myService); // (threaded)
-    //RobotPosition robotPosition(brain, imu, myService); // (threaded) 
-    
-    Model model;
-    ObjectDetection objdet;
+    // Brain::BrainComm brain(myService); // (threaded)
+    // RobotPosition robotPosition(brain, imu, myService); // (threaded) 
+    // Model model;
+    // ObjectDetection objdet;
 
+
+    open3d::utility::SetVerbosityLevel(open3d::utility::VerbosityLevel::Debug);
+
+    
     Camera camera; // (threaded)
     while(!camera.isConnected())
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    camera.setExtrinsic(0.0f, 90.0f, 0.0f, 0.0f, 0.05f, 0.0f);
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    // camera.setExtrinsic(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    // camera.debug();
+    
+    // FieldMapper mapper(camera); //, robotPosition); // (threaded)
+    // std::this_thread::sleep_for(std::chrono::seconds(5));
+    
 
-    FieldMapper mapper(camera); //, robotPosition); // (threaded)
+
 
 
     while (true) 
@@ -45,9 +59,20 @@ int main()
         if(camera.isConnected())
         {
         std::cout << "Camera FPS: " << camera.getFPS() << std::endl;
-        camera.getInferFrame(model.inferInput);
-        model.runInference();
-        std::vector<DetectedObject> Det = objdet.decodeOutputs(model.inferOutput1, model.inferOutput2);
+        // open3d::geometry::RGBDImage rgbd_image = camera.getRGBDImage();
+        // if (!rgbd_image.IsEmpty()) 
+        // {
+
+           
+        // }
+
+
+
+        // camera.getInferFrame(model.inferInput);
+        // model.runInference();
+        // std::vector<DetectedObject> Det = objdet.decodeOutputs(model.inferOutput1, model.inferOutput2);
+        // camera.getPointCloud();
+
         }
 
         // if (cv::waitKey(1) == 27)
@@ -62,7 +87,7 @@ int main()
         //     brain.setJetsonBattery(ups.getBatteryPercentage());
         // }
 
-        //std::this_thread::sleep_for(std::chrono::milliseconds(100));    
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));    
     }
     
     camera.stop();
@@ -97,6 +122,3 @@ void printUPSdata(UPS &ups)
     std::cout << "Percent:       " << percentage << "%" << std::endl;
     std::cout << "--------------------------------------------" << std::endl;
 }
-
-
-

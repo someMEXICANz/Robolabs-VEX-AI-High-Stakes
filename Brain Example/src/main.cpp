@@ -10,7 +10,7 @@ void pre_auton(void)
 {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
-  // initiateComms();
+  //initiateComms();
 }
 
 void autonomous(void) {

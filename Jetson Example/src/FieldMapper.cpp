@@ -1,8 +1,8 @@
 #include <FieldMapper.h>
 
-FieldMapper::FieldMapper(Camera& Camera) // , RobotPosition& Position) 
+FieldMapper::FieldMapper(Camera& Camera, RobotPosition& Position) 
     : camera(Camera),
-    //   robot_position(Position),
+      robot_position(Position),
       running(false),
       map_width(3.66f),
       map_height(3.66f),
@@ -13,9 +13,7 @@ FieldMapper::FieldMapper(Camera& Camera) // , RobotPosition& Position)
       plane_ransac_n(3),
       plane_num_iterations(1000),
       min_height_threshold(0.1f),
-      max_height_threshold(1.5f),
-      ground_threshold(.95)
-        
+      max_height_threshold(1.5f)
 {
     start();
 }
@@ -78,13 +76,8 @@ void FieldMapper::updateLoop()
         {
             if (processPointCloud())
             {
-                if(segmentPlanes())
-                {
-                   
-                    // fIlterPoints();
-                    // clusterObstacles()
-                }
-             }
+                segmentPlanes();
+            }
         }
     }
     
@@ -95,29 +88,28 @@ void FieldMapper::updateLoop()
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-bool FieldMapper::processPointCloud() {
-    std::lock_guard<std::mutex> lock(data_mutex);
-    
-    // Get point cloud from camera
+bool FieldMapper::processPointCloud() 
+{   
+    // Grab Raw Point Cloud from camera 
     std::shared_ptr<open3d::geometry::PointCloud> raw_point_cloud = camera.getPointCloud();
     
-    if (raw_point_cloud == nullptr || raw_point_cloud->IsEmpty()) {
+    if (raw_point_cloud = nullptr || raw_point_cloud->IsEmpty()) 
+    {
         std::cerr << "Received empty point cloud from camera" << std::endl;
         return false;
     }
-
-    // Create a slightly downsampled version (e.g., 1cm voxel size for detail preservation)
-    legacy_point_cloud = raw_point_cloud->VoxelDownSample(0.01);
-    std::cerr << "Downsampled from " << raw_point_cloud->points_.size() 
-              << " to " << legacy_point_cloud->points_.size() << " points" << std::endl;
-    
-    // Convert to tensor point cloud
-    tensor_point_cloud = open3d::t::geometry::PointCloud::FromLegacy(*legacy_point_cloud, 
-                                                                     open3d::core::Float32,
-                                                                     open3d::core::Device("CPU:0"));
-    
-    std::cerr << "Point cloud processed and ready for segmentation" << std::endl;
-    return true;
+    else 
+    {
+        std::lock_guard<std::mutex> lock(data_mutex);
+        legacy_point_cloud = raw_point_cloud->VoxelDownSample(0.01);
+        std::cerr << "Downsampled from " << raw_point_cloud->points_.size() 
+                  << " to " << legac->points_.size() << " points" << std::endl;
+        current_tensor_cloud = open3d::t::geometry::PointCloud::FromLegacy(*legacy_cloud, 
+                                                                           open3d::core::Float32, 
+                                                                           open3d::core::Device("CPU:0"));
+        current_tensor_cloud.EstimateNormals(30,1.5);
+        return true;
+    }      
 }
 
 
@@ -125,78 +117,37 @@ bool FieldMapper::processPointCloud() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-bool FieldMapper::segmentPlanes()
+void FieldMapper::segmentPlanes()
 {
     std::lock_guard<std::mutex> lock(data_mutex);
-
-    open3d::t::geometry::PointCloud processing_cloud = current_PointCloud.To(open3d::core::Device("CUDA:0"),true);
-    
-    std::vector<std::tuple<Eigen::Vector4d, open3d::core::Tensor>> potential_walls;
-    std::tuple<open3d::core::Tensor, open3d::core::Tensor> segment_result;
-
-        
+    std::vector<std::tuple<Eigen::Vector4d, open3d::geometry::PointCloud>> detected_planes;   
     const int max_planes = 3;
-    bool ground_plane_found = false;
+
 
     for (int i = 0; i < max_planes; ++i) 
     {
-        if (processing_cloud.GetPointPositions().GetLength() < plane_ransac_n);
-        {
+        if (current_tensor_cloud.GetPointPositions().GetLength() < plane_ransac_n);
             break;
-        }
-        try{
+    
+        // Perform plane segmentation using RANSAC
+        std::tuple< open3d::core::Tensor, open3d::core::Tensor> 
+        result = current_tensor_cloud.SegmentPlane(
+                                            plane_distance_threshold,                  // Maximum distance from the plane
+                                            plane_ransac_n,                            // Number of points to sample
+                                            plane_num_iterations);                     // Number of RANSAC iterations
             
-            segment_result = processing_cloud.SegmentPlane(
-                                                    plane_distance_threshold,                  // Maximum distance from the plane
-                                                    plane_ransac_n,                            // Number of points to sample
-                                                    plane_num_iterations);                     // Number of RANSAC iterations
-        } catch (const std::exception& e) 
-        {
-            std::cerr << "Failed to segment a plane from pointcloud " << e.what() << std::endl;
-            break;
-        }
+        open3d::core::Tensor plane_tensor = std::get<0>(result);
+        open3d::core::Tensor plane_indices = std::get<1>(result);
 
-        open3d::core::Tensor plane_tensor = std::get<0>(segment_result);
-        open3d::core::Tensor plane_indices = std::get<1>(segment_result);
-
-        // Extract plane equation (ax + by + cz + d = 0)
         float* data_ptr = static_cast<float*>(plane_tensor.GetDataPtr());
         Eigen::Vector4d plane_equation(data_ptr[0], data_ptr[1], data_ptr[2], data_ptr[3]);
-        Eigen::Vector3d plane_normal(plane_equation[0], plane_equation[1], plane_equation[2]);
 
-        plane_normal.normalize();
-        float dot_product = plane_normal.dot(Eigen::Vector3d(0, 0, 1));
-      
-        if(!ground_plane_found && dot_product > ground_threshold) 
-        {
-            ground_plane = std::make_tuple(plane_equation, plane_indices);
-            ground_plane_found = true;
-        }
-        else
-        {
-            potential_walls.push_back(std::make_tuple(plane_equation, plane_indices));
-        }
-       
-        processing_cloud = processing_cloud.SelectByIndex(plane_indices, true);
+        open3d::t::geometry::PointCloud plane_cloud = current_tensor_cloud.SelectByIndex(plane_indices, false, true);
+
+        std::tuple<Eigen::Vector4d, open3d::geometry::PointCloud> current_plane = std::make_tuple(plane_equation, plane_cloud.ToLegacy());
+        
+        detected_planes.push_back(current_plane);
     }
-
-
-    if (ground_plane_found) 
-    {
-        std::cerr << "Found Ground Plane and " << potential_walls.size() << " potential walls" << std::endl;
-        //identifyWalls(potential_walls);
-    }
-    else
-    {
-        std::cerr << "No Ground Plane detected" << std::endl;
-    }
-    
-    return ground_plane_found;
-
 }
-
                 
             
-
-
-

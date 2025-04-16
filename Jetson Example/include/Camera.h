@@ -36,7 +36,7 @@ public:
                       float x,    float y,     float z);     
 
     int getFPS();
-    void getInferFrame(std::vector<float> &output); // Prepare & Process frame for Tensorrt engine
+    bool getInferFrame(std::vector<float> &output); // Prepare & Process frame for Tensorrt engine
     std::shared_ptr<open3d::geometry::PointCloud> getPointCloud();
     std::shared_ptr<open3d::geometry::RGBDImage> getRGBDImage();
     

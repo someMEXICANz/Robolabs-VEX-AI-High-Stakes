@@ -33,34 +33,32 @@ int main()
     // Brain::BrainComm brain(myService); // (threaded)
     // RobotPosition robotPosition(brain, imu, myService); // (threaded) 
 
-    Model model;
-    ObjectDetection objdet;
-
     Camera camera; // (threaded)
 
-    while(!camera.isInitialized())
+    while(!camera.isInitialized() || !camera.isRunning())
     {
+        std::cerr << "Waiting for camera, standy..." << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-
     camera.setExtrinsic(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+
+    Model model;
+    ObjectDetection objdet;
     
     FieldMapper mapper(camera); //, robotPosition); // (threaded)
+    std::vector<DetectedObject> Detections;
 
     while (true) 
     {
 
-        if(camera.isConnected())
-        {
         std::cout << "Camera FPS: " << camera.getFPS() << std::endl;
-        camera.getInferFrame(model.inferInput);
-        model.runInference();
-        std::vector<DetectedObject> Det = objdet.decodeOutputs(model.inferOutput1, model.inferOutput2);
-        camera.getPointCloud();
-
-        }
-
-    
+       
+        // if(camera.getInferFrame(model.inferInput))
+        // {
+        //     model.runInference();
+        //     Detections = objdet.decodeOutputs(model.inferOutput1, model.inferOutput2);
+        // }
+            
         // if(brain.isConnected() && brain.isRunning())
         // {
         //     brain.setJetsonBattery(ups.getBatteryPercentage());

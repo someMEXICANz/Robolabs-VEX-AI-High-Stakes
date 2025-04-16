@@ -38,10 +38,6 @@ public:
     // Map access methods
     cv::Mat getOccupancyMap() const;
     
-   
-
-    
-
 private:
     // References to external components
     Camera& camera;
@@ -58,14 +54,14 @@ private:
     float map_resolution;
    
     // Data Storage
-    open3d::geometry::PointCloud legacy_point_cloud;
-    open3d::geometry::PointCloud tensor_point_cloud;
+    std::shared_ptr<open3d::geometry::PointCloud> legacy_point_cloud;
+    open3d::t::geometry::PointCloud tensor_point_cloud;
 
 
     std::tuple<Eigen::Vector4d, open3d::core::Tensor> ground_plane;
     cv::Mat occupancy_map;
     
-    // DBSCAN clustering parameters
+    //DBSCAN clustering parameters
     float cluster_eps;
     int cluster_min_points;
     
@@ -73,12 +69,13 @@ private:
     float plane_distance_threshold;
     int plane_ransac_n;
     int plane_num_iterations;
+    float ground_threshold;
 
-    // // Filtering parameters
+    // Filtering parameters
     float min_height_threshold;
     float max_height_threshold;
 
-    const float ground_threshold; // cos(~18 degrees)
+   
     
     // Processing methods
     bool processPointCloud();

@@ -73,7 +73,8 @@
         "tensor": "cpp",
         "unordered_set": "cpp",
         "__locale": "cpp",
-        "core": "cpp"
+        "core": "cpp",
+        "__config": "cpp"
     }
 
 

@@ -24,14 +24,11 @@ using namespace std;
 
 int main() 
 {
-            
-    
-
     // UPS ups; // (threaded)
     IMU imu; // (threaded)
     boost::asio::io_service myService;
     Brain::BrainComm brain(myService); // (threaded)
-    // RobotPosition robotPosition(brain, imu, myService); // (threaded) 
+    RobotPosition robotPosition(brain, imu, myService); // (threaded) 
 
     Camera camera; // (threaded)
 
@@ -50,7 +47,6 @@ int main()
 
     while (true) 
     {
-
         std::cerr << "Camera FPS: " << camera.getFPS() << std::endl;
        
         if(camera.getInferFrame(model.inferInput))
@@ -67,10 +63,10 @@ int main()
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));    
     }
-    
+    mapper.stop();
     camera.stop();
-    // robotPosition.stop();
-    // brain.stop();
+    robotPosition.stop();
+    brain.stop();
     imu.stop();
     // ups.stop();
     

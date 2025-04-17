@@ -3,10 +3,10 @@
 using namespace std;
 
 // In RobotPosition.cpp - Initialize offsets in constructor
-RobotPosition::RobotPosition(Brain::BrainComm& brain, IMU& imu, boost::asio::io_service& service)
-    : pos_brain(brain),
-      pos_imu(imu),
-      pos_service(service),
+RobotPosition::RobotPosition(Brain::BrainComm& VEX_Brain, IMU& IMU_Sensor, boost::asio::io_service& Boost_Service)
+    : brain(VEX_Brain),
+      imu(IMU_Sensor),
+      service(Boost_Service),
       gps_identified(false),
       offsets_received(false),
       heading_offset_(0.0f),
@@ -18,7 +18,7 @@ RobotPosition::RobotPosition(Brain::BrainComm& brain, IMU& imu, boost::asio::io_
     // Initialize position data
     current_position = Position();
     last_position = Position();
-    
+
     // Initialize GPS offsets
     left_gps_offset = {0.0f, 0.0f, 0.0f};
     right_gps_offset = {0.0f, 0.0f, 0.0f};
@@ -26,6 +26,7 @@ RobotPosition::RobotPosition(Brain::BrainComm& brain, IMU& imu, boost::asio::io_
     // Initialize timestamps with system_clock
     last_calibration_time = std::chrono::system_clock::now();
     last_velocity_update = std::chrono::system_clock::now();
+
     startGPSDevices();
     start();
     
@@ -34,8 +35,7 @@ RobotPosition::RobotPosition(Brain::BrainComm& brain, IMU& imu, boost::asio::io_
 RobotPosition::~RobotPosition() {
     // Stop update thread if running
     stop();
-    
-    // Stop GPS sensors
+
     if (gps1) gps1->stop();
     if (gps2) gps2->stop();
 }
@@ -49,9 +49,9 @@ bool RobotPosition::start()
     }
 
     try{  
-
-        update_thread = make_unique<thread>(&RobotPosition::updateLoop, this);
+        
         running = true;
+        update_thread = make_unique<thread>(&RobotPosition::updateLoop, this);
         return true;
 
     } catch (const std::exception& e) 
@@ -75,11 +75,20 @@ void RobotPosition::stop()
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 bool RobotPosition::startGPSDevices()
 {
     std::vector<std::string> gps_ports = PortDetector::findGPSPorts(); // Find available GPS ports
 
-    if (gps_ports.size() < 2) 
+    if (gps_ports.size() < 1) 
+    {
+        std::cerr << "Error: Not enough GPS devices found!" << std::endl;
+        return false;
+    }
+    else if(gps_ports.size() > 2)
     {
         std::cerr << "Error: Not enough GPS devices found!" << std::endl;
         return false;
@@ -87,7 +96,7 @@ bool RobotPosition::startGPSDevices()
 
     // Initialize GPS sensors
     std::cerr << "Initializing GPS1 on port: " << gps_ports[0] << std::endl;
-    gps1 = std::make_unique<GPS>(pos_service, gps_ports[0]);
+    gps1 = std::make_unique<GPS>(service, gps_ports[0]);
     if (!gps1->start()) 
     {
         std::cerr << "Error: Failed to start GPS1 thread" << std::endl;
@@ -99,7 +108,7 @@ bool RobotPosition::startGPSDevices()
 
     
     std::cerr << "Initializing GPS2 on port: " << gps_ports[1] << std::endl;
-    gps2 = std::make_unique<GPS>(pos_service, gps_ports[1]);
+    gps2 = std::make_unique<GPS>(service, gps_ports[1]);
     if (!gps2->start()) 
     {
         std::cerr << "Error: Failed to start GPS2 thread" << std::endl;
@@ -114,16 +123,15 @@ bool RobotPosition::startGPSDevices()
 }
 
 
-
-
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 void RobotPosition::updateLoop() 
 {
-    const auto update_period = std::chrono::milliseconds(1000 / update_frequency);
-    auto start_time = std::chrono::steady_clock::now();
-    auto elapsed = std::chrono::steady_clock::now() - start_time;
+    std::chrono::duration update_period = std::chrono::milliseconds(1000 / update_frequency);
+    std::chrono::time_point start_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration elapsed = std::chrono::high_resolution_clock::now() - start_time;
     
     while (running) 
     {
@@ -143,17 +151,17 @@ void RobotPosition::updateLoop()
             continue;
         }
     
-        start_time = std::chrono::steady_clock::now();
+        start_time = std::chrono::high_resolution_clock::now();
 
         // Get raw position data from GPS sensors
         GPSPosition left_pos = left_gps->getGPSposition();
         GPSPosition right_pos = right_gps->getGPSposition();
-        float left_quality =left_pos.quality;
+        float left_quality = left_pos.quality;
         float right_quality = right_pos.quality;
 
         // Get brain-reported positions (already have offsets applied)
-        Brain::Position2D brain_left = pos_brain.getLeftGPSData();
-        Brain::Position2D brain_right = pos_brain.getRightGPSData();
+        Brain::Position2D brain_left = brain.getLeftGPSData();
+        Brain::Position2D brain_right = brain.getRightGPSData();
 
         // Create a new position estimate
         Position new_position;
@@ -196,14 +204,12 @@ void RobotPosition::updateLoop()
             new_position.confidence *= 0.0f;
         }
         
-        // Set timestamp
-        new_position.timestamp = std::chrono::system_clock::now();
         
-        // Apply filtering
-        filterPosition(new_position);
+        new_position.timestamp = std::chrono::high_resolution_clock::now(); // Set timestamp
         
-        // Update velocity estimation
-        updateVelocity(new_position);
+       
+        filterPosition(new_position);                       // Apply filtering
+        updateVelocity(new_position);                       // Update velocity estimation
     
         // Update stored position
         {
@@ -212,7 +218,7 @@ void RobotPosition::updateLoop()
             position_confidence = new_position.confidence;
         }
         // Calculate time to sleep using steady_clock for consistent timing
-        elapsed = std::chrono::steady_clock::now() - start_time;
+        elapsed = std::chrono::high_resolution_clock::now() - start_time;
         if (elapsed < update_period) 
         {
             std::this_thread::sleep_for(update_period - elapsed);
@@ -228,13 +234,14 @@ void RobotPosition::updateLoop()
 }
 
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 bool RobotPosition::identifyGPSSensors() 
 {
 
-    if(!pos_brain.isConnected() || !pos_brain.isStarted())
+    if(!brain.isConnected() || !brain.isStarted())
     {
         return false;
     }
@@ -243,10 +250,10 @@ bool RobotPosition::identifyGPSSensors()
     if (!offsets_received) 
     {
         // Request GPS offsets if not already received
-        pos_brain.updateRequests(static_cast<uint16_t>(Brain::RequestFlag::LeftGPSData) | static_cast<uint16_t>(Brain::RequestFlag::RightGPSData));
+        brain.updateRequests(static_cast<uint16_t>(Brain::RequestFlag::LeftGPSData) | static_cast<uint16_t>(Brain::RequestFlag::RightGPSData));
         std::this_thread::sleep_for(std::chrono::milliseconds(750));
 
-        uint16_t request_flags = pos_brain.getCurrentRequests();
+        uint16_t request_flags = brain.getCurrentRequests();
 
         if(request_flags != static_cast<uint16_t>(Brain::RequestFlag::LeftGPSData) | static_cast<uint16_t>(Brain::RequestFlag::RightGPSData))
         {
@@ -255,8 +262,8 @@ bool RobotPosition::identifyGPSSensors()
         }
         
         // Get current offsets from Brain
-        left_gps_offset = pos_brain.getLeftGPSOffset();
-        right_gps_offset = pos_brain.getRightGPSOffset();
+        left_gps_offset = brain.getLeftGPSOffset();
+        right_gps_offset = brain.getRightGPSOffset();
         offsets_received = true;
         
         std::cerr << "Retrieved GPS offsets from Brain:" << std::endl;
@@ -268,7 +275,7 @@ bool RobotPosition::identifyGPSSensors()
 
     
     // Try multiple samples for more reliable identification
-    const int NUM_SAMPLES = 10;
+    const int NUM_SAMPLES = 50;
     std::vector<GPSPosition> gps1_samples;
     std::vector<GPSPosition> gps2_samples;
     std::vector<Brain::Position2D> brain_left_samples;
@@ -277,47 +284,49 @@ bool RobotPosition::identifyGPSSensors()
     std::cerr << "Collecting position samples for GPS identification..." << std::endl;
     
     // Collect samples
-    for (int i = 0; i < NUM_SAMPLES; i++) {
+    for (int i = 0; i < NUM_SAMPLES; i++) 
+    {
         gps1_samples.push_back(gps1->getGPSposition());
         gps2_samples.push_back(gps2->getGPSposition());
-        brain_left_samples.push_back(pos_brain.getLeftGPSData());
-        brain_right_samples.push_back(pos_brain.getRightGPSData());
+        brain_left_samples.push_back(brain.getLeftGPSData());
+        brain_right_samples.push_back(brain.getRightGPSData());
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
+
+    std::cerr << "Collected position samples, identifying GPS sensors." << std::endl;
     
     // Calculate average positions
-
     GPSPosition avg_gps1;
     avg_gps1.x = 0;
     avg_gps1.y = 0;
     avg_gps1.azimuth = 0;
 
-    for (const auto& pos : gps2_samples) 
+    for (int i = 0;  i < NUM_SAMPLES; i++) 
     {
-        avg_gps1.x += pos.x;
-        avg_gps1.y += pos.y;
-        avg_gps1.azimuth += pos.azimuth;
+        avg_gps1.x += gps1_samples[i].x;
+        avg_gps1.y += gps1_samples[i].y;
+        avg_gps1.azimuth += gps1_samples[i].azimuth;
     }
 
-    avg_gps1.x /= brain_left_samples.size();
-    avg_gps1.y /= brain_left_samples.size();
-    avg_gps1.azimuth /= brain_left_samples.size();
+    avg_gps1.x /= NUM_SAMPLES;
+    avg_gps1.y /= NUM_SAMPLES;
+    avg_gps1.azimuth /= NUM_SAMPLES;
 
     GPSPosition avg_gps2;
     avg_gps2.x = 0;
     avg_gps2.y = 0;
     avg_gps2.azimuth = 0;
 
-    for (const auto& pos : gps2_samples) 
+    for (int i = 0;  i < gps2_samples.size(); i++) 
     {
-        avg_gps2.x += pos.x;
-        avg_gps2.y += pos.y;
-        avg_gps2.azimuth += pos.azimuth;
+        avg_gps2.x += gps2_samples[i].x;
+        avg_gps2.y += gps2_samples[i].y;
+        avg_gps2.azimuth += gps2_samples[i].azimuth;
     }
 
-    avg_gps2.x /= brain_left_samples.size();
-    avg_gps2.y /= brain_left_samples.size();
-    avg_gps2.azimuth /= brain_left_samples.size();
+    avg_gps2.x /= NUM_SAMPLES;
+    avg_gps2.y /= NUM_SAMPLES;
+    avg_gps2.azimuth /= NUM_SAMPLES;
 
     
     Brain::Position2D avg_brain_left;
@@ -325,18 +334,33 @@ bool RobotPosition::identifyGPSSensors()
     avg_brain_left.y = 0;
     avg_brain_left.heading = 0;
     
-    for (const auto& pos : brain_left_samples) 
+    for (int i = 0;  i < NUM_SAMPLES; i++) 
     {
-        avg_brain_left.x += (pos.x -  left_gps_offset.x);
-        avg_brain_left.y += (pos.y - left_gps_offset.y);
-        avg_brain_left.heading += (pos.heading - left_gps_offset.heading);
+        avg_brain_left.x += (brain_left_samples[i].x -  left_gps_offset.x);
+        avg_brain_left.y += (brain_left_samples[i].y - left_gps_offset.y);
+        avg_brain_left.heading += (brain_left_samples[i].heading - left_gps_offset.heading);
     }
 
-    avg_brain_left.x /= brain_left_samples.size();
-    avg_brain_left.y /= brain_left_samples.size();
-    avg_brain_left.heading /= brain_left_samples.size();
+    avg_brain_left.x /= NUM_SAMPLES;
+    avg_brain_left.y /= NUM_SAMPLES;
+    avg_brain_left.heading /= NUM_SAMPLES;
+
+
+    Brain::Position2D avg_brain_right;
+    avg_brain_right.x = 0;
+    avg_brain_right.y = 0;
+    avg_brain_right.heading = 0;
     
- 
+    for (int i = 0;  i < NUM_SAMPLES; i++) 
+    {
+        avg_brain_right.x += (brain_right_samples[i].x -  right_gps_offset.x);
+        avg_brain_right.y += (brain_right_samples[i].y - right_gps_offset.y);
+        avg_brain_right.heading += (brain_right_samples[i].heading - right_gps_offset.heading);
+    }
+
+    avg_brain_right.x /= NUM_SAMPLES;
+    avg_brain_right.y /= NUM_SAMPLES;
+    avg_brain_right.heading /= NUM_SAMPLES;
     
     // Calculate distances to identify sensors
     float dist1_to_brain_left = std::sqrt(
@@ -346,12 +370,22 @@ bool RobotPosition::identifyGPSSensors()
     float dist2_to_brain_left = std::sqrt(
         std::pow(avg_gps2.x - avg_brain_left.x, 2) + 
         std::pow(avg_gps2.y - avg_brain_left.y, 2));
+
+    float dist1_to_brain_right = std::sqrt(
+        std::pow(avg_gps1.x - avg_brain_right.x, 2) + 
+        std::pow(avg_gps1.y - avg_brain_right.y, 2));
+    
+    float dist2_to_brain_right = std::sqrt(
+        std::pow(avg_gps2.x - avg_brain_right.x, 2) + 
+        std::pow(avg_gps2.y - avg_brain_right.y, 2));
     
     std::cerr << "Distance from GPS1 to inferred left position: " << dist1_to_brain_left << std::endl;
     std::cerr << "Distance from GPS2 to inferred left position: " << dist2_to_brain_left << std::endl;
+     std::cerr << "Distance from GPS1 to inferred right position: " << dist1_to_brain_right << std::endl;
+    std::cerr << "Distance from GPS2 to inferred right position: " << dist2_to_brain_right << std::endl;
     
     // Determine which GPS is which based on closest match
-    if (dist1_to_brain_left < dist2_to_brain_left) 
+    if (dist1_to_brain_left < dist2_to_brain_left && dist2_to_brain_right < dist1_to_brain_right) 
     {
         std::cerr << "GPS1 identified as Left sensor" << std::endl;
         std::cerr << "GPS2 identified as Right sensor" << std::endl;
@@ -369,6 +403,10 @@ bool RobotPosition::identifyGPSSensors()
     gps_identified = true;
     return true;
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 // Position RobotPosition::averagePositions(const std::vector<GPSPosition>& positions) {
@@ -419,6 +457,9 @@ bool RobotPosition::identifyGPSSensors()
 // }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 bool RobotPosition::isPositionValid(const Position& position) const {
     // Check if coordinates are within reasonable bounds
@@ -447,6 +488,11 @@ bool RobotPosition::isPositionValid(const Position& position) const {
     return true;
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 bool RobotPosition::detectPositionJump(const Position& current, const Position& previous) const {
     // Check for position jumps
     float distance = current.distanceTo2D(previous);
@@ -467,6 +513,9 @@ bool RobotPosition::detectPositionJump(const Position& current, const Position& 
     return false;
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 void RobotPosition::filterPosition(Position& position) {
@@ -525,7 +574,13 @@ void RobotPosition::filterPosition(Position& position) {
     }
 }
 
-void RobotPosition::updateVelocity(const Position& current_position) {
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void RobotPosition::updateVelocity(const Position& current_position) 
+{
     auto now = std::chrono::system_clock::now();  // Changed to system_clock
     
     // Calculate time difference in seconds
@@ -549,9 +604,16 @@ void RobotPosition::updateVelocity(const Position& current_position) {
     }
 }
 
-float RobotPosition::getHeadingFromIMU() const {
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+float RobotPosition::getHeadingFromIMU() const 
+{
     float mx, my, mz;
-    if (pos_imu.getMagnetometer(mx, my, mz)) {
+    if (imu.getMagnetometer(mx, my, mz)) 
+    {
         // Calculate heading from magnetometer
         float heading = atan2(my, mx) * 180.0f / M_PI;
         
@@ -572,10 +634,15 @@ float RobotPosition::getHeadingFromIMU() const {
     return current_position.azimuth;
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 bool RobotPosition::isRobotStationary() const {
     // Read accelerometer and gyroscope
     float ax, ay, az, gx, gy, gz;
-    if (!pos_imu.getAccelerometer(ax, ay, az) || !pos_imu.getGyroscope(gx, gy, gz)) {
+    if (!imu.getAccelerometer(ax, ay, az) || !imu.getGyroscope(gx, gy, gz)) {
         return false;
     }
     
@@ -594,50 +661,9 @@ bool RobotPosition::isRobotStationary() const {
     return true;
 }
 
-// void RobotPosition::calibrateIMUHeading() {
-//     // Only calibrate if we have valid GPS data
-//     if (!gps_identified || !isRobotStationary()) {
-//         std::cerr << "Cannot calibrate heading: Robot must be stationary and GPS identified" << std::endl;
-//         return;
-//     }
-    
-//     // Get GPS positions
-//     Position left_pos = left_gps_->getRawPosition();
-//     Position right_pos = right_gps_->getRawPosition();
-    
-//     // Calculate GPS-based heading (from left to right GPS)
-//     float dx = right_pos.x - left_pos.x;
-//     float dy = right_pos.y - left_pos.y;
-    
-//     if (std::abs(dx) < 0.01f && std::abs(dy) < 0.01f) {
-//         std::cerr << "GPS positions too close for reliable heading" << std::endl;
-//         return;
-//     }
-    
-//     float gps_heading = std::atan2(dy, dx) * 180.0f / M_PI + 90.0f;  // Add 90° for perpendicular heading
-//     while (gps_heading < 0) gps_heading += 360.0f;
-//     while (gps_heading >= 360) gps_heading -= 360.0f;
-    
-//     // Get raw IMU heading (without current offset)
-//     float mx, my, mz;
-//     if (!pos_imu.readMagnetometer(mx, my, mz)) {
-//         std::cerr << "Failed to read magnetometer" << std::endl;
-//         return;
-//     }
-    
-//     float raw_imu_heading = std::atan2(my, mx) * 180.0f / M_PI;
-//     while (raw_imu_heading < 0) raw_imu_heading += 360.0f;
-//     while (raw_imu_heading >= 360) raw_imu_heading -= 360.0f;
-    
-//     // Calculate new offset
-//     heading_offset_ = gps_heading - raw_imu_heading;
-//     last_calibration_time = std::chrono::system_clock::now();  // Using system_clock consistently
-    
-//     std::cerr << "IMU heading calibrated: offset = " << heading_offset_ 
-//               << "° (GPS: " << gps_heading << "°, Raw IMU: " << raw_imu_heading << "°)" << std::endl;
-// }
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 Position RobotPosition::getPosition() const {

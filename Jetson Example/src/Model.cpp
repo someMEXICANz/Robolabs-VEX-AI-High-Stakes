@@ -2,14 +2,13 @@
  
 using namespace nvinfer1;
 using namespace nvonnxparser;
-using namespace std;
 
 // Logger for TensorRT
 class Logger : public ILogger {
 public:
     void log(Severity severity, const char* msg) noexcept override {
         if (severity != Severity::kINFO) {
-            std::cout << msg << endl;
+            std::cerr << msg << std::endl;
         }
     }
 };
@@ -20,7 +19,7 @@ Logger logger;
 Model::Model()
 {
     debug = false; 
-    std::cout << "Initializing Object Detection Model" << endl;
+    std::cerr << "Initializing Object Detection Model" << std::endl;
     bool enginebuilt = false;
     bool engineloaded = false;
     engineloaded = loadEngine();
@@ -36,7 +35,7 @@ Model::Model()
     {
         context = engine->createExecutionContext();
         if (!context) 
-            cerr << "Failed to create execution context!" << endl;
+            std::cerr << "Failed to create execution context!" << std::endl;
         allocateBuffers();
     }
 }
@@ -58,19 +57,19 @@ Model::~Model()
 
 bool Model::loadEngine() 
 {
-    cout << "Loading Engine file: " << enginePath << endl;
-    ifstream engineFile(enginePath, ios::binary);
+    std::cerr << "Loading Engine file: " << enginePath << std::endl;
+    std::ifstream engineFile(enginePath, std::ios::binary);
     if (!engineFile)
     {
-        cout << " Failed to load engine... " << endl;
+        std::cerr << " Failed to load engine... " << std::endl;
         engine == nullptr;
         return false;
     }
-    engineFile.seekg(0, ios::end);
+    engineFile.seekg(0, std::ios::end);
     size_t engineSize = engineFile.tellg();
-    engineFile.seekg(0, ios::beg);
+    engineFile.seekg(0, std::ios::beg);
 
-    vector<char> engineData(engineSize);
+    std::vector<char> engineData(engineSize);
     engineFile.read(engineData.data(), engineSize);
     engineFile.close();
 
@@ -82,7 +81,7 @@ bool Model::loadEngine()
 
 bool Model::buildEngine() 
 {
-    cout << "Building engine this process may take a few minutes." << endl;
+    std::cerr << "Building engine this process may take a few minutes." << std::endl;
     nvinfer1::IBuilder* builder = nvinfer1::createInferBuilder(logger);
     nvinfer1::IBuilderConfig* config = builder->createBuilderConfig();
 
@@ -96,11 +95,11 @@ bool Model::buildEngine()
      unsigned int flags = 1U << static_cast<unsigned int>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
     nvinfer1::INetworkDefinition* network = builder->createNetworkV2(flags);
     
-    cout << "Loading and parsing onnx file:" << onnxPath << endl;
+    std::cerr << "Loading and parsing onnx file:" << onnxPath << std::endl;
     nvonnxparser::IParser* parser = nvonnxparser::createParser(*network, logger);
     if (!parser->parseFromFile(onnxPath.c_str(), static_cast<int>(nvinfer1::ILogger::Severity::kERROR))) 
     {
-        cerr << "Failed to parse ONNX file: " << onnxPath << endl;
+        std::cerr << "Failed to parse ONNX file: " << onnxPath << std::endl;
         return false;
     }
     
@@ -110,14 +109,14 @@ bool Model::buildEngine()
     engine = builder->buildEngineWithConfig(*network, *config);
     if (!engine) 
     {
-        cerr << "Failed to build TensorRT engine!" << endl;
+        std::cerr << "Failed to build TensorRT engine!" << std::endl;
         return false;
     }
 
     nvinfer1::IHostMemory* serializedEngine = engine->serialize();
-    ofstream engineFile(enginePath, ios::binary);
+    std::ofstream engineFile(enginePath, std::ios::binary);
     engineFile.write(static_cast<const char*>(serializedEngine->data()), serializedEngine->size());
-    cout << "Saved built engine to disk" << endl;
+    std::cerr << "Saved built engine to disk" << std::endl;
     
     serializedEngine->destroy();
     parser->destroy();
@@ -132,7 +131,7 @@ bool Model::buildEngine()
 void Model::allocateBuffers() 
 {
     // Create CUDA stream
-    cout << "Allocating Buffers" << endl;
+    std::cerr << "Allocating Buffers" << std::endl;
     cudaStreamCreate(&stream);
 
     inputIndex = engine->getBindingIndex("000_net");
@@ -141,7 +140,7 @@ void Model::allocateBuffers()
    
         // Validate binding indices
     if (inputIndex == -1 || outputIndex1 == -1 || outputIndex2 == -1) 
-        throw runtime_error("Error: Invalid binding names!");
+        throw std::runtime_error("Error: Invalid binding names!");
 
     // Query binding dimensions and calculate buffer sizes
     nvinfer1::Dims inputDims = engine->getBindingDimensions(inputIndex);
@@ -174,7 +173,7 @@ void Model::allocateBuffers()
 void Model::runInference()
 {
     if (buffers[inputIndex] == nullptr || buffers[outputIndex1] == nullptr || buffers[outputIndex2] == nullptr) 
-        throw runtime_error ("Buffers are uninitialized! ");
+        throw std::runtime_error ("Buffers are uninitialized! ");
    
     cudaMemcpyAsync(buffers[inputIndex], inferInput.data(), inputSize, cudaMemcpyHostToDevice, stream);
 

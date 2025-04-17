@@ -29,15 +29,15 @@ int main()
 
     // UPS ups; // (threaded)
     // IMU imu; // (threaded)
-    // boost::asio::io_service myService;
-    // Brain::BrainComm brain(myService); // (threaded)
+    boost::asio::io_service myService;
+    Brain::BrainComm brain(myService); // (threaded)
     // RobotPosition robotPosition(brain, imu, myService); // (threaded) 
 
     Camera camera; // (threaded)
 
     while(!camera.isInitialized() || !camera.isRunning())
     {
-        std::cerr << "Waiting for camera, standy..." << std::endl;
+        std::cerr << "Waiting for camera, standby..." << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     camera.setExtrinsic(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
@@ -51,13 +51,14 @@ int main()
     while (true) 
     {
 
-        std::cout << "Camera FPS: " << camera.getFPS() << std::endl;
+        std::cerr << "Camera FPS: " << camera.getFPS() << std::endl;
        
-        // if(camera.getInferFrame(model.inferInput))
-        // {
-        //     model.runInference();
-        //     Detections = objdet.decodeOutputs(model.inferOutput1, model.inferOutput2);
-        // }
+        if(camera.getInferFrame(model.inferInput))
+        {
+            model.runInference();
+            Detections = objdet.decodeOutputs(model.inferOutput1, model.inferOutput2);
+            std::cerr << "Found " << Detections.size() << " detected objects";
+        }
             
         // if(brain.isConnected() && brain.isRunning())
         // {
@@ -90,12 +91,12 @@ void printUPSdata(UPS &ups)
 
     ups.getAll(shunt_voltage, bus_voltage, current, power, percentage);
 
-    std::cout << "--------------------------------------------" << std::endl;
+    std::cerr << "--------------------------------------------" << std::endl;
     // Display UPS data 
-    std::cout << "PSU Voltage:   " << (bus_voltage + shunt_voltage) << " V" << std::endl;
-    std::cout << "Load Voltage:  " << bus_voltage << " V" << std::endl;
-    std::cout << "Current:       " << (current / 1000.0f) << " A" << std::endl;
-    std::cout << "Power:         " << power << " W" << std::endl;
-    std::cout << "Percent:       " << percentage << "%" << std::endl;
-    std::cout << "--------------------------------------------" << std::endl;
+    std::cerr << "PSU Voltage:   " << (bus_voltage + shunt_voltage) << " V" << std::endl;
+    std::cerr << "Load Voltage:  " << bus_voltage << " V" << std::endl;
+    std::cerr << "Current:       " << (current / 1000.0f) << " A" << std::endl;
+    std::cerr << "Power:         " << power << " W" << std::endl;
+    std::cerr << "Percent:       " << percentage << "%" << std::endl;
+    std::cerr << "--------------------------------------------" << std::endl;
 }

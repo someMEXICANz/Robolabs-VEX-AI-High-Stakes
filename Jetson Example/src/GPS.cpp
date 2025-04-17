@@ -85,7 +85,7 @@ bool GPS::initializePort() {
         serial_port->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
         
         connected = true;
-        std::cout << "GPS initialized on port " << port << std::endl;
+        std::cerr << "GPS initialized on port " << port << std::endl;
         return true;
     } catch (const boost::system::system_error& e) {
         std::cerr << "Failed to initialize GPS port: " << e.what() << std::endl;
@@ -95,7 +95,7 @@ bool GPS::initializePort() {
 }
 
 void GPS::readLoop() {
-    std::cout << "GPS read loop started" << std::endl;
+    std::cerr << "GPS read loop started" << std::endl;
     boost::asio::deadline_timer timer(io_service);
     
     while (running) {
@@ -131,7 +131,7 @@ void GPS::readLoop() {
         }
     }
     
-    std::cout << "GPS read loop stopped" << std::endl;
+    std::cerr << "GPS read loop stopped" << std::endl;
 }
 
 void GPS::processBuffer(const std::vector<unsigned char>& buffer) {

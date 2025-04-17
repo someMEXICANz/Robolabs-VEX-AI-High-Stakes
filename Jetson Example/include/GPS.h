@@ -30,20 +30,6 @@ class GPS
 {
 public:
 
-    // Status bit definitions
-    static constexpr uint32_t STATUS_CONNECTED    = 0x00000001;
-    static constexpr uint32_t STATUS_NODOTS       = 0x00000002;
-    static constexpr uint32_t STATUS_NORAWBITS    = 0x00000004;
-    static constexpr uint32_t STATUS_NOGROUPS     = 0x00000008;
-    static constexpr uint32_t STATUS_NOBITS       = 0x00000010;
-    static constexpr uint32_t STATUS_PIXELERROR   = 0x00000020;
-    static constexpr uint32_t STATUS_SOLVER       = 0x00000040;
-    static constexpr uint32_t STATUS_ANGLEJUMP    = 0x00000080;
-    static constexpr uint32_t STATUS_POSJUMP      = 0x00000100;
-    static constexpr uint32_t STATUS_NOSOLUTION   = 0x00000200;
-    static constexpr uint32_t STATUS_KALMAN_EST   = 0x00100000;
-
-
     explicit GPS(boost::asio::io_service& service, 
                 const std::string& new_port = "");
     ~GPS();
@@ -51,8 +37,6 @@ public:
     // Delete copy constructor and assignment operator
     GPS(const GPS&) = delete;
     GPS& operator=(const GPS&) = delete;
-
-   
 
     // Core operations
     bool start();
@@ -66,7 +50,6 @@ public:
     GPSPosition getGPSposition() const;
 
     // Configuration methods
-    //void setPort(const std::string& found_port) { port = found_port; }
     const std::string& getPort() const { return port; }
 
 private:
@@ -89,6 +72,19 @@ private:
     std::unique_ptr<std::thread> read_thread;  
     GPSPosition current_position;
     
+     // Status bit definitions
+    static constexpr uint32_t STATUS_CONNECTED    = 0x00000001;
+    static constexpr uint32_t STATUS_NODOTS       = 0x00000002;
+    static constexpr uint32_t STATUS_NORAWBITS    = 0x00000004;
+    static constexpr uint32_t STATUS_NOGROUPS     = 0x00000008;
+    static constexpr uint32_t STATUS_NOBITS       = 0x00000010;
+    static constexpr uint32_t STATUS_PIXELERROR   = 0x00000020;
+    static constexpr uint32_t STATUS_SOLVER       = 0x00000040;
+    static constexpr uint32_t STATUS_ANGLEJUMP    = 0x00000080;
+    static constexpr uint32_t STATUS_POSJUMP      = 0x00000100;
+    static constexpr uint32_t STATUS_NOSOLUTION   = 0x00000200;
+    static constexpr uint32_t STATUS_KALMAN_EST   = 0x00100000;
+
     // Configuration constants
     const std::chrono::milliseconds READ_TIMEOUT{500};
     const std::chrono::milliseconds RECONNECT_DELAY{2500};

@@ -15,8 +15,7 @@
 class RobotPosition {
 public:
     // Constructor and initialization
-    explicit RobotPosition(Brain::BrainComm& brain, IMU& imu, 
-                           boost::asio::io_service& service);
+    explicit RobotPosition(Brain::BrainComm& VEX_Brain, IMU& IMU_Sensor, boost::asio::io_service& Boost_Service);
     ~RobotPosition();
 
     // Delete copy constructor and assignment operator
@@ -45,9 +44,9 @@ public:
     
 private:
     // References to external components
-    Brain::BrainComm& pos_brain;
-    IMU& pos_imu;
-    boost::asio::io_service& pos_service;
+    Brain::BrainComm& brain;
+    IMU& imu;
+    boost::asio::io_service& service;
     
     // GPS sensors managed by this class
     std::unique_ptr<GPS> gps1;

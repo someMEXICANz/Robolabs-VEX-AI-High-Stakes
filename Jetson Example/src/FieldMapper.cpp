@@ -128,44 +128,6 @@ bool FieldMapper::processPointCloud()
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// bool FieldMapper::segmentPlanes()
-// {
-//     std::cerr << "Segmenting Point CLoud" << std::endl;
-//     std::lock_guard<std::mutex> lock(data_mutex);
-//     std::vector<std::tuple<Eigen::Vector4d, open3d::geometry::PointCloud>> detected_planes;   
-//     const int max_planes = 3;
-
-//     open3d::t::geometry::PointCloud temp_point_cloud = tensor_point_cloud.To(open3d::core::Device("CUDA:0"), true);
-
-
-//     for (int i = 0; i < max_planes; ++i) 
-//     {
-//         if (temp_point_cloud.GetPointPositions().GetLength() < plane_ransac_n);
-//             break;
-    
-//         // Perform plane segmentation using RANSAC
-//         std::tuple< open3d::core::Tensor, open3d::core::Tensor> 
-//         result = temp_point_cloud.SegmentPlane(
-//                                             plane_distance_threshold,                  // Maximum distance from the plane
-//                                             plane_ransac_n,                            // Number of points to sample
-//                                             plane_num_iterations);                     // Number of RANSAC iterations
-            
-//         open3d::core::Tensor plane_tensor = std::get<0>(result);
-//         open3d::core::Tensor plane_indices = std::get<1>(result);
-
-//         float* data_ptr = static_cast<float*>(plane_tensor.GetDataPtr());
-//         Eigen::Vector4d plane_equation(data_ptr[0], data_ptr[1], data_ptr[2], data_ptr[3]);
-
-//         open3d::t::geometry::PointCloud plane_cloud = temp_point_cloud.SelectByIndex(plane_indices, false, true);
-
-//         std::tuple<Eigen::Vector4d, open3d::geometry::PointCloud> current_plane = std::make_tuple(plane_equation, plane_cloud.ToLegacy());
-        
-//         detected_planes.push_back(current_plane);
-//     }
-// }
-
-
-
 bool FieldMapper::segmentPlanes()
 {
     std::lock_guard<std::mutex> lock(data_mutex);

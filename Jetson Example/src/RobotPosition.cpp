@@ -611,11 +611,11 @@ void RobotPosition::updateVelocity(const Position& current_position)
 
 float RobotPosition::getHeadingFromIMU() const 
 {
-    float mx, my, mz;
-    if (imu.getMagnetometer(mx, my, mz)) 
+    IMUData current_imu_data = imu.getIMUData();
+    if (current_imu_data.valid) 
     {
         // Calculate heading from magnetometer
-        float heading = atan2(my, mx) * 180.0f / M_PI;
+        float heading = atan2(current_imu_data.my, current_imu_data.mx) * 180.0f / M_PI;
         
         // Normalize to 0-360
         while (heading < 0) heading += 360.0f;
@@ -640,20 +640,24 @@ float RobotPosition::getHeadingFromIMU() const
 
 
 bool RobotPosition::isRobotStationary() const {
-    // Read accelerometer and gyroscope
-    float ax, ay, az, gx, gy, gz;
-    if (!imu.getAccelerometer(ax, ay, az) || !imu.getGyroscope(gx, gy, gz)) {
+    IMUData current_imu_data = imu.getIMUData();
+    if (current_imu_data.valid) 
+    {
         return false;
     }
     
     // Check if acceleration is close to gravity only
-    float accel_magnitude = std::sqrt(ax*ax + ay*ay + az*az);
+    float accel_magnitude = std::sqrt(current_imu_data.ax * current_imu_data.ax + 
+                                      current_imu_data.ay * current_imu_data.ay + 
+                                      current_imu_data.az * current_imu_data.az);
     if (std::abs(accel_magnitude - 1.0f) > 0.05f) {
         return false;
     }
     
     // Check if gyroscope readings are close to zero
-    float gyro_magnitude = std::sqrt(gx*gx + gy*gy + gz*gz);
+    float gyro_magnitude = std::sqrt(current_imu_data.gx * current_imu_data.gx + 
+                                     current_imu_data.gy * current_imu_data.gy + 
+                                     current_imu_data.gz * current_imu_data.gz);
     if (gyro_magnitude > 1.0f) {
         return false;
     }

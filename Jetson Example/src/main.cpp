@@ -28,7 +28,7 @@ int main()
     
 
     // UPS ups; // (threaded)
-    // IMU imu; // (threaded)
+    IMU imu; // (threaded)
     boost::asio::io_service myService;
     Brain::BrainComm brain(myService); // (threaded)
     // RobotPosition robotPosition(brain, imu, myService); // (threaded) 
@@ -71,7 +71,7 @@ int main()
     camera.stop();
     // robotPosition.stop();
     // brain.stop();
-    // imu.stop();
+    imu.stop();
     // ups.stop();
     
     

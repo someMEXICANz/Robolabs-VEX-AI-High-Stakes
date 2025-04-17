@@ -6,8 +6,20 @@
 #include <cstdint>
 #include <thread>
 #include <mutex>
-#include <atomic>
 #include <chrono>
+
+
+
+
+struct IMUData 
+{
+    float ax, ay, az;  // Accelerometer (g)
+    float gx, gy, gz;  // Gyroscope (dps)
+    float mx, my, mz;  // Magnetometer (gauss)
+    float temperature; // Temperature (°C)
+    std::chrono::system_clock::time_point timestamp;
+    bool valid;        // Flag indicating if data is valid
+};
 
 class IMU {
 public:
@@ -28,21 +40,13 @@ public:
     bool isRunning() const { return running; }
     bool isConnected() const { return i2c_fd >= 0; }
     
-    // Read sensor data
-    bool getAccelerometer(float& ax, float& ay, float& az) const;
-    bool getGyroscope(float& gx, float& gy, float& gz) const;
-    bool getMagnetometer(float& mx, float& my, float& mz) const;
-    bool getTemperature(float& temp) const;
-    bool getAll(float& ax, float& ay, float& az,
-                float& gx, float& gy, float& gz,
-                float& mx, float& my, float& mz,
-                float& temp) const;
-    
     // Calibration methods
     bool calibrateAccelerometer();
     bool calibrateGyroscope();
     bool calibrateMagnetometer();
-    
+
+    IMUData getIMUData() const;
+        
     // Error handling
     std::string getLastError() const { return last_error; }
 
@@ -74,22 +78,14 @@ private:
     float accel_scale;  // g per LSB
     float gyro_scale;   // dps per LSB
     float mag_scale;    // gauss per LSB
+
+    bool running;
+    bool connected;
     
     // Thread and running state
     mutable std::mutex data_mutex;
     std::unique_ptr<std::thread> read_thread;
-    std::atomic<bool> running;
-    std::atomic<bool> connected;
-    
-    // Sensor data and mutex
-   
-    struct IMUData {
-        float ax, ay, az;  // Accelerometer (g)
-        float gx, gy, gz;  // Gyroscope (dps)
-        float mx, my, mz;  // Magnetometer (gauss)
-        float temperature; // Temperature (°C)
-        bool valid;        // Flag indicating if data is valid
-    } sensor_data;
+    IMUData current_data;
     
   
     

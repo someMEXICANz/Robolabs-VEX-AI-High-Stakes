@@ -65,17 +65,18 @@ IMU::IMU(const std::string& i2cBus_)
       connected(false)
 {
     // Initialize sensor data
-    sensor_data.ax = 0.0f;
-    sensor_data.ay = 0.0f;
-    sensor_data.az = 0.0f;
-    sensor_data.gx = 0.0f;
-    sensor_data.gy = 0.0f;
-    sensor_data.gz = 0.0f;
-    sensor_data.mx = 0.0f;
-    sensor_data.my = 0.0f;
-    sensor_data.mz = 0.0f;
-    sensor_data.temperature = 0.0f;
-    sensor_data.valid = false;
+    current_data.ax = 0.0f;
+    current_data.ay = 0.0f;
+    current_data.az = 0.0f;
+    current_data.gx = 0.0f;
+    current_data.gy = 0.0f;
+    current_data.gz = 0.0f;
+    current_data.mx = 0.0f;
+    current_data.my = 0.0f;
+    current_data.mz = 0.0f;
+    current_data.temperature = 0.0f;
+    current_data.timestamp = std::chrono::high_resolution_clock::now();
+    current_data.valid = false;
     
     // Try to initialize if bus is provided
     if (!i2c_bus.empty()) 
@@ -183,7 +184,8 @@ void IMU::readLoop() {
     
     const std::chrono::milliseconds read_interval(10); // 100Hz update rate
     
-    while (running) {
+    while (running) 
+    {
         auto start_time = std::chrono::steady_clock::now();
         
         if (!connected&& !reconnect()) 
@@ -206,188 +208,120 @@ void IMU::readLoop() {
 
 // Read all sensors and update internal data structure
 bool IMU::readData() {
-    if (i2c_fd< 0) {
+    if (i2c_fd< 0) 
+    {
         return false;
     }
-    
-    // Read accelerometer
-    uint8_t accel_buffer[6];
-    if (!readBytes(LSM6DS3_ADDR, LSM6DS3_OUTX_L_XL, accel_buffer, 6)) {
-        std::cerr << "Failed to read accelerometer data" << std::endl;
-        return false;
-    }
-    
-    // Read gyroscope
-    uint8_t gyro_buffer[6];
-    if (!readBytes(LSM6DS3_ADDR, LSM6DS3_OUTX_L_G, gyro_buffer, 6)) {
-         std::cerr << "Failed to read gyroscope data" << std::endl;
-        return false;
-    }
-    
+
+    bool error = false;
+
     // Read magnetometer
     uint8_t mag_buffer[6];
-    if (!readBytes(LIS3MDL_ADDR, LIS3MDL_OUT_X_L, mag_buffer, 6)) {
+    if (!readBytes(LIS3MDL_ADDR, LIS3MDL_OUT_X_L, mag_buffer, 6)) 
+    {
          std::cerr << "Failed to read magnetometer data" << std::endl;
-        return false;
+         error = true;
     }
-    
+    // Read accelerometer
+    uint8_t accel_buffer[6];
+    if (!readBytes(LSM6DS3_ADDR, LSM6DS3_OUTX_L_XL, accel_buffer, 6)) 
+    {
+        std::cerr << "Failed to read accelerometer data" << std::endl;
+        error = true;
+    }
+    // Read gyroscope
+    uint8_t gyro_buffer[6];
+    if (!readBytes(LSM6DS3_ADDR, LSM6DS3_OUTX_L_G, gyro_buffer, 6)) 
+    {
+        std::cerr << "Failed to read gyroscope data" << std::endl;
+        error = true;
+    }
     // Read temperature
     uint8_t temp_buffer[2];
-    if (!readBytes(LSM6DS3_ADDR, LSM6DS3_OUT_TEMP_L, temp_buffer, 2)) {
-         std::cerr << "Failed to read temperature data" << std::endl;
-        return false;
+    if (!readBytes(LSM6DS3_ADDR, LSM6DS3_OUT_TEMP_L, temp_buffer, 2)) 
+    {
+        std::cerr << "Failed to read temperature data" << std::endl;
+        error = true;
     }
-    
-    // Process all readings
-    int16_t raw_ax = (accel_buffer[1] << 8) | accel_buffer[0];
-    int16_t raw_ay = (accel_buffer[3] << 8) | accel_buffer[2];
-    int16_t raw_az = (accel_buffer[5] << 8) | accel_buffer[4];
-    
-    int16_t raw_gx = (gyro_buffer[1] << 8) | gyro_buffer[0];
-    int16_t raw_gy = (gyro_buffer[3] << 8) | gyro_buffer[2];
-    int16_t raw_gz = (gyro_buffer[5] << 8) | gyro_buffer[4];
-    
-    int16_t raw_mx = (mag_buffer[1] << 8) | mag_buffer[0];
-    int16_t raw_my = (mag_buffer[3] << 8) | mag_buffer[2];
-    int16_t raw_mz = (mag_buffer[5] << 8) | mag_buffer[4];
-    
-    int16_t raw_temp = (temp_buffer[1] << 8) | temp_buffer[0];
-    
-    // Apply scaling and offsets
-    float ax = (raw_ax * accel_scale) - accel_offset_x;
-    float ay = (raw_ay * accel_scale) - accel_offset_y;
-    float az = (raw_az * accel_scale) - accel_offset_z;
-    
-    float gx = (raw_gx * gyro_scale) - gyro_offset_x;
-    float gy = (raw_gy * gyro_scale) - gyro_offset_y;
-    float gz = (raw_gz * gyro_scale) - gyro_offset_z;
-    
-    float mx = (raw_mx * mag_scale) - mag_offset_x;
-    float my = (raw_my * mag_scale) - mag_offset_y;
-    float mz = (raw_mz * mag_scale) - mag_offset_z;
-    
-    float temp = static_cast<float>(raw_temp) / 16.0f + 25.0f;
-    
-    // Update data structure with mutex protection
+
+    if(error)
     {
         std::lock_guard<std::mutex> lock(data_mutex);
-        sensor_data.ax = ax;
-        sensor_data.ay = ay;
-        sensor_data.az = az;
-        sensor_data.gx = gx;
-        sensor_data.gy = gy;
-        sensor_data.gz = gz;
-        sensor_data.mx = mx;
-        sensor_data.my = my;
-        sensor_data.mz = mz;
-        sensor_data.temperature = temp;
-        sensor_data.valid = true;
-    }
-    
-    return true;
-}
-
-
-bool IMU::getAccelerometer(float& ax, float& ay, float& az) const {
-    std::lock_guard<std::mutex> lock(data_mutex);
-    
-    if (!sensor_data.valid && !running) {
-        std::cerr << "No valid sensor data available" << std::endl;
+        current_data.timestamp = std::chrono::high_resolution_clock::now();
+        current_data.valid = false;
         return false;
     }
-    
-    ax = sensor_data.ax;
-    ay = sensor_data.ay;
-    az = sensor_data.az;
-    
-    return true;
-}
-
-
-bool IMU::getGyroscope(float& gx, float& gy, float& gz) const {
-    std::lock_guard<std::mutex> lock(data_mutex);
-    
-    if (!sensor_data.valid && !running) {
-        std::cerr << "No valid sensor data available" << std::endl;
-        return false;
+    else
+    {
+        
+        // Process all readings
+        int16_t raw_ax = (accel_buffer[1] << 8) | accel_buffer[0];
+        int16_t raw_ay = (accel_buffer[3] << 8) | accel_buffer[2];
+        int16_t raw_az = (accel_buffer[5] << 8) | accel_buffer[4];
+        
+        int16_t raw_gx = (gyro_buffer[1] << 8) | gyro_buffer[0];
+        int16_t raw_gy = (gyro_buffer[3] << 8) | gyro_buffer[2];
+        int16_t raw_gz = (gyro_buffer[5] << 8) | gyro_buffer[4];
+        
+        int16_t raw_mx = (mag_buffer[1] << 8) | mag_buffer[0];
+        int16_t raw_my = (mag_buffer[3] << 8) | mag_buffer[2];
+        int16_t raw_mz = (mag_buffer[5] << 8) | mag_buffer[4];
+        
+        int16_t raw_temp = (temp_buffer[1] << 8) | temp_buffer[0];
+        
+        // Apply scaling and offsets
+        float ax = (raw_ax * accel_scale) - accel_offset_x;
+        float ay = (raw_ay * accel_scale) - accel_offset_y;
+        float az = (raw_az * accel_scale) - accel_offset_z;
+        
+        float gx = (raw_gx * gyro_scale) - gyro_offset_x;
+        float gy = (raw_gy * gyro_scale) - gyro_offset_y;
+        float gz = (raw_gz * gyro_scale) - gyro_offset_z;
+        
+        float mx = (raw_mx * mag_scale) - mag_offset_x;
+        float my = (raw_my * mag_scale) - mag_offset_y;
+        float mz = (raw_mz * mag_scale) - mag_offset_z;
+        
+        float temp = static_cast<float>(raw_temp) / 16.0f + 25.0f;
+        
+        // Update data structure with mutex protection
+        {
+            std::lock_guard<std::mutex> lock(data_mutex);
+            current_data.ax = ax;
+            current_data.ay = ay;
+            current_data.az = az;
+            current_data.gx = gx;
+            current_data.gy = gy;
+            current_data.gz = gz;
+            current_data.mx = mx;
+            current_data.my = my;
+            current_data.mz = mz;
+            current_data.temperature = temp;
+            current_data.timestamp = std::chrono::high_resolution_clock::now();
+            current_data.valid = true;
+        }
     }
     
-    gx = sensor_data.gx;
-    gy = sensor_data.gy;
-    gz = sensor_data.gz;
-    
     return true;
 }
 
-bool IMU::getMagnetometer(float& mx, float& my, float& mz) const {
-    std::lock_guard<std::mutex> lock(data_mutex);
-    
-    if (!sensor_data.valid && !running) {
-        std::cerr << "No valid sensor data available" << std::endl;
-        return false;
-    }
-    
-    mx = sensor_data.mx;
-    my = sensor_data.my;
-    mz = sensor_data.mz;
-    
-    return true;
-}
 
-bool IMU::getTemperature(float& temp) const {
-    std::lock_guard<std::mutex> lock(data_mutex);
-    
-    if (!sensor_data.valid && !running) {
-        std::cerr << "No valid sensor data available" << std::endl;
-        return false;
-    }
-    
-    temp = sensor_data.temperature;
-    
-    return true;
-}
-
-bool IMU::getAll(float& ax, float& ay, float& az,
-                float& gx, float& gy, float& gz,
-                float& mx, float& my, float& mz,
-                float& temp) const {
-    std::lock_guard<std::mutex> lock(data_mutex);
-    
-    if (!sensor_data.valid && !running) {
-        std::cerr << "No valid sensor data available" << std::endl;
-        return false;
-    }
-    
-    ax = sensor_data.ax;
-    ay = sensor_data.ay;
-    az = sensor_data.az;
-    gx = sensor_data.gx;
-    gy = sensor_data.gy;
-    gz = sensor_data.gz;
-    mx = sensor_data.mx;
-    my = sensor_data.my;
-    mz = sensor_data.mz;
-    temp = sensor_data.temperature;
-    
-    return true;
-}
 
 bool IMU::calibrateAccelerometer() 
 {
-    if (!isRunning()) 
+    if (!running || !connected) 
     {
-        std::cerr << "IMU must be running to calibrate" << std::endl;
+        std::cerr << "IMU must be running and connected to calibrate" << std::endl;
         return false;
     }
-    
+    std::lock_guard<std::mutex> lock(data_mutex);
     // Check if device is stationary
-    float gx, gy, gz;
-    if (getGyroscope(gx, gy, gz)) 
+    if (current_data.valid) 
     {
-        float movement = std::abs(gx) + std::abs(gy) + std::abs(gz);
+        float movement = std::abs(current_data.gx) + std::abs(current_data.gy) + std::abs(current_data.gz);
         if (movement > 1.0f) 
         {
-            std::cerr << "Device must be stationary for calibration" << std::endl;
+            std::cerr << "IMU must be stationary for calibration" << std::endl;
             return false;
         }
     }
@@ -397,17 +331,10 @@ bool IMU::calibrateAccelerometer()
     
     for (int i = 0; i < numSamples; ++i) 
     {
-        float x, y, z;
-        if (!getAccelerometer(x, y, z)) 
-        {
-            return false;
-        }
-        
-        sumX += x;
-        sumY += y;
-        sumZ += z;
-        
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        sumX += current_data.ax;
+        sumY += current_data.ay;
+        sumZ += current_data.az;
+        usleep(10000);  // 10ms delay
     }
     
     accel_offset_x= sumX / numSamples;
@@ -423,17 +350,16 @@ bool IMU::calibrateAccelerometer()
 
 bool IMU::calibrateGyroscope() 
 {
-    if (!isRunning()) 
+    if (!running || !connected) 
     {
-        std::cerr << "IMU must be running to calibrate" << std::endl;
+        std::cerr << "IMU must be running and connected to calibrate" << std::endl;
         return false;
     }
     
     // Check if device is stationary
-    float gx, gy, gz;
-    if (getGyroscope(gx, gy, gz)) 
+    if (current_data.valid) 
     {
-        float movement = std::abs(gx) + std::abs(gy) + std::abs(gz);
+        float movement = std::abs(current_data.gx) + std::abs(current_data.gy) + std::abs(current_data.gz);
         if (movement > 1.0f) 
         {
             std::cerr << "Device must be stationary for calibration" << std::endl;
@@ -447,22 +373,15 @@ bool IMU::calibrateGyroscope()
     
     for (int i = 0; i < numSamples; ++i) 
     {
-        float x, y, z;
-        if (!getGyroscope(x, y, z)) 
-        {
-            return false;
-        }
-        
-        sumX += x;
-        sumY += y;
-        sumZ += z;
-        
+        sumX += current_data.gx;
+        sumY += current_data.gy;
+        sumZ += current_data.gz;
         usleep(10000);  // 10ms delay
     }
     
-    gyro_offset_x= sumX / numSamples;
-    gyro_offset_y= sumY / numSamples;
-    gyro_offset_z= sumZ / numSamples;
+    gyro_offset_x = sumX / numSamples;
+    gyro_offset_y = sumY / numSamples;
+    gyro_offset_z = sumZ / numSamples;
     
     return true;
 }
@@ -470,17 +389,16 @@ bool IMU::calibrateGyroscope()
 bool IMU::calibrateMagnetometer() 
 {
 
-    if (!isRunning()) 
+    if (!running || !connected) 
     {
-        std::cerr << "IMU must be running to calibrate" << std::endl;
+        std::cerr << "IMU must be running and connected to calibrate" << std::endl;
         return false;
     }
     
     // Check if device is stationary
-    float gx, gy, gz;
-    if (getGyroscope(gx, gy, gz)) 
+    if (current_data.valid) 
     {
-        float movement = std::abs(gx) + std::abs(gy) + std::abs(gz);
+        float movement = std::abs(current_data.gx) + std::abs(current_data.gy) + std::abs(current_data.gz);
         if (movement > 1.0f) 
         {
             std::cerr << "Device must be stationary for calibration" << std::endl;
@@ -492,17 +410,10 @@ bool IMU::calibrateMagnetometer()
     float sumX = 0.0f, sumY = 0.0f, sumZ = 0.0f;
     
     for (int i = 0; i < numSamples; ++i) 
-    {
-        float x, y, z;
-        if (!getMagnetometer(x, y, z)) 
-        {
-            return false;
-        }
-        
-        sumX += x;
-        sumY += y;
-        sumZ += z;
-        
+    {   
+        sumX += current_data.mx;
+        sumY += current_data.my;
+        sumZ += current_data.mz;
         usleep(10000);  // 10ms delay
     }
     
@@ -566,5 +477,9 @@ bool IMU::readBytes(uint8_t devAddr, uint8_t reg, uint8_t* buffer, size_t length
     return true;
 }
 
-
+IMUData IMU::getIMUData() const 
+{
+    std::lock_guard<std::mutex> lock(data_mutex);
+    return current_data;
+}
 

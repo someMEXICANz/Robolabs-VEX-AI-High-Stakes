@@ -51,12 +51,13 @@ public:
     bool isConnected() const { return connected; }
     bool isRunning() const { return running; }
     bool isStarted() const { return started; }
+    bool isInitialized() const { return initialized; }
    
 private:
     // Thread functions
     void readLoop();
     void writeLoop();
-    void detectionLoop();
+    bool findPort();
     
     // Internal methods
     bool initializePort();
@@ -75,13 +76,13 @@ private:
     std::unique_ptr<boost::asio::serial_port> serial_port;
     bool connected;
     bool running;
+    bool initialized;
     bool started;
     
     // Thread management
     std::unique_ptr<std::thread> read_thread;
     std::unique_ptr<std::thread> write_thread;
-    std::unique_ptr<std::thread> port_thread;
-    // State variables
+   
 
     // Mutexes for thread safety
     mutable std::mutex data_mutex;

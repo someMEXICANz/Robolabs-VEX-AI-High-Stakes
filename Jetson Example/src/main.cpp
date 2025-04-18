@@ -21,28 +21,35 @@
 
 using namespace std;
 
+//camera.setExtrinsic(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 
 int main() 
 {
-    // UPS ups; // (threaded)
-    IMU imu; // (threaded)
+    open3d::utility::SetVerbosityLevel(open3d::utility::VerbosityLevel::Debug);
+
     boost::asio::io_service myService;
-    Brain::BrainComm brain(myService); // (threaded)
-    RobotPosition robotPosition(brain, imu, myService); // (threaded) 
+
+     // UPS ups; // (threaded)
+    IMU imu; // (threaded)
 
     Camera camera; // (threaded)
-
     while(!camera.isInitialized() || !camera.isRunning())
     {
-        std::cerr << "Waiting for camera, standby..." << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    camera.setExtrinsic(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+
+
+    Brain::BrainComm brain(myService); // (threaded)
+    while(!brain.isInitialized() || !brain.isRunning())
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    //RobotPosition robotPosition(brain, imu, myService); // (threaded) 
+    FieldMapper mapper(camera); //, robotPosition); // (threaded)
+
 
     Model model;
     ObjectDetection objdet;
-    
-    FieldMapper mapper(camera); //, robotPosition); // (threaded)
     std::vector<DetectedObject> Detections;
 
     while (true) 
@@ -56,7 +63,7 @@ int main()
         {
             model.runInference();
             Detections = objdet.decodeOutputs(model.inferOutput1, model.inferOutput2);
-            std::cerr << "Found " << Detections.size() << " detected objects";
+            std::cerr << "Found " << Detections.size() << " detected objects" << std::endl;;
         }
             
         // if(brain.isConnected() && brain.isRunning())
@@ -68,7 +75,7 @@ int main()
     }
     mapper.stop();
     camera.stop();
-    robotPosition.stop();
+    //robotPosition.stop();
     brain.stop();
     imu.stop();
     // ups.stop();

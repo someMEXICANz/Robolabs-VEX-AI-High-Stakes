@@ -1,10 +1,10 @@
 #include <Camera.h>
 
 Camera::Camera()
-    : align_to(RS2_STREAM_COLOR),
+    : extrinsic(Eigen::Matrix4d::Identity()),
+      align_to(RS2_STREAM_COLOR),
       FPS(0),
       device(nullptr),
-      extrinsic(Eigen::Matrix4d::Identity()),
       depth_scale(0.0f),
       running(false),
       connected(false),
@@ -126,7 +126,7 @@ bool Camera::findDevice()
     if (devices.size() < 1)
     {
 
-        std::cerr << "No realsense devices were detected unable to set a device" << std::endl;
+        std::cerr << "No realsense devices were detected via USB unable to set a device" << std::endl;
         connected = false;
     }
     else if (devices.size() > 1)
@@ -163,7 +163,7 @@ void Camera::updateLoop()
     while (running)
     {
 
-        if (!connected && !initialized)
+        if (!connected || !initialized)
         {
             connect();
             std::this_thread::sleep_for(RECONNECT_DELAY);
@@ -301,12 +301,12 @@ std::shared_ptr<open3d::geometry::RGBDImage> Camera::getRGBDImage()
     std::lock_guard<std::mutex> lock(stream_mutex);
     if(!initialized || !running)
     {
-        std::cerr << "Could not retrieve RGBD Image, camera is not connected" << std::endl;
+        //std::cerr << "Could not retrieve RGBD Image, camera is not connected" << std::endl;
         return nullptr;
     }
     else if(current_RGBDImage->IsEmpty())
     {
-        std::cerr << "RGBD Image is empty" << std::endl;
+        //std::cerr << "RGBD Image is empty" << std::endl;
         return nullptr;
     }
     else

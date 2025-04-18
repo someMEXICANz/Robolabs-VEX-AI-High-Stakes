@@ -40,7 +40,8 @@ public:
     std::shared_ptr<open3d::geometry::PointCloud> getPointCloud();
     std::shared_ptr<open3d::geometry::RGBDImage> getRGBDImage();
     
-    
+    open3d::camera::PinholeCameraIntrinsic intrinsic;
+    Eigen::Matrix4d extrinsic;
 
     
 
@@ -69,19 +70,14 @@ private:
     rs2::frame depth_frame;  
 
     std::shared_ptr<open3d::geometry::Image> color_image;
-    std::shared_ptr<open3d::geometry::Image> depth_image;                    
+    std::shared_ptr<open3d::geometry::Image> depth_image;  
+    std::shared_ptr<open3d::geometry::RGBDImage> current_RGBDImage;                 
     
     void setIntrinsic(const rs2_intrinsics &intrinsics); 
-    open3d::camera::PinholeCameraIntrinsic intrinsic;
-    Eigen::Matrix4d extrinsic;
-
+    
     int FPS;
     float depth_scale;
 
-    // bool updateRGBDImage();
-    std::shared_ptr<open3d::geometry::RGBDImage> current_RGBDImage;
-
-    
     void updateLoop();   
     bool findDevice();
     void initialize();

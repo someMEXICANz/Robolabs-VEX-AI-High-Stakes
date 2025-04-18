@@ -12,6 +12,7 @@ BrainComm::BrainComm(boost::asio::io_service& service)
     , port("")
     , running(false)
     , connected(false)
+    , initialized(false)
     , started(false)
     , serial_port(nullptr)
     , request_flags(static_cast<uint16_t>(RequestFlag::NoData))
@@ -34,8 +35,10 @@ BrainComm::BrainComm(boost::asio::io_service& service)
     current_motor_command = {0.0, 0.0, 0};
     current_control_flags = {0};
     current_battery_lvl = 0;
-    
-    port_thread = make_unique<thread>(&BrainComm::detectionLoop, this);
+
+    std::cerr << "Attempting to connect VEX Brain..." << std::endl;
+    findPort();
+    start();
 }
 
 BrainComm::~BrainComm() 
@@ -107,8 +110,8 @@ bool BrainComm::reconnect()
     {
         serial_port->close();
     }
-     
-    return initializePort();
+    std::cerr << "Attempting to reconnect VEX Brain..." << std::endl;
+    return findPort();
 }
 
 
@@ -130,7 +133,7 @@ bool BrainComm::initializePort()
         serial_port->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
         serial_port->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
         
-        connected = true;
+        initialized = true;
         stats.recordConnectionStatus(true);
         cerr << "Brain communication initialized on port " << port << endl;
         return true;
@@ -139,7 +142,7 @@ bool BrainComm::initializePort()
     {
         stats.logError(CommError::ConnectionLost, "Failed to initialize port: " + string(e.what()));
         cerr << "Failed to initialize port: " << endl ;
-        connected = false;
+        initialized = false;
         return false;
     }
 }
@@ -158,30 +161,72 @@ bool BrainComm::updateRequests(uint16_t flags)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void BrainComm::detectionLoop() 
+bool BrainComm::findPort() 
 {
-    std::cerr << "Brain port detection thread started" << std::endl;
-    while (port == "") 
-    {
-        // Try to find Brain ports
-        std::vector<std::string> brain_ports = PortDetector::findBrainPorts();
-        
-        if (!brain_ports.empty()) 
-        {
-            {
-                port = brain_ports[0]; // Use the first available port
-            }
-            std::cerr << "Found Brain port: " << port << std::endl;
-        }
-        std::this_thread::sleep_for(CommConstants::RECONNECT_DELAY);
-    }
-    
+    // Try to find Brain ports
+    std::vector<std::string> brain_ports = PortDetector::findBrainPorts();
 
-    std::cerr << "Port detection thread stopped" << std::endl;
-    initializePort();
-    start();
-    
-        
+    if (port == "")
+    {
+        if(brain_ports.size() < 1)
+        {
+            std::cerr << "No VEX Brain detected via USB could not set port" << std::endl;
+            connected = false;
+            
+        }
+
+        else if(brain_ports.size() > 1)
+        {
+             std::cerr << "Too many VEX Brain Ports detected" << std::endl;
+             connected = false;
+        }
+        else
+        {
+            std::cerr << "VEX Brain detected" << std::endl;
+            port = brain_ports[0];
+            connected = true;
+            initializePort();
+        }
+    }
+    else
+    {
+        if(brain_ports.size() < 1)
+        {
+            std::cerr << "No VEX Brain detected via USB could not find previously set port" << std::endl;
+            connected = false;
+        }
+        else
+        {
+            
+            for(int i = 0; i < brain_ports.size(); i++)
+            {
+                if(brain_ports[i] == port)
+                {
+                    std::cerr << "Reconnected to previously set port" << std::endl;
+                    connected = true;
+                    initializePort();
+                    break;
+                }
+                else 
+                    connected = false;
+
+            }
+            if(!connected)
+            {
+                std::cerr << "VEX Brain detected but the port has changed, (" <<  port 
+                          << " -> " << brain_ports[0] << ")"  << std::endl;
+                port = brain_ports[0];
+                connected = true;
+                initializePort();
+
+            }
+
+        }
+
+
+    }
+
+    return connected;
 
 }
 
@@ -198,9 +243,9 @@ void BrainComm::readLoop()
     while (running) 
     {
 
-        if (!connected && !reconnect())
+        if (!connected || !initialized)
         {
-            cerr <<"Failed to reconnect the Brain retrying in a few seconds" << endl;
+            reconnect();
             this_thread::sleep_for(CommConstants::RECONNECT_DELAY);
             continue;
         }
@@ -343,18 +388,19 @@ void BrainComm::writeLoop()
     
     while (running) 
     {
+        if (!connected || !initialized)
+        {
+            this_thread::sleep_for(CommConstants::RECONNECT_DELAY);
+            continue;
+        }
+
+
         current_request = 0;
         current_response = 0;
         current_acknocknowledgment = 0;
         send_request = false;
         send_data = false;
         send_acknowledgment = false;
-
-        if (!connected) 
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            continue;
-        }
 
         current_time = chrono::duration_cast<std::chrono::milliseconds>(
                         chrono::steady_clock::now().time_since_epoch()).count();

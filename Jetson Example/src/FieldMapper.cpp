@@ -18,10 +18,9 @@ FieldMapper::FieldMapper(Camera& Camera) // , RobotPosition& Position)
       plane_num_iterations(1000),
       ground_threshold(.95),
       min_height_threshold(0.1f),
-      max_height_threshold(1.5f)
+      max_height_threshold(1.5f),
+      extrin_intrin_init(false)
 {
-
-    //legacy_point_cloud = std::make_shared<open3d::geometry::PointCloud>();
     start();
 }
 
@@ -85,14 +84,21 @@ void FieldMapper::updateLoop()
 
     while (running) 
     {
-        if(!camera.isConnected() && !camera.isInitialized())
+        if(!camera.isInitialized() || !camera.isRunning())
         {
-            std::cerr << " Field mapper is Waiting for Camera" << std::endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(100)); 
+            std::cerr << " Field mapper is waiting for Camera" << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000)); 
+        }
+        else if(!extrin_intrin_init && camera.isInitialized())
+        {
+            setIntrinsicAndExtrinsic();
         }
         else 
         {
-            processRGBDImage();
+            if(processRGBDImage())
+            {
+                //computeOdometry();
+            }
             process_count++;
             current_time = std::chrono::high_resolution_clock::now();
 
@@ -106,7 +112,7 @@ void FieldMapper::updateLoop()
             process_count = 0;
             last_time = current_time;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(35));
 
     }
     
@@ -117,29 +123,29 @@ void FieldMapper::updateLoop()
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-bool FieldMapper::processPointCloud() 
-{   
-    // Grab Raw Point Cloud from camera 
-    std::shared_ptr<open3d::geometry::PointCloud> raw_point_cloud = camera.getPointCloud();
+// bool FieldMapper::processPointCloud() 
+// {   
+//     // Grab Raw Point Cloud from camera 
+//     std::shared_ptr<open3d::geometry::PointCloud> raw_point_cloud = camera.getPointCloud();
     
-    if (raw_point_cloud == nullptr || raw_point_cloud->IsEmpty()) 
-    {
-        std::cerr << "Received empty point cloud from camera" << std::endl;
-        return false;
-    }
-    else 
-    {
-        std::lock_guard<std::mutex> lock(data_mutex);
-        legacy_point_cloud = raw_point_cloud->VoxelDownSample(0.01);
-        std::cerr << "Downsampled from " << raw_point_cloud->points_.size() 
-                  << " to " << legacy_point_cloud->points_.size() << " points" << std::endl;
-        tensor_point_cloud = open3d::t::geometry::PointCloud::FromLegacy(*legacy_point_cloud, 
-                                                                         open3d::core::Float32, 
-                                                                         open3d::core::Device("CPU:0"));
-        // current_tensor_cloud.EstimateNormals(30,1.5);
-        return true;
-    }      
-}
+//     if (raw_point_cloud == nullptr || raw_point_cloud->IsEmpty()) 
+//     {
+//         std::cerr << "Received empty point cloud from camera" << std::endl;
+//         return false;
+//     }
+//     else 
+//     {
+//         std::lock_guard<std::mutex> lock(data_mutex);
+//         legacy_point_cloud = raw_point_cloud->VoxelDownSample(0.01);
+//         std::cerr << "Downsampled from " << raw_point_cloud->points_.size() 
+//                   << " to " << legacy_point_cloud->points_.size() << " points" << std::endl;
+//         tensor_point_cloud = open3d::t::geometry::PointCloud::FromLegacy(*legacy_point_cloud, 
+//                                                                          open3d::core::Float32, 
+//                                                                          open3d::core::Device("CPU:0"));
+//         // current_tensor_cloud.EstimateNormals(30,1.5);
+//         return true;
+//     }      
+// }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -152,34 +158,70 @@ bool FieldMapper::processRGBDImage()
     std::shared_ptr<open3d::geometry::RGBDImage> legacy_image = camera.getRGBDImage();
 
     if (legacy_image == nullptr || legacy_image->IsEmpty()) 
-    {
-        std::cerr << "Received empty RGBD Image from camera" << std::endl;
         return false;
-    }
     else
     {
-        open3d::t::geometry::Image color_image = open3d::t::geometry::Image::FromLegacy(legacy_image->color_, open3d::core::Device("CPU:0"));
-        open3d::t::geometry::Image depth_image = open3d::t::geometry::Image::FromLegacy(legacy_image->depth_, open3d::core::Device("CPU:0"));
+        std::lock_guard<std::mutex> lock(data_mutex);
+        prevoius_image = current_image.Clone();
+        open3d::t::geometry::Image color_image = open3d::t::geometry::Image::FromLegacy(legacy_image->color_, open3d::core::Device("CUDA:0"));
+        open3d::t::geometry::Image depth_image = open3d::t::geometry::Image::FromLegacy(legacy_image->depth_, open3d::core::Device("CUDA:0"));
 
         current_image = open3d::t::geometry::RGBDImage(color_image, depth_image, true);
         
-        if (!current_image.IsEmpty())
-        {
-            std::cerr << "Generated tensor RGBD Image from legacy RGBD Image" << std::endl;
+        if (current_image.IsEmpty())
             return false;
-        }
         else
-        {
-            std::cerr << "Failed to generated tensor RGBD Image" << std::endl;
             return true;
-        }
+
     }
 
-
-
-    return false;
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void FieldMapper::computeOdometry() 
+{
+    if (prevoius_image.IsEmpty() || current_image.IsEmpty()) 
+    {
+        return;
+    }
+    
+    // Set up odometry parameters
+    open3d::t::pipelines::odometry::OdometryConvergenceCriteria criteria(20, 1e-4, 1e-4);
+    open3d::t::pipelines::odometry::OdometryLossParams loss_params(0.07, 0.05);
+    
+    // Compute odometry using hybrid method
+     open3d::t::pipelines::odometry::OdometryResult odom_result = 
+     open3d::t::pipelines::odometry::ComputeOdometryResultHybrid(prevoius_image, 
+                                                                 current_image,
+                                                                 intrinsic_tensor,
+                                                                 extrinsic_tensor,  
+                                                                 criteria,
+                                                                 loss_params);
+    
+    // Process the odometry result
+    if (odom_result.fitness_ > 0.3) 
+    {  
+        std::cerr << "Odometry success - fitness: " << odom_result.fitness_ 
+                  << ", RMSE: " << odom_result.inlier_rmse_ << std::endl;
+        
+   
+    } 
+    // Here you would update pose graph, position, etc.
+    // Example: current_pose = previous_pose * result.transformation_;
+    else 
+    {
+        std::cerr << "Low quality odometry - fitness: " << odom_result.fitness_ 
+                  << ", RMSE: " << odom_result.inlier_rmse_ << std::endl;
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 bool FieldMapper::segmentPlanes()
@@ -250,7 +292,30 @@ bool FieldMapper::segmentPlanes()
     return ground_plane_found;
 
 }
-            
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void FieldMapper::setIntrinsicAndExtrinsic()
+{
+    Eigen::Matrix3d intrinsic_matrix = camera.intrinsic.intrinsic_matrix_;
+    Eigen::Matrix4d extrinsic_matrix = camera.extrinsic;
+
+    
+    std::lock_guard<std::mutex> lock(data_mutex);
+    intrinsic_tensor = open3d::core::eigen_converter::EigenMatrixToTensor(intrinsic_matrix);
+    extrinsic_tensor = open3d::core::eigen_converter::EigenMatrixToTensor(extrinsic_matrix);
+    extrin_intrin_init = true;
+    std::cerr << "Set extrinsic and intrinsic tensors ready for processing" << std::endl;
+
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 int FieldMapper::getPPS()

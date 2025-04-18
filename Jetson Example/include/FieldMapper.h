@@ -22,9 +22,9 @@
 
 class FieldMapper {
 public:
-    // Constructor and Destructor
-    explicit FieldMapper(Camera& Camera); //, RobotPosition& Position);
-    ~FieldMapper();
+    
+    explicit FieldMapper(Camera& Camera); //, RobotPosition& Position); // Constructor 
+    ~FieldMapper();                                                     // Destructor
 
     // Delete copy constructor and assignment operator
     FieldMapper(const FieldMapper&) = delete;
@@ -35,12 +35,12 @@ public:
     void stop();
     bool restart();
 
-    // Map access methods
-    cv::Mat getOccupancyMap() const;
+    // access methods
     int getPPS();
+    cv::Mat getOccupancyMap() const;
     
 private:
-    // References to external components
+    
     Camera& camera;
     // RobotPosition& robot_position;
 
@@ -81,6 +81,12 @@ private:
 
     open3d::t::geometry::RGBDImage current_image;
     open3d::t::geometry::RGBDImage prevoius_image;
+    
+    void setIntrinsicAndExtrinsic();
+    open3d::core::Tensor intrinsic_tensor;
+    open3d::core::Tensor extrinsic_tensor;
+    bool extrin_intrin_init;
+
 
     
     
@@ -88,6 +94,7 @@ private:
     bool processPointCloud();
     bool processRGBDImage();
     bool segmentPlanes();
+    void computeOdometry();
     void refinePosition();
     void ClusterObstacles();
     void updateOccupancyMap();

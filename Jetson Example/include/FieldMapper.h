@@ -37,6 +37,7 @@ public:
 
     // Map access methods
     cv::Mat getOccupancyMap() const;
+    int getPPS();
     
 private:
     // References to external components
@@ -47,6 +48,8 @@ private:
     std::unique_ptr<std::thread> update_thread;
     mutable std::mutex data_mutex;
     bool running;
+
+    int PPS;
     
     // // Map properties
     float map_width;
@@ -75,10 +78,15 @@ private:
     float min_height_threshold;
     float max_height_threshold;
 
-   
+
+    open3d::t::geometry::RGBDImage current_image;
+    open3d::t::geometry::RGBDImage prevoius_image;
+
+    
     
     // Processing methods
     bool processPointCloud();
+    bool processRGBDImage();
     bool segmentPlanes();
     void refinePosition();
     void ClusterObstacles();

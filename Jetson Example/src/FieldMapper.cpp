@@ -1,9 +1,13 @@
 #include <FieldMapper.h>
 
+
+using namespace open3d;
+
 FieldMapper::FieldMapper(Camera& Camera) // , RobotPosition& Position) 
     : camera(Camera),
       // robot_position(Position),
       running(false),
+      PPS(0),
       map_width(3.66f),
       map_height(3.66f),
       map_resolution(0.05f), 
@@ -17,7 +21,7 @@ FieldMapper::FieldMapper(Camera& Camera) // , RobotPosition& Position)
       max_height_threshold(1.5f)
 {
 
-    legacy_point_cloud = std::make_shared<open3d::geometry::PointCloud>();
+    //legacy_point_cloud = std::make_shared<open3d::geometry::PointCloud>();
     start();
 }
 
@@ -75,6 +79,9 @@ bool FieldMapper::restart()
 void FieldMapper::updateLoop() 
 {
     std::cerr << "Field Mapper update loop started" << std::endl;
+    int process_count = 0;
+    std::chrono::time_point last_time = std::chrono::high_resolution_clock::now();
+    std::chrono::time_point current_time = std::chrono::high_resolution_clock::now();
 
     while (running) 
     {
@@ -85,11 +92,22 @@ void FieldMapper::updateLoop()
         }
         else 
         {
-            if (processPointCloud())
-            {
-                segmentPlanes();
-            }
+            processRGBDImage();
+            process_count++;
+            current_time = std::chrono::high_resolution_clock::now();
+
         }
+
+        int64 elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_time).count();
+
+        if (elapsed >= 1000)
+        {
+            PPS = static_cast<int>(process_count * 1000 / elapsed);
+            process_count = 0;
+            last_time = current_time;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
     }
     
     std::cerr << "Field Mapper update loop stopped" << std::endl;
@@ -128,6 +146,42 @@ bool FieldMapper::processPointCloud()
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+bool FieldMapper::processRGBDImage() 
+{   
+    
+    std::shared_ptr<open3d::geometry::RGBDImage> legacy_image = camera.getRGBDImage();
+
+    if (legacy_image == nullptr || legacy_image->IsEmpty()) 
+    {
+        std::cerr << "Received empty RGBD Image from camera" << std::endl;
+        return false;
+    }
+    else
+    {
+        open3d::t::geometry::Image color_image = open3d::t::geometry::Image::FromLegacy(legacy_image->color_, open3d::core::Device("CPU:0"));
+        open3d::t::geometry::Image depth_image = open3d::t::geometry::Image::FromLegacy(legacy_image->depth_, open3d::core::Device("CPU:0"));
+
+        current_image = open3d::t::geometry::RGBDImage(color_image, depth_image, true);
+        
+        if (!current_image.IsEmpty())
+        {
+            std::cerr << "Generated tensor RGBD Image from legacy RGBD Image" << std::endl;
+            return false;
+        }
+        else
+        {
+            std::cerr << "Failed to generated tensor RGBD Image" << std::endl;
+            return true;
+        }
+    }
+
+
+
+    return false;
+}
+
+
+
 bool FieldMapper::segmentPlanes()
 {
     std::lock_guard<std::mutex> lock(data_mutex);
@@ -143,7 +197,7 @@ bool FieldMapper::segmentPlanes()
 
     for (int i = 0; i < max_planes; ++i) 
     {
-        if (processing_cloud.GetPointPositions().GetLength() < plane_ransac_n);
+        if (processing_cloud.GetPointPositions().GetLength() < plane_ransac_n)
         {
             break;
         }
@@ -197,3 +251,10 @@ bool FieldMapper::segmentPlanes()
 
 }
             
+
+
+int FieldMapper::getPPS()
+{
+    std::lock_guard<std::mutex> lock(data_mutex);
+    return PPS;
+}

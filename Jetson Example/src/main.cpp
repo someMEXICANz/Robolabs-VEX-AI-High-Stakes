@@ -48,6 +48,9 @@ int main()
     while (true) 
     {
         std::cerr << "Camera FPS: " << camera.getFPS() << std::endl;
+        std::cerr << "Mapper PPS: " << mapper.getPPS() << std::endl;
+
+        
        
         if(camera.getInferFrame(model.inferInput))
         {

@@ -36,12 +36,14 @@ public:
                       float x,    float y,     float z);     
 
     int getFPS();
+    float getDepthScale();
+    Eigen::Matrix3d getIntrinsicMatrix();
+
     bool getInferFrame(std::vector<float> &output); // Prepare & Process frame for Tensorrt engine
     std::shared_ptr<open3d::geometry::PointCloud> getPointCloud();
     std::shared_ptr<open3d::geometry::RGBDImage> getRGBDImage();
     
-    open3d::camera::PinholeCameraIntrinsic intrinsic;
-    Eigen::Matrix4d extrinsic;
+
 
     
 
@@ -71,9 +73,9 @@ private:
 
     std::shared_ptr<open3d::geometry::Image> color_image;
     std::shared_ptr<open3d::geometry::Image> depth_image;  
-    std::shared_ptr<open3d::geometry::RGBDImage> current_RGBDImage;                 
-    
-    void setIntrinsic(const rs2_intrinsics &intrinsics); 
+    std::shared_ptr<open3d::geometry::RGBDImage> current_RGBDImage;   
+                  
+    open3d::camera::PinholeCameraIntrinsic intrinsic;
     
     int FPS;
     float depth_scale;

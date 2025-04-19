@@ -40,6 +40,7 @@ public:
     Position2D getLeftGPSOffset() const;
     Position2D getRightGPSOffset() const;
     uint32_t getBrainBattery() const;
+    
 
     // Statistics and error handling
     const StatsManager& getStats() const { return stats; }

@@ -12,13 +12,6 @@
 #include "Camera.h"
 #include "RobotPosition.h"
 
-// struct WallFeature {
-//     Eigen::Vector3d normal;
-//     double distance;
-//     Eigen::Vector3d centroid;
-//     double confidence;
-//     std::chrono::system_clock::time_point timestamp;
-// };
 
 class FieldMapper {
 public:
@@ -35,6 +28,11 @@ public:
     void stop();
     bool restart();
 
+    bool isRunning() const {return running;}
+    bool isInitialized() const {return initialized;}
+
+    void setExtrinsic(float roll, float pitch, float yaw, float x, float y, float z);
+
     // access methods
     int getPPS();
     cv::Mat getOccupancyMap() const;
@@ -45,9 +43,12 @@ private:
     // RobotPosition& robot_position;
 
     void updateLoop();
+    bool initialize();
+
     std::unique_ptr<std::thread> update_thread;
     mutable std::mutex data_mutex;
     bool running;
+    bool initialized;
 
     int PPS;
     
@@ -55,15 +56,7 @@ private:
     float map_width;
     float map_height;
     float map_resolution;
-   
-    // Data Storage
-    std::shared_ptr<open3d::geometry::PointCloud> legacy_point_cloud;
-    open3d::t::geometry::PointCloud tensor_point_cloud;
 
-
-    std::tuple<Eigen::Vector4d, open3d::core::Tensor> ground_plane;
-    cv::Mat occupancy_map;
-    
     //DBSCAN clustering parameters
     float cluster_eps;
     int cluster_min_points;
@@ -77,24 +70,33 @@ private:
     // Filtering parameters
     float min_height_threshold;
     float max_height_threshold;
+   
+    // Data Storage
+    std::shared_ptr<open3d::geometry::PointCloud> legacy_point_cloud;
+    open3d::t::geometry::PointCloud tensor_point_cloud;
 
-
+    std::tuple<Eigen::Vector4d, open3d::core::Tensor> ground_plane;
+    cv::Mat occupancy_map;
+    
     open3d::t::geometry::RGBDImage current_image;
     open3d::t::geometry::RGBDImage prevoius_image;
-    
-    void setIntrinsicAndExtrinsic();
+
+    float depth_scale;
     open3d::core::Tensor intrinsic_tensor;
     open3d::core::Tensor extrinsic_tensor;
-    bool extrin_intrin_init;
+
+    open3d::core::Tensor current_transform;
+    open3d::core::Tensor prevoius_transform;
 
 
     
+
     
     // Processing methods
     bool processPointCloud();
     bool processRGBDImage();
     bool segmentPlanes();
-    void computeOdometry();
+    bool computeOdometry();
     void refinePosition();
     void ClusterObstacles();
     void updateOccupancyMap();

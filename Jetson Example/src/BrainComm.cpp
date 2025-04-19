@@ -157,6 +157,7 @@ bool BrainComm::updateRequests(uint16_t flags)
     return true;
 }
 
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -220,10 +221,7 @@ bool BrainComm::findPort()
                 initializePort();
 
             }
-
         }
-
-
     }
 
     return connected;
@@ -236,7 +234,7 @@ bool BrainComm::findPort()
 
 void BrainComm::readLoop() 
 {
-    cerr << "Read thread started" << endl;
+    cerr << "Brain read loop started" << endl;
     vector<uint8_t> buffer(CommConstants::MAX_BUFFER_SIZE);
     size_t buffer_index = 0;
     
@@ -376,6 +374,7 @@ void BrainComm::readLoop()
 
 void BrainComm::writeLoop() 
 {
+    cerr << "Brain write loop started" << endl;
 
     uint16_t current_request;
     uint16_t current_response;

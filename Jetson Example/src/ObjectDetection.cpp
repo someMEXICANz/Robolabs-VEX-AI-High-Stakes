@@ -32,14 +32,6 @@ std::vector<DetectedObject> ObjectDetection::decodeOutputs(const std::vector<flo
     }
 
     return finalDetections;  // Return only non-overlapping detections
-
-
-
-
-
-
-
-    return Detections;
 }
 
 float ObjectDetection::sigmoid(float x) 

@@ -23,42 +23,36 @@ using namespace std;
 
 //camera.setExtrinsic(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 
+
+
 int main() 
 {
-    open3d::utility::SetVerbosityLevel(open3d::utility::VerbosityLevel::Debug);
+    //open3d::utility::SetVerbosityLevel(open3d::utility::VerbosityLevel::Debug);
 
     boost::asio::io_service myService;
 
-     // UPS ups; // (threaded)
-    IMU imu; // (threaded)
+    // UPS ups; // (threaded)
+    // IMU imu; // (threaded)
 
     Camera camera; // (threaded)
-    while(!camera.isInitialized() || !camera.isRunning())
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-
-
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     Brain::BrainComm brain(myService); // (threaded)
-    while(!brain.isInitialized() || !brain.isRunning())
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-    //RobotPosition robotPosition(brain, imu, myService); // (threaded) 
-    FieldMapper mapper(camera); //, robotPosition); // (threaded)
-
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    // RobotPosition robotPosition(brain, imu, myService); // (threaded) 
+    // std::this_thread::sleep_for(std::chrono::seconds(1));
 
     Model model;
     ObjectDetection objdet;
     std::vector<DetectedObject> Detections;
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    FieldMapper mapper(camera); //, robotPosition); // (threaded)
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
     while (true) 
     {
         std::cerr << "Camera FPS: " << camera.getFPS() << std::endl;
-        std::cerr << "Mapper PPS: " << mapper.getPPS() << std::endl;
+        //std::cerr << "Mapper PPS: " << mapper.getPPS() << std::endl;
 
-        
-       
         if(camera.getInferFrame(model.inferInput))
         {
             model.runInference();
@@ -73,11 +67,11 @@ int main()
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));    
     }
-    mapper.stop();
+    //mapper.stop();
     camera.stop();
-    //robotPosition.stop();
+    // robotPosition.stop();
     brain.stop();
-    imu.stop();
+    // imu.stop();
     // ups.stop();
     
     

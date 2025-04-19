@@ -101,13 +101,12 @@ void Camera::initialize()
                                                            rs_intrinsics.ppx, rs_intrinsics.ppy);
 
         depth_scale = device->first<rs2::depth_sensor>().get_depth_scale();
+        std::cerr << "Depth Scale: " << depth_scale << std::endl;
 
         color_image = std::make_shared<open3d::geometry::Image>();
         depth_image = std::make_shared<open3d::geometry::Image>();
-
-        color_image->Prepare(frame_width, frame_height, 3, sizeof(uint8_t));
-        depth_image->Prepare(frame_width, frame_height, 1, sizeof(uint16_t));
-
+        color_image->Prepare(frame_width, frame_height, 3, 1);
+        depth_image->Prepare(frame_width, frame_height, 1, 2);
         current_RGBDImage = std::make_shared<open3d::geometry::RGBDImage>();
         initialized = true;
         std::cerr << "Realsense camera initialized" << std::endl;
@@ -185,13 +184,15 @@ void Camera::updateLoop()
             current_time = std::chrono::high_resolution_clock::now();
 
             std::memcpy(color_image->data_.data(), color_frame.get_data(),
-                        frame_width * frame_height * 3 * sizeof(u_int8_t));
+                        frame_width * frame_height * 3 );
             std::memcpy(depth_image->data_.data(), depth_frame.get_data(),
-                        frame_width * frame_height * sizeof(u_int16_t));
+                        frame_width * frame_height * 2);
 
             current_RGBDImage = open3d::geometry::RGBDImage::CreateFromColorAndDepth(
                 *color_image, *depth_image,
-                1 / depth_scale, 10, true);
+                1 / depth_scale, 10, false);
+            
+
         }
 
         int64 elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_time).count();

@@ -111,7 +111,7 @@ void FieldMapper::updateLoop()
             process_count = 0;
             last_time = current_time;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(35));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
     std::cerr << "Field Mapper update loop stopped" << std::endl;
 }
@@ -127,23 +127,23 @@ bool FieldMapper::initialize()
     {
         return true;
     }
-
     if(!camera.isInitialized())
     {
         std::cerr << "Can not initialize the Field Mapper camera has not been initialized" << std::endl;
         initialized = false;
         return false;
     }
-    else
-    {
-        std::lock_guard<std::mutex> lock(data_mutex);
-        depth_scale = camera.getDepthScale();
-        intrinsic_tensor = open3d::core::eigen_converter::EigenMatrixToTensor(camera.getIntrinsicMatrix());
-        setExtrinsic(0, 0, 0, 0, 0, 0);
-        std::cerr << "Field Mapper has been initialized" << std::endl;
-        initialized = true;
-        return true;
-    }
+
+    depth_scale = camera.getDepthScale();
+    intrinsic_tensor = open3d::core::eigen_converter::EigenMatrixToTensor(camera.getIntrinsicMatrix());
+    setExtrinsic(0, 0, 0, 0, 0, 0);
+    current_transform = open3d::core::Tensor::Eye(4,open3d::core::Float32,
+                                                  open3d::core::Device("CUDA:0"));
+    prevoius_transform = current_transform.Clone();
+    std::cerr << "Field Mapper has been initialized" << std::endl;
+    initialized = true;
+    return true;
+    
 }
 
 
@@ -208,29 +208,28 @@ bool FieldMapper::computeOdometry()
                                                                          current_image,
                                                                          intrinsic_tensor,
                                                                          prevoius_transform,
-                                                                         depth_scale,
+                                                                         1/depth_scale,
                                                                          max_depth,
                                                                          {criteria},
-                                                                         odomMethod,
-                                                                         loss_params);
+                                                                         odomMethod);
 
     current_transform = odom_result.transformation_.Clone();
     
-    // Process the odometry result
-    if (odom_result.fitness_ > 0.3) 
-    {  
-        std::cerr << "Odometry success - fitness: " << odom_result.fitness_ 
-                  << ", RMSE: " << odom_result.inlier_rmse_ << std::endl;
+    // // Process the odometry result
+    // if (odom_result.fitness_ > 0.3) 
+    // {  
+    //     std::cerr << "Odometry success - fitness: " << odom_result.fitness_ 
+    //               << ", RMSE: " << odom_result.inlier_rmse_ << std::endl;
         
    
-    } 
-    // Here you would update pose graph, position, etc.
-    // Example: current_pose = previous_pose * result.transformation_;
-    else 
-    {
-        std::cerr << "Low quality odometry - fitness: " << odom_result.fitness_ 
-                  << ", RMSE: " << odom_result.inlier_rmse_ << std::endl;
-    }
+    // } 
+    // // Here you would update pose graph, position, etc.
+    // // Example: current_pose = previous_pose * result.transformation_;
+    // else 
+    // {
+    //     std::cerr << "Low quality odometry - fitness: " << odom_result.fitness_ 
+    //               << ", RMSE: " << odom_result.inlier_rmse_ << std::endl;
+    // }
     return true;
 }
 

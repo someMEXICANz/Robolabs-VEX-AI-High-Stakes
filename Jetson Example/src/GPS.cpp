@@ -8,9 +8,9 @@ GPS::GPS(boost::asio::io_service& service, const std::string& new_port)
       running(false),
       connected(false),
       initialized(false),
-      current_position{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, std::chrono::system_clock::now()}
+      current_position{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, std::chrono::high_resolution_clock::now()}
 {
-    
+    serial_port = std::make_unique<boost::asio::serial_port>(io_service);
     connectPort();
 }
 
@@ -76,9 +76,10 @@ bool GPS::reconnect()
 
 bool GPS::initializePort() 
 {
-    if(!connected)
+    if(!serial_port->is_open())
     {
         std::cerr << "GPS sensor can not be initialized port has not been connected" << std::endl;
+        return false;
     }
     try {
         
@@ -101,7 +102,7 @@ bool GPS::initializePort()
 
 bool GPS::connectPort()
 {
-    if(serial_port != nullptr && serial_port->is_open())
+    if(serial_port->is_open())
     {
         std::cerr << "GPS is already connected to a port" << std::endl;
         connected = true;
@@ -115,7 +116,6 @@ bool GPS::connectPort()
     }
     try{
 
-        serial_port = std::make_unique<boost::asio::serial_port>(io_service);
         serial_port->open(port);
         connected = true;
         std::cerr << "GPS device has connected to port" << std::endl;
@@ -127,8 +127,7 @@ bool GPS::connectPort()
     {
         std::cerr << "Failed to connect GPS device to port: " << e.what() << std::endl;
         connected = false;
-        initialized = false;
-        serial_port = nullptr;
+        serial_port->close();
         return false;
     }
 

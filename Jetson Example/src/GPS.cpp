@@ -7,6 +7,7 @@ GPS::GPS(boost::asio::io_service& service, const std::string& new_port)
       serial_port(nullptr),
       running(false),
       connected(false),
+      initialized(false),
       current_position{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, std::chrono::system_clock::now()}
 {
     
@@ -100,7 +101,7 @@ bool GPS::initializePort()
 
 bool GPS::connectPort()
 {
-    if(serial_port->is_open() || serial_port != nullptr)
+    if(serial_port != nullptr && serial_port->is_open())
     {
         std::cerr << "GPS is already connected to a port" << std::endl;
         connected = true;
@@ -117,14 +118,16 @@ bool GPS::connectPort()
         serial_port = std::make_unique<boost::asio::serial_port>(io_service);
         serial_port->open(port);
         connected = true;
+        std::cerr << "GPS device has connected to port" << std::endl;
         initializePort();
         return true;
 
 
     } catch (const boost::system::system_error& e) 
     {
-        std::cerr << "Failed to initialize GPS port: " << e.what() << std::endl;
+        std::cerr << "Failed to connect GPS device to port: " << e.what() << std::endl;
         connected = false;
+        initialized = false;
         serial_port = nullptr;
         return false;
     }
@@ -184,15 +187,15 @@ bool GPS::readData()
             std::cerr << "GPS has lost connection" << std::endl;
             serial_port->close();
             connected = false;
-        }
-        else
-        {
-            std::cerr << "GPS read error: " << ec.message() << std::endl;
-            std::lock_guard<std::mutex> lock(position_mutex);
-            current_position.quality = 0.0f;
-            current_position.timestamp = std::chrono::high_resolution_clock::now();
             return false;
         }
+    
+        std::cerr << "GPS read error: " << ec.message() << std::endl;
+        std::lock_guard<std::mutex> lock(position_mutex);
+        current_position.quality = 0.0f;
+        current_position.timestamp = std::chrono::high_resolution_clock::now();
+        return false;
+    
     }
         
     if (bytes_read == 16 && buffer[14] == 0xCC && buffer[15] == 0x33) 
@@ -222,6 +225,8 @@ bool GPS::readData()
         current_position.timestamp = std::chrono::high_resolution_clock::now();
         return true;
     }
+
+    return false;
 
 }
 

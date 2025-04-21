@@ -19,17 +19,14 @@ GPS::~GPS()
     stop();
 }
 
-bool GPS::start() {
+bool GPS::start() 
+{
     if(running)
     {
         std::cerr << "GPS read thread is already running" << std::endl; 
         return true;
     }
     
-    if (!connected && !reconnect()) 
-    {
-        return false;
-    }
     try{  
        
         running = true;
@@ -38,13 +35,14 @@ bool GPS::start() {
         
     } catch (const std::exception& e) 
     {
-        std::cerr << "Failed to start GPS read threads: " << e.what() << std::endl;
+        std::cerr << "Failed to start GPS read thread: " << e.what() << std::endl;
         running = false;
         return false;  
     }
 }
 
-void GPS::stop() {
+void GPS::stop() 
+{
     running = false;
     
     if (read_thread && read_thread->joinable()) {
@@ -56,11 +54,10 @@ void GPS::stop() {
     if (serial_port && serial_port->is_open()) {
         serial_port->close();
     }
-    
-    connected = false;
 }
 
-bool GPS::restart() {
+bool GPS::restart() 
+{
     stop();
     return start();
 }
@@ -96,67 +93,79 @@ bool GPS::initializePort() {
 
 void GPS::readLoop() {
     std::cerr << "GPS read loop started" << std::endl;
-    boost::asio::deadline_timer timer(io_service);
     
-    while (running) {
-        try {
-            if (!connected && !reconnect()) {
-                std::this_thread::sleep_for(RECONNECT_DELAY);
-                continue;
-            }
-
-            std::vector<unsigned char> buffer(16); // Based on Python code packet size
-            boost::system::error_code ec;
-            
-            // Set timeout
-            timer.expires_from_now(boost::posix_time::milliseconds(READ_TIMEOUT.count()));
-            
-            // Read until end marker 0xCC33 (based on Python code)
-            std::size_t bytes_read = boost::asio::read(*serial_port, boost::asio::buffer(buffer), 
-                                     boost::asio::transfer_at_least(16), ec);
-            
-            if (ec) {
-                std::cerr << "GPS read error: " << ec.message() << std::endl;
-                connected = false;
-                continue;
-            }
-
-            if (bytes_read == 16 && buffer[14] == 0xCC && buffer[15] == 0x33) {
-                processBuffer(buffer);
-            }
-        } catch (const std::exception& e) {
-            std::cerr << "Error in GPS read loop: " << e.what() << std::endl;
-            connected = false;
+    const std::chrono::milliseconds read_interval(10); // 100Hz update rate
+    
+    while (running) 
+    {   
+        std::chrono::time_point start_time = std::chrono::steady_clock::now();
+        
+        if (!connected && !reconnect()) 
+        {
             std::this_thread::sleep_for(RECONNECT_DELAY);
+            continue;
         }
+
+        readData();
+
+        // Calculate time to sleep
+        std::chrono::duration elapsed = std::chrono::steady_clock::now() - start_time;
+        if (elapsed < read_interval) 
+        {
+            std::this_thread::sleep_for(read_interval - elapsed);
+        }
+    
     }
     
     std::cerr << "GPS read loop stopped" << std::endl;
 }
+bool GPS::readData()
+{
 
+    std::vector<unsigned char> buffer(16);
+    boost::system::error_code ec;
+
+    std::size_t bytes_read = boost::asio::read(*serial_port, boost::asio::buffer(buffer), 
+                                     boost::asio::transfer_at_least(16), ec);
+    if (ec) 
+    {
+        std::cerr << "GPS read error: " << ec.message() << std::endl;
+        std::lock_guard<std::mutex> lock(position_mutex);
+        current_position.quality = 0.0f;
+        current_position.timestamp = std::chrono::high_resolution_clock::now();
+    }
+        
+    if (bytes_read == 16 && buffer[14] == 0xCC && buffer[15] == 0x33) 
+    {
+        uint32_t current_status = buffer[1];
+        float quality = calculateGPSQuality(current_status);
+
+        // Parse position data (following Python implementation)
+        int16_t x_raw, y_raw, z_raw, az_raw, el_raw, rot_raw;
+        std::memcpy(&x_raw, &buffer[2], 2);
+        std::memcpy(&y_raw, &buffer[4], 2);
+        std::memcpy(&z_raw, &buffer[6], 2);
+        std::memcpy(&az_raw, &buffer[8], 2);
+        std::memcpy(&el_raw, &buffer[10], 2);
+        std::memcpy(&rot_raw, &buffer[12], 2);
+
+        // Update position
+        std::lock_guard<std::mutex> lock(position_mutex);
+        // Convert to proper units, just like in Python code
+        current_position.x = x_raw / 10000.0f;
+        current_position.y = y_raw / 10000.0f;
+        current_position.z = z_raw / 10000.0f;
+        current_position.azimuth = az_raw / 32768.0f * 180.0f; 
+        current_position.elevation = el_raw / 32768.0f * 180.0f;
+        current_position.rotation = rot_raw / 32768.0f * 180.0f;
+        current_position.quality = quality;
+        current_position.timestamp = std::chrono::high_resolution_clock::now();
+    }
+
+}
 void GPS::processBuffer(const std::vector<unsigned char>& buffer) {
     // Extract status byte
-    uint32_t current_status = buffer[1];
-    float quality = calculateGPSQuality(current_status);
-
-    // Parse position data (following Python implementation)
-    int16_t x_raw, y_raw, z_raw, az_raw, el_raw, rot_raw;
-    std::memcpy(&x_raw, &buffer[2], 2);
-    std::memcpy(&y_raw, &buffer[4], 2);
-    std::memcpy(&z_raw, &buffer[6], 2);
-    std::memcpy(&az_raw, &buffer[8], 2);
-    std::memcpy(&el_raw, &buffer[10], 2);
-    std::memcpy(&rot_raw, &buffer[12], 2);
-
-    // Update position
-    std::lock_guard<std::mutex> lock(position_mutex);
-    // Convert to proper units, just like in Python code
-    current_position.x = x_raw / 10000.0f;
-    current_position.y = y_raw / 10000.0f;
-    current_position.z = z_raw / 10000.0f;
-    current_position.azimuth = az_raw / 32768.0f * 180.0f; 
-    current_position.elevation = el_raw / 32768.0f * 180.0f;
-    current_position.rotation = rot_raw / 32768.0f * 180.0f;
+    
    
 }
 
@@ -174,31 +183,31 @@ float GPS::calculateGPSQuality(uint32_t status) const
     float quality = 1.0f;
     
     // Critical errors - position is unreliable
-    if (!(status & GPS::STATUS_CONNECTED)) 
+    if (!(status & STATUS_CONNECTED)) 
     {
         return 0.0f;  // Very low quality
     }
     
     // Major data acquisition issues
-    if ((status & GPS::STATUS_NODOTS) || (status & GPS::STATUS_NOBITS)  || 
-        (status & GPS::STATUS_NOSOLUTION)) 
+    if ((status & STATUS_NODOTS) || (status & STATUS_NOBITS)  || 
+        (status & STATUS_NOSOLUTION)) 
     {
         quality *= 0.1f;
     }
     
     // Data processing issues
-    if ((status & GPS::STATUS_NORAWBITS) || (status & GPS::STATUS_NOGROUPS) || 
-        (status & GPS::STATUS_PIXELERROR)) {
+    if ((status & STATUS_NORAWBITS) || (status & STATUS_NOGROUPS) || 
+        (status & STATUS_PIXELERROR)) {
         quality *= 0.5f;
     }
     
     // Position estimation or jumps
-    if ((status & GPS::STATUS_ANGLEJUMP) || (status & GPS::STATUS_POSJUMP)) {
+    if ((status & STATUS_ANGLEJUMP) || (status & STATUS_POSJUMP)) {
         quality *= 0.7f;
     }
     
     // Minor issues
-    if ((status & GPS::STATUS_SOLVER) || (status & GPS::STATUS_KALMAN_EST)) {
+    if ((status & STATUS_SOLVER) || (status & STATUS_KALMAN_EST)) {
         quality *= 0.8f;
     }
     

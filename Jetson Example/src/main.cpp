@@ -80,23 +80,23 @@ int main()
 
 
 
-void printUPSdata(UPS &ups)
-{
-    //Get voltage and current measurements
-    float shunt_voltage,            // voltage between V+ and V- across the shunt (in V)
-          bus_voltage,              // voltage on V- (load side)           
-          current,                  // current in mA
-          power,                    // power in W
-          percentage;               // battery percentage
+// void printUPSdata(UPS &ups)
+// {
+//     //Get voltage and current measurements
+//     float shunt_voltage,            // voltage between V+ and V- across the shunt (in V)
+//           bus_voltage,              // voltage on V- (load side)           
+//           current,                  // current in mA
+//           power,                    // power in W
+//           percentage;               // battery percentage
 
-    ups.getAll(shunt_voltage, bus_voltage, current, power, percentage);
+//     ups.getAll(shunt_voltage, bus_voltage, current, power, percentage);
 
-    std::cerr << "--------------------------------------------" << std::endl;
-    // Display UPS data 
-    std::cerr << "PSU Voltage:   " << (bus_voltage + shunt_voltage) << " V" << std::endl;
-    std::cerr << "Load Voltage:  " << bus_voltage << " V" << std::endl;
-    std::cerr << "Current:       " << (current / 1000.0f) << " A" << std::endl;
-    std::cerr << "Power:         " << power << " W" << std::endl;
-    std::cerr << "Percent:       " << percentage << "%" << std::endl;
-    std::cerr << "--------------------------------------------" << std::endl;
-}
+//     std::cerr << "--------------------------------------------" << std::endl;
+//     // Display UPS data 
+//     std::cerr << "PSU Voltage:   " << (bus_voltage + shunt_voltage) << " V" << std::endl;
+//     std::cerr << "Load Voltage:  " << bus_voltage << " V" << std::endl;
+//     std::cerr << "Current:       " << (current / 1000.0f) << " A" << std::endl;
+//     std::cerr << "Power:         " << power << " W" << std::endl;
+//     std::cerr << "Percent:       " << percentage << "%" << std::endl;
+//     std::cerr << "--------------------------------------------" << std::endl;
+// }

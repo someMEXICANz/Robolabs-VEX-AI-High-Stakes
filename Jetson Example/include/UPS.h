@@ -5,42 +5,71 @@
 #include <cstdint>
 #include <thread>
 #include <mutex>
-#include <atomic>
 #include <chrono>
 
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <linux/i2c-dev.h>
+#include <iostream>
+#include <cmath>
+
+
+// Register definitions
+#define REG_CONFIG        0x00
+#define REG_SHUNTVOLTAGE  0x01
+#define REG_BUSVOLTAGE    0x02
+#define REG_POWER         0x03
+#define REG_CURRENT       0x04
+#define REG_CALIBRATION   0x05
+
+// Configuration constants
+#define RANGE_16V         0x00  // Bus voltage range to 16V
+#define RANGE_32V         0x01  // Bus voltage range to 32V
+#define GAIN_1_40MV       0x00  // Gain: /1, 40 mV range
+#define GAIN_2_80MV       0x01  // Gain: /2, 80 mV range
+#define GAIN_4_160MV      0x02  // Gain: /4, 160 mV range
+#define GAIN_8_320MV      0x03  // Gain: /8, 320 mV range
+#define ADCRES_12BIT_32S  0x0D  // ADC: 12-bit, 32 samples
+#define MODE_SANDBVOLT_CONTINUOUS 0x07  // Mode: Shunt and bus voltage continuous
+
+
+struct UPSData 
+{
+        float shuntVoltage; 
+        float busVoltage;
+        float current;
+        float power;
+        float batteryLevel;
+        bool valid;      
+        std::chrono::high_resolution_clock::time_point timestamp;
+          
+};
 
 class UPS {
-
-
-
 public:
-    // Constructor
-    UPS( const std::string& i2c_bus = "/dev/i2c-1");
+    explicit UPS(const std::string& i2c_bus = "/dev/i2c-1");    // Constructor
+    ~UPS();                                                     // Destructor
     
-    // Destructor
-    ~UPS();
-    
-    // Initialize and calibrate
+    // Delete copy constructor and assignment operator
+    UPS(const UPS&) = delete;
+    UPS& operator=(const UPS&) = delete;
+
+    // Core operations
     bool initialize();
     bool start();
     void stop();
     bool restart();
     bool reconnect();
 
-     // Check running state
+    // Status Checks
     bool isRunning() const { return running; }
     bool isConnected() const { return i2c_fd >= 0; }
     
-    // Read sensor data
-    float getShuntVoltage_mV();
-    float getBusVoltage_V();
-    float getCurrent_mA();
-    float getPower_W();
-    float getBatteryPercentage();
-    bool getAll(float& shuntVoltage, float& busVoltage, float& current,
-                 float& power, float& batteryLevel);
 
     void set_calibration_32V_2A();
+
+    UPSData getUPSData() const;
     
     // Error handling
     std::string getLastError() const { return last_error; }
@@ -68,13 +97,6 @@ private:
     float current_lsb;
     float power_lsb;
 
-
-     // Thread and running state
-    mutable std::mutex data_mutex;
-    std::unique_ptr<std::thread> read_thread;
-    std::atomic<bool> running;
-    std::atomic<bool> connected;
-    
     // Configuration values
     uint8_t bus_voltage_range;
     uint8_t gain;
@@ -83,20 +105,15 @@ private:
     uint8_t mode;
     uint16_t config;
 
-
-      
-    struct UPSData {
-        float shuntVoltage,  
-              busVoltage,
-              current,
-              power,
-              batteryLevel;
-        bool valid;        
-    } sensor_data;
+    // Thread and running state
+    mutable std::mutex data_mutex;
+    std::unique_ptr<std::thread> read_thread;
+    bool running;
+    bool connected;
+    UPSData current_data;
     
 
-    // Set error message
-    void setError(const std::string& error);
+
 
 
 };

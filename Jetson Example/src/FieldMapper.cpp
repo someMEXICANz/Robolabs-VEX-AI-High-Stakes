@@ -218,8 +218,8 @@ bool FieldMapper::computeOdometry()
     // // Process the odometry result
     // if (odom_result.fitness_ > 0.3) 
     // {  
-    //     std::cerr << "Odometry success - fitness: " << odom_result.fitness_ 
-    //               << ", RMSE: " << odom_result.inlier_rmse_ << std::endl;
+    std::cerr << "Odometry success - fitness: " << odom_result.fitness_ 
+              << ", RMSE: " << odom_result.inlier_rmse_ << std::endl;
         
    
     // } 

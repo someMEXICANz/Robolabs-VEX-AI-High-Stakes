@@ -1,56 +1,4 @@
 #include "IMU.h"
-#include <iostream>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include <linux/i2c-dev.h>
-#include <cstring>
-
-// LSM6DS3TR-C registers
-#define LSM6DS3_WHO_AM_I          0x0F
-#define LSM6DS3_CTRL1_XL          0x10  // Accelerometer control register
-#define LSM6DS3_CTRL2_G           0x11  // Gyroscope control register
-#define LSM6DS3_CTRL3_C           0x12  // Control register 3
-#define LSM6DS3_OUT_TEMP_L        0x20  // Temperature LSB
-#define LSM6DS3_OUT_TEMP_H        0x21  // Temperature MSB
-#define LSM6DS3_OUTX_L_G          0x22  // Gyroscope X-axis LSB
-#define LSM6DS3_OUTX_H_G          0x23  // Gyroscope X-axis MSB
-#define LSM6DS3_OUTY_L_G          0x24  // Gyroscope Y-axis LSB
-#define LSM6DS3_OUTY_H_G          0x25  // Gyroscope Y-axis MSB
-#define LSM6DS3_OUTZ_L_G          0x26  // Gyroscope Z-axis LSB
-#define LSM6DS3_OUTZ_H_G          0x27  // Gyroscope Z-axis MSB
-#define LSM6DS3_OUTX_L_XL         0x28  // Accelerometer X-axis LSB
-#define LSM6DS3_OUTX_H_XL         0x29  // Accelerometer X-axis MSB
-#define LSM6DS3_OUTY_L_XL         0x2A  // Accelerometer Y-axis LSB
-#define LSM6DS3_OUTY_H_XL         0x2B  // Accelerometer Y-axis MSB
-#define LSM6DS3_OUTZ_L_XL         0x2C  // Accelerometer Z-axis LSB
-#define LSM6DS3_OUTZ_H_XL         0x2D  // Accelerometer Z-axis MSB
-
-// LIS3MDL registers
-#define LIS3MDL_WHO_AM_I          0x0F
-#define LIS3MDL_CTRL_REG1         0x20  // Control register 1
-#define LIS3MDL_CTRL_REG2         0x21  // Control register 2
-#define LIS3MDL_CTRL_REG3         0x22  // Control register 3
-#define LIS3MDL_CTRL_REG4         0x23  // Control register 4
-#define LIS3MDL_OUT_TEMP_L        0x2E  // Temperature LSB
-#define LIS3MDL_OUT_TEMP_H        0x2F  // Temperature MSB
-#define LIS3MDL_OUT_X_L           0x28  // X-axis LSB
-#define LIS3MDL_OUT_X_H           0x29  // X-axis MSB
-#define LIS3MDL_OUT_Y_L           0x2A  // Y-axis LSB
-#define LIS3MDL_OUT_Y_H           0x2B  // Y-axis MSB
-#define LIS3MDL_OUT_Z_L           0x2C  // Z-axis LSB
-#define LIS3MDL_OUT_Z_H           0x2D  // Z-axis MSB
-
-// IMU.cpp - Restructured core functionality
-#include "IMU.h"
-#include <iostream>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include <linux/i2c-dev.h>
-#include <cstring>
-
-// LSM6DS3TR-C registers (keeping the existing register definitions)
 
 IMU::IMU(const std::string& i2cBus_)
     : i2c_bus(i2cBus_),
@@ -91,7 +39,8 @@ IMU::IMU(const std::string& i2cBus_)
     }
 }
 
-IMU::~IMU() {
+IMU::~IMU() 
+{
     stop();
     
     if (i2c_fd>= 0) {
@@ -139,18 +88,23 @@ bool IMU::initialize() {
     return true;
 }
 
-bool IMU::start() {
+bool IMU::start() 
+{
     if (running) return true;
     
     if (i2c_fd < 0 && !reconnect()) {
         return false;
     }
-    
-    running = true;
-    read_thread= std::make_unique<std::thread>(&IMU::readLoop, this);
+    try{
 
-    
-    sleep(1);
+        running = true;
+        read_thread= std::make_unique<std::thread>(&IMU::readLoop, this);
+    } catch (const std::exception& e) 
+    {
+        std::cerr << "Failed to start GPS read threads: " << e.what() << std::endl;
+        running = false;
+        return false;  
+    }
     
     return true;
 }
@@ -186,9 +140,9 @@ void IMU::readLoop() {
     
     while (running) 
     {
-        auto start_time = std::chrono::steady_clock::now();
+         std::chrono::time_point start_time = std::chrono::steady_clock::now();
         
-        if (!connected&& !reconnect()) 
+        if (!connected && !reconnect()) 
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
             continue;
@@ -197,8 +151,9 @@ void IMU::readLoop() {
         readData();
         
         // Calculate time to sleep
-        auto elapsed = std::chrono::steady_clock::now() - start_time;
-        if (elapsed < read_interval) {
+        std::chrono::duration elapsed = std::chrono::steady_clock::now() - start_time;
+        if (elapsed < read_interval) 
+        {
             std::this_thread::sleep_for(read_interval - elapsed);
         }
     }
@@ -356,7 +311,8 @@ bool IMU::calibrateGyroscope()
         return false;
     }
     
-    // Check if device is stationary
+    std::lock_guard<std::mutex> lock(data_mutex);
+
     if (current_data.valid) 
     {
         float movement = std::abs(current_data.gx) + std::abs(current_data.gy) + std::abs(current_data.gz);

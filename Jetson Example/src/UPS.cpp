@@ -1,28 +1,6 @@
 #include "UPS.h"
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include <linux/i2c-dev.h>
-#include <iostream>
-#include <cmath>
 
-// Register definitions
-#define REG_CONFIG        0x00
-#define REG_SHUNTVOLTAGE  0x01
-#define REG_BUSVOLTAGE    0x02
-#define REG_POWER         0x03
-#define REG_CURRENT       0x04
-#define REG_CALIBRATION   0x05
 
-// Configuration constants
-#define RANGE_16V         0x00  // Bus voltage range to 16V
-#define RANGE_32V         0x01  // Bus voltage range to 32V
-#define GAIN_1_40MV       0x00  // Gain: /1, 40 mV range
-#define GAIN_2_80MV       0x01  // Gain: /2, 80 mV range
-#define GAIN_4_160MV      0x02  // Gain: /4, 160 mV range
-#define GAIN_8_320MV      0x03  // Gain: /8, 320 mV range
-#define ADCRES_12BIT_32S  0x0D  // ADC: 12-bit, 32 samples
-#define MODE_SANDBVOLT_CONTINUOUS 0x07  // Mode: Shunt and bus voltage continuous
 
 UPS::UPS(const std::string& i2cBus_) 
     : i2c_bus(i2cBus_),
@@ -31,16 +9,10 @@ UPS::UPS(const std::string& i2cBus_)
       current_lsb(0),
       power_lsb(0),
       running(false),
-      connected(false)
+      connected(false),
+      current_data{0, 0, 0, 0, 0, false, std::chrono::system_clock::now()}
 
 {
-    sensor_data.shuntVoltage = 0.0f;
-    sensor_data.busVoltage = 0.0f;
-    sensor_data.current = 0.0f;
-    sensor_data.power = 0.0f;
-    sensor_data.batteryLevel = 0.0f;
-    sensor_data.valid = false;
-
     // Try to initialize if bus is provided
     if (!i2c_bus.empty()) 
     {
@@ -58,40 +30,29 @@ UPS::~UPS() {
     }
 }
 
-bool UPS::initialize() {
-    if (i2c_fd < 0) {
-        setError("I2C device not opened");
-        return false;
-    }
-
-    // Set I2C slave address
-    if (ioctl(i2c_fd, I2C_SLAVE, UPS_ADDR) < 0) {
-        setError("Failed to set I2C slave address");
-        return false;
-    }
-
-    set_calibration_32V_2A();
-    
-    return true;
-}
-
-
-
 bool UPS::start() 
 {
-    if (running) return true;
-    
-    if (i2c_fd < 0 && !reconnect()) 
+    if (running)
     {
-        return false;
+        std::cerr << "UPS read thread is already running" << std::endl; 
+        return true;
+
+    } return true;
+    
+    try{  
+
+        running = true;
+        read_thread = std::make_unique<std::thread>(&UPS::readLoop, this);
+        return true;
+
+    } catch (const std::exception& e) 
+    {
+        std::cerr << "Failed to start UPS read thread: " << e.what() << std::endl;
+        running = false;
+        return false;  
     }
     
-    running = true;
-    read_thread = std::make_unique<std::thread>(&UPS::readLoop, this);
-
-    sleep(1);
     
-    return true;
 }
 
 
@@ -122,16 +83,34 @@ bool UPS::reconnect()
     return initialize();
 }
 
+bool UPS::initialize() {
+    if (i2c_fd < 0) {
+        //setError("I2C device not opened");
+        return false;
+    }
+
+    // Set I2C slave address
+    if (ioctl(i2c_fd, I2C_SLAVE, UPS_ADDR) < 0) {
+        ///setError("Failed to set I2C slave address");
+        return false;
+    }
+
+    set_calibration_32V_2A();
+    
+    return true;
+}
 
 
 // Main reading loop that runs in a separate thread
-void UPS::readLoop() {
+void UPS::readLoop() 
+{
     std::cerr << "IMU read loop started" << std::endl;
     
     const std::chrono::milliseconds read_interval(10); // 100Hz update rate
     
-    while (running) {
-        auto start_time = std::chrono::steady_clock::now();
+    while (running) 
+    {
+        std::chrono::time_point start_time = std::chrono::steady_clock::now();
         
         if (!connected && !reconnect()) 
         {
@@ -169,7 +148,11 @@ float calculateBatteryLevel(float current_busV)
 bool UPS::readData()
 {
 
-    if (writeWord(REG_CALIBRATION, cal_value)) {
+    if (writeWord(REG_CALIBRATION, cal_value)) 
+    {
+        std::lock_guard<std::mutex> lock(data_mutex);
+        current_data.valid = false;
+        current_data.timestamp = std::chrono::high_resolution_clock::now();
         return false;
     }
 
@@ -184,16 +167,15 @@ bool UPS::readData()
     float battery_level = calculateBatteryLevel(bus_voltage);
 
     // Update data structure with mutex protection
-    {
-        std::lock_guard<std::mutex> lock(data_mutex);
-        sensor_data.shuntVoltage = shunt_voltage;
-        sensor_data.busVoltage = bus_voltage;
-        sensor_data.current = current;
-        sensor_data.power = power;
-        sensor_data.batteryLevel = battery_level;
-        sensor_data.valid = true;
-    }
-    
+
+    std::lock_guard<std::mutex> lock(data_mutex);
+    current_data.shuntVoltage = shunt_voltage;
+    current_data.busVoltage = bus_voltage;
+    current_data.current = current;
+    current_data.power = power;
+    current_data.batteryLevel = battery_level;
+    current_data.valid = true;
+    current_data.timestamp = std::chrono::high_resolution_clock::now();
     return true;
 
 }
@@ -230,90 +212,16 @@ void UPS::set_calibration_32V_2A() {
     writeWord(REG_CONFIG, config);
 }
 
-float UPS::getShuntVoltage_mV() 
-{
-   std::lock_guard<std::mutex> lock(data_mutex);
-    
-    if (!sensor_data.valid && !running) {
-        std::cerr << "No valid sensor data available" << std::endl;
-        return -1;
-    }
-    return sensor_data.shuntVoltage;
-}
-
-float UPS::getBusVoltage_V() 
-{
-   std::lock_guard<std::mutex> lock(data_mutex);
-    
-    if (!sensor_data.valid && !running) {
-        std::cerr << "No valid sensor data available" << std::endl;
-        return -1;
-    }
-    return sensor_data.busVoltage;
-}
-
-float UPS::getCurrent_mA() 
-{
-    std::lock_guard<std::mutex> lock(data_mutex);
-    
-    if (!sensor_data.valid && !running) {
-        std::cerr << "No valid sensor data available" << std::endl;
-        return -1;
-    }
-    return sensor_data.current;
-}
-
-float UPS::getPower_W() 
-{
-    std::lock_guard<std::mutex> lock(data_mutex);
-    
-    if (!sensor_data.valid && !running) {
-        std::cerr << "No valid sensor data available" << std::endl;
-        return -1;
-    }
-    return sensor_data.power;
-}
-
-float UPS::getBatteryPercentage() 
-{
-    std::lock_guard<std::mutex> lock(data_mutex);
-    
-    if (!sensor_data.valid && !running) {
-        std::cerr << "No valid sensor data available" << std::endl;
-        return -1;
-    }
-    return sensor_data.batteryLevel;
-}
-
-bool UPS::getAll(float& shuntVoltage, float& busVoltage, float& current,
-            float& power, float& batteryLevel)
-{
-     std::lock_guard<std::mutex> lock(data_mutex);
-    
-    if (!sensor_data.valid && !running) {
-        std::cerr << "No valid sensor data available" << std::endl;
-        return false;
-    }
-
-    shuntVoltage = sensor_data.shuntVoltage;
-    busVoltage = sensor_data.busVoltage;
-    current = sensor_data.current;
-    power = sensor_data.power;
-    batteryLevel = sensor_data.batteryLevel;
-
-    return true;
-
-}
 
 bool UPS::writeByte(uint8_t reg, uint8_t data) {
     if (ioctl(i2c_fd, I2C_SLAVE, UPS_ADDR) < 0) {
-        setError("Failed to set I2C slave address");
+        //setError("Failed to set I2C slave address");
         return false;
     }
     
     uint8_t buffer[2] = {reg, data};
     if (write(i2c_fd, buffer, 2) != 2) {
-        setError("Failed to write to register");
+        //setError("Failed to write to register");
         return false;
     }
     
@@ -322,7 +230,7 @@ bool UPS::writeByte(uint8_t reg, uint8_t data) {
 
 bool UPS::writeWord(uint8_t reg, uint16_t data) {
     if (ioctl(i2c_fd, I2C_SLAVE, UPS_ADDR) < 0) {
-        setError("Failed to set I2C slave address");
+        //setError("Failed to set I2C slave address");
         return false;
     }
     
@@ -332,7 +240,7 @@ bool UPS::writeWord(uint8_t reg, uint16_t data) {
     buffer[2] = data & 0xFF;         // LSB
     
     if (write(i2c_fd, buffer, 3) != 3) {
-        setError("Failed to write to register");
+        //setError("Failed to write to register");
         return false;
     }
     
@@ -341,27 +249,27 @@ bool UPS::writeWord(uint8_t reg, uint16_t data) {
 
 int16_t UPS::readWord(uint8_t reg) {
     if (ioctl(i2c_fd, I2C_SLAVE, UPS_ADDR) < 0) {
-        setError("Failed to set I2C slave address");
+        //setError("Failed to set I2C slave address");
         return -1;
     }
     
     // Write the register address
     if (write(i2c_fd, &reg, 1) != 1) {
-        setError("Failed to write register address");
+        //setError("Failed to write register address");
         return -1;
     }
     
     // Read the data (2 bytes)
     uint8_t buf[2] = {0};
     if (read(i2c_fd, buf, 2) != 2) {
-        setError("Failed to read from register");
+        //setError("Failed to read from register");
         return -1;
     }
     
     return (buf[0] << 8) | buf[1];
 }
 
-void UPS::setError(const std::string& error) {
-    last_error = error;
-    std::cerr << "UPS Error: " << error << std::endl;
-}
+// void UPS::setError(const std::string& error) {
+//     last_error = error;
+//     std::cerr << "UPS Error: " << error << std::endl;
+// }

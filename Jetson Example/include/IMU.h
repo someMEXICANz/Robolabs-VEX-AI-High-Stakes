@@ -1,42 +1,81 @@
-// IMU.h - Restructured
 #ifndef IMU_H
 #define IMU_H
 
 #include <string>
+#include <cstring>
 #include <cstdint>
 #include <thread>
 #include <mutex>
 #include <chrono>
+#include <iostream>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <linux/i2c-dev.h>
 
 
 
+#define LSM6DS3_WHO_AM_I          0x0F
+#define LSM6DS3_CTRL1_XL          0x10  // Accelerometer control register
+#define LSM6DS3_CTRL2_G           0x11  // Gyroscope control register
+#define LSM6DS3_CTRL3_C           0x12  // Control register 3
+#define LSM6DS3_OUT_TEMP_L        0x20  // Temperature LSB
+#define LSM6DS3_OUT_TEMP_H        0x21  // Temperature MSB
+#define LSM6DS3_OUTX_L_G          0x22  // Gyroscope X-axis LSB
+#define LSM6DS3_OUTX_H_G          0x23  // Gyroscope X-axis MSB
+#define LSM6DS3_OUTY_L_G          0x24  // Gyroscope Y-axis LSB
+#define LSM6DS3_OUTY_H_G          0x25  // Gyroscope Y-axis MSB
+#define LSM6DS3_OUTZ_L_G          0x26  // Gyroscope Z-axis LSB
+#define LSM6DS3_OUTZ_H_G          0x27  // Gyroscope Z-axis MSB
+#define LSM6DS3_OUTX_L_XL         0x28  // Accelerometer X-axis LSB
+#define LSM6DS3_OUTX_H_XL         0x29  // Accelerometer X-axis MSB
+#define LSM6DS3_OUTY_L_XL         0x2A  // Accelerometer Y-axis LSB
+#define LSM6DS3_OUTY_H_XL         0x2B  // Accelerometer Y-axis MSB
+#define LSM6DS3_OUTZ_L_XL         0x2C  // Accelerometer Z-axis LSB
+#define LSM6DS3_OUTZ_H_XL         0x2D  // Accelerometer Z-axis MSB
+
+// LIS3MDL registers
+#define LIS3MDL_WHO_AM_I          0x0F
+#define LIS3MDL_CTRL_REG1         0x20  // Control register 1
+#define LIS3MDL_CTRL_REG2         0x21  // Control register 2
+#define LIS3MDL_CTRL_REG3         0x22  // Control register 3
+#define LIS3MDL_CTRL_REG4         0x23  // Control register 4
+#define LIS3MDL_OUT_TEMP_L        0x2E  // Temperature LSB
+#define LIS3MDL_OUT_TEMP_H        0x2F  // Temperature MSB
+#define LIS3MDL_OUT_X_L           0x28  // X-axis LSB
+#define LIS3MDL_OUT_X_H           0x29  // X-axis MSB
+#define LIS3MDL_OUT_Y_L           0x2A  // Y-axis LSB
+#define LIS3MDL_OUT_Y_H           0x2B  // Y-axis MSB
+#define LIS3MDL_OUT_Z_L           0x2C  // Z-axis LSB
+#define LIS3MDL_OUT_Z_H           0x2D  // Z-axis MSB
 
 struct IMUData 
 {
-    float ax, ay, az;  // Accelerometer (g)
-    float gx, gy, gz;  // Gyroscope (dps)
-    float mx, my, mz;  // Magnetometer (gauss)
-    float temperature; // Temperature (°C)
+    float ax, ay, az;       // Accelerometer (g)
+    float gx, gy, gz;       // Gyroscope (dps)
+    float mx, my, mz;       // Magnetometer (gauss)
+    float temperature;      // Temperature (°C)
     std::chrono::system_clock::time_point timestamp;
-    bool valid;        // Flag indicating if data is valid
+    bool valid;             // Flag indicating if data is valid
 };
 
 class IMU {
 public:
-    // Constructor with default I2C bus path
-    IMU(const std::string& i2cBus = "/dev/i2c-1");
-    
-    // Destructor
-    ~IMU();
+    explicit IMU(const std::string& i2cBus = "/dev/i2c-1");     // Constructor
+    ~IMU();                                                     // Destructor
 
-    // Core operations (similar to GPS)
+    // Delete copy constructor and assignment operator
+    IMU(const IMU&) = delete;
+    IMU& operator=(const IMU&) = delete;
+
+    // Core operations
     bool initialize();
     bool start();
     void stop();
     bool restart();
     bool reconnect();
     
-    // Check running state
+    // Status Checks
     bool isRunning() const { return running; }
     bool isConnected() const { return i2c_fd >= 0; }
     
@@ -79,16 +118,17 @@ private:
     float gyro_scale;   // dps per LSB
     float mag_scale;    // gauss per LSB
 
-    bool running;
-    bool connected;
-    
     // Thread and running state
     mutable std::mutex data_mutex;
     std::unique_ptr<std::thread> read_thread;
+    bool running;
+    bool connected;
     IMUData current_data;
+
+
+
     
-  
-    
+
    
 };
 

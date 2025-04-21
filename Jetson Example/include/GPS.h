@@ -66,12 +66,9 @@ private:
     void readLoop();
     bool readData();
 
-
-
     bool initializePort();
-    void processBuffer(const std::vector<unsigned char>& buffer);
     bool reconnect();
-    float calculateGPSQuality(uint32_t current_status) const;
+    float calculateQuality(uint32_t current_status) const;
    
 
    // Serial Port variables

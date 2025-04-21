@@ -9,7 +9,8 @@ GPS::GPS(boost::asio::io_service& service, const std::string& new_port)
       current_position{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, std::chrono::system_clock::now()}
 {
     
-    if (!port.empty()) {
+    if (!port.empty()) 
+    {
         initializePort();
     }
 }
@@ -116,7 +117,6 @@ void GPS::readLoop() {
         }
     
     }
-    
     std::cerr << "GPS read loop stopped" << std::endl;
 }
 bool GPS::readData()
@@ -138,7 +138,7 @@ bool GPS::readData()
     if (bytes_read == 16 && buffer[14] == 0xCC && buffer[15] == 0x33) 
     {
         uint32_t current_status = buffer[1];
-        float quality = calculateGPSQuality(current_status);
+        float quality = calculateQuality(current_status);
 
         // Parse position data (following Python implementation)
         int16_t x_raw, y_raw, z_raw, az_raw, el_raw, rot_raw;
@@ -163,13 +163,10 @@ bool GPS::readData()
     }
 
 }
-void GPS::processBuffer(const std::vector<unsigned char>& buffer) {
-    // Extract status byte
-    
-   
-}
 
-GPSPosition GPS::getGPSposition() const {
+
+GPSPosition GPS::getGPSposition() const 
+{
     std::lock_guard<std::mutex> lock(position_mutex);
     return current_position;
 }
@@ -177,7 +174,7 @@ GPSPosition GPS::getGPSposition() const {
 
 
 
-float GPS::calculateGPSQuality(uint32_t status) const 
+float GPS::calculateQuality(uint32_t status) const 
 {
     // Start with maximum quality
     float quality = 1.0f;

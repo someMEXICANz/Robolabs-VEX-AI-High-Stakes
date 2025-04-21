@@ -9,8 +9,6 @@
 #include <cstring>
 #include <iostream>
 
-
-
 // Status bit definitions
 static constexpr uint32_t STATUS_CONNECTED    = 0x00000001;
 static constexpr uint32_t STATUS_NODOTS       = 0x00000002;
@@ -55,6 +53,7 @@ public:
     // Status Checks
     bool isConnected() const { return connected; }
     bool isRunning() const { return running; }
+    bool isInitialized() const { return initialized; }
     
     GPSPosition getGPSposition() const;
 
@@ -66,12 +65,14 @@ private:
     void readLoop();
     bool readData();
 
+    bool connectPort();
     bool initializePort();
     bool reconnect();
     float calculateQuality(uint32_t current_status) const;
+    
    
 
-   // Serial Port variables
+    // Serial Port variables
     std::string port;
     boost::asio::io_service& io_service;
     std::unique_ptr<boost::asio::serial_port> serial_port;
@@ -81,9 +82,10 @@ private:
     mutable std::mutex position_mutex;
     std::unique_ptr<std::thread> read_thread;  
     GPSPosition current_position;
-    bool connected;
     bool running;
-    
+    bool connected;
+    bool initialized;
+
     // Configuration constants
     const std::chrono::milliseconds RECONNECT_DELAY{2500};
 };

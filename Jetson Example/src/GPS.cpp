@@ -230,7 +230,7 @@ bool GPS::readData()
 }
 
 
-GPSPosition GPS::getGPSposition() const 
+GPSPosition GPS::getPosition() const 
 {
     std::lock_guard<std::mutex> lock(position_mutex);
     return current_position;

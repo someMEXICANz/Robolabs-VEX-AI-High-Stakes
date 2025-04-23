@@ -55,7 +55,7 @@ public:
     bool isRunning() const { return running; }
     bool isInitialized() const { return initialized; }
     
-    GPSPosition getGPSposition() const;
+    GPSPosition getPosition() const;
 
     // Configuration methods
     const std::string& getPort() const { return port; }

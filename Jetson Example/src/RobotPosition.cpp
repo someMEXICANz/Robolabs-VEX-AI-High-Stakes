@@ -154,8 +154,8 @@ void RobotPosition::updateLoop()
         start_time = std::chrono::high_resolution_clock::now();
 
         // Get raw position data from GPS sensors
-        GPSPosition left_pos = left_gps->getGPSposition();
-        GPSPosition right_pos = right_gps->getGPSposition();
+        GPSPosition left_pos = left_gps->getPosition();
+        GPSPosition right_pos = right_gps->getPosition();
         float left_quality = left_pos.quality;
         float right_quality = right_pos.quality;
 
@@ -286,8 +286,8 @@ bool RobotPosition::identifyGPSSensors()
     // Collect samples
     for (int i = 0; i < NUM_SAMPLES; i++) 
     {
-        gps1_samples.push_back(gps1->getGPSposition());
-        gps2_samples.push_back(gps2->getGPSposition());
+        gps1_samples.push_back(gps1->getPosition());
+        gps2_samples.push_back(gps2->getPosition());
         brain_left_samples.push_back(brain.getLeftGPSData());
         brain_right_samples.push_back(brain.getRightGPSData());
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -611,7 +611,7 @@ void RobotPosition::updateVelocity(const Position& current_position)
 
 float RobotPosition::getHeadingFromIMU() const 
 {
-    IMUData current_imu_data = imu.getIMUData();
+    IMUData current_imu_data = imu.getSensorData();
     if (current_imu_data.valid) 
     {
         // Calculate heading from magnetometer
@@ -640,7 +640,7 @@ float RobotPosition::getHeadingFromIMU() const
 
 
 bool RobotPosition::isRobotStationary() const {
-    IMUData current_imu_data = imu.getIMUData();
+    IMUData current_imu_data = imu.getSensorData();
     if (current_imu_data.valid) 
     {
         return false;

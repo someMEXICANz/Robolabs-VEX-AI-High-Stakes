@@ -5,13 +5,15 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "/usr/local/include/open3d/**",
+                "/usr/local/include",  // Add this line
                 "/usr/local/cuda/include",
                 "/usr/include/opencv4",
                 "/usr/include/eigen3",
                 "/usr/include/boost",
-                "/usr/local/lib/cmake/Open3D",
                 "/usr/include/aarch64-linux-gnu"
             ],
+            // Remove this line as it's not needed for includes
+            // "/usr/local/lib/cmake/Open3D",
             "defines": [],
             "compilerPath": "/usr/bin/g++-7",
             "cStandard": "c17",

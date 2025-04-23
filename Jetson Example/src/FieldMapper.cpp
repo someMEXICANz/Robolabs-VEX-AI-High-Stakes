@@ -164,7 +164,7 @@ bool FieldMapper::processRGBDImage()
         prevoius_image = current_image.Clone();
         open3d::t::geometry::Image color_image = open3d::t::geometry::Image::FromLegacy(legacy_image->color_, open3d::core::Device("CUDA:0"));
         open3d::t::geometry::Image depth_image = open3d::t::geometry::Image::FromLegacy(legacy_image->depth_, open3d::core::Device("CUDA:0"));
-
+        
         current_image = open3d::t::geometry::RGBDImage(color_image, depth_image, true);
         
         if (current_image.IsEmpty())
@@ -200,7 +200,7 @@ bool FieldMapper::computeOdometry()
     open3d::t::pipelines::odometry::OdometryConvergenceCriteria criteria(20, 1e-4, 1e-4);
     open3d::t::pipelines::odometry::OdometryLossParams loss_params =  open3d::t::pipelines::odometry::OdometryLossParams(0.07, 0.05, 0.1);
     open3d::t::pipelines::odometry::Method odomMethod = open3d::t::pipelines::odometry::Method::Hybrid;
-    
+
     // Compute odometry using hybrid method
     prevoius_transform = current_transform.Clone();
     open3d::t::pipelines::odometry::OdometryResult odom_result; 

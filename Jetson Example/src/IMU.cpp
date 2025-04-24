@@ -12,33 +12,38 @@ IMU::IMU(const std::string& i2cBus_)
       gyro_scale(0.0f),  
       mag_scale(0.0f),    
       running(false),
-      connected(false),
+      initialized(false),
       current_data{0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, std::chrono::system_clock::now(),false},
       current_orientation{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, std::chrono::system_clock::now(),false}
 {
     if (!i2c_bus.empty()) {
-        if(initialize()) {
+        
+        
+        if(initialize()) 
+        {
+
             // Configure with default settings
-            configureRanges(ACCEL_RAMGE::ACCEL_RANGE_4_G, 
-                           GYRO_RANGE::GYRO_RANGE_2000_DPS, 
-                           MAG_RANGE::LIS3MDL_RANGE_4_GAUSS);
-            
             configureLSM6DS(LSM6DS_DATA_RATE::RATE_104_HZ,
                            LSM6DS_HPF_RAMGE::HPF_ODR_DIV_100);
             
             configureLIS3MDL(LIS3MDL_DATA_RATE::RATE_155_HZ,
                             LIS3MDL_PERF_MODE::LIS3MDL_ULTRAHIGHMODE,
                             LIS3MDL_OPER_MODE::LIS3MDL_CONTINUOUSMODE);
-            
+
+             configureRanges(ACCEL_RAMGE::ACCEL_RANGE_4_G, 
+                           GYRO_RANGE::GYRO_RANGE_2000_DPS, 
+                           MAG_RANGE::LIS3MDL_RANGE_4_GAUSS);
+
             start();
         }
         
-        // Wait a moment to collect some data before calibrating
-        std::this_thread::sleep_for(std::chrono::seconds(2));
         
-        calibrateGyroscope();
-        calibrateAccelerometer();
-        calibrateMagnetometer();
+        // Wait a moment to collect some data before calibrating
+        //std::this_thread::sleep_for(std::chrono::seconds(2));
+        
+        // calibrateGyroscope();
+        // calibrateAccelerometer();
+        // calibrateMagnetometer();
     }
 }
 
@@ -52,13 +57,16 @@ IMU::~IMU()
     }
 }
 
-
-
 bool IMU::start() 
 {
-    if (running) return true;
+    if (running) 
+    {
+        std::cerr << "IMU thread is already running" << std::endl;
+        return true;
+    }
     
-    if (i2c_fd < 0 && !reconnect()) {
+    if (i2c_fd < 0) 
+    {
         return false;
     }
     try{
@@ -75,7 +83,8 @@ bool IMU::start()
     return true;
 }
 
-void IMU::stop() {
+void IMU::stop() 
+{
     running = false;
     
     if (read_thread&& read_thread->joinable()) {
@@ -85,48 +94,90 @@ void IMU::stop() {
     read_thread.reset();
 }
 
-bool IMU::restart() {
+bool IMU::restart() 
+{
     stop();
     return start();
 }
 
 
-bool IMU::reconnect() 
-{
-    if (i2c_fd>= 0) {
-        close(i2c_fd);
-        i2c_fd= -1;
-    }
-    return initialize();
-}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Main reading loop that runs in a separate thread
-void IMU::readLoop() {
-    std::cerr << "IMU read loop started" << std::endl;
-    
-    const std::chrono::milliseconds read_interval(10); // 100Hz update rate
-    
-    while (running) 
+
+bool IMU::initialize() 
+{
+    initialized = false;
+
+    // Open I2C device
+    i2c_fd = open(i2c_bus.c_str(), O_RDWR);
+    if (i2c_fd < 0) 
     {
-         std::chrono::time_point start_time = std::chrono::steady_clock::now();
-        
-        if (!connected && !reconnect()) 
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            continue;
-        }
-        
-        readData();
-        
-        // Calculate time to sleep
-        std::chrono::duration elapsed = std::chrono::steady_clock::now() - start_time;
-        if (elapsed < read_interval) 
-        {
-            std::this_thread::sleep_for(read_interval - elapsed);
-        }
+        last_error = "Failed to open I2C bus: " + i2c_bus;
+        std::cerr << last_error << std::endl;
+        return false;
+    }
+    else 
+    {
+        std::cerr << "Opened I2C bus: " << i2c_bus << std::endl;
+    }
+
+    // Check LSM6DS3 WHO_AM_I register (should be 0x6A)
+    uint8_t whoami = 0;
+    if (!readBytes(LSM6DS3_ADDR, LSM6DS_WHOAMI, &whoami, 1) || whoami != 0x6A) 
+    {
+        last_error = "Failed to identify LSM6DS3 sensor";
+        std::cerr << last_error << " (WHO_AM_I=" << static_cast<int>(whoami) << ")" << std::endl;
+        return false;
+    }
+    else
+    {
+        std::cerr <<  "Identified LSM6DS3 sensor (WHO_AM_I=" << static_cast<int>(whoami) << ")" << std::endl;
+    }    
+
+    // Check LIS3MDL WHO_AM_I register (should be 0x3D)
+    if (!readBytes(LIS3MDL_ADDR, LIS3MDL_REG_WHO_AM_I, &whoami, 1) || whoami != 0x3D)
+    {
+        last_error = "Failed to identify LIS3MDL sensor";
+        std::cerr << last_error << " (WHO_AM_I=" << static_cast<int>(whoami) << ")" << std::endl;
+        return false;
+    }
+     else
+    {
+        std::cerr <<  "Identified LIS3MDL sensor (WHO_AM_I=" << static_cast<int>(whoami) << ")" << std::endl;
+    }    
+
+    // Reset LSM6DS3
+    if (!writeByte(LSM6DS3_ADDR, LSM6DS_CTRL3_C, 0x01))
+    {
+        last_error = "Failed to reset LSM6DS3";
+        std::cerr << last_error << std::endl;
+        return false;
+    }
+    else
+    {
+        std::cerr << "Reset LSM6DS3 sensor " << std::endl;
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    
+    // Reset LIS3MDL
+    if (!writeByte(LIS3MDL_ADDR, LIS3MDL_REG_CTRL_REG2, 0x04)) 
+    {
+        last_error = "Failed to reset LIS3MDL";
+        std::cerr << last_error << std::endl;
+        return false;
+    }
+    else
+    {
+        std::cerr << "Reset LIS3MDL sensor " << std::endl;
     }
     
-    std::cerr << "IMU read loop stopped" << std::endl;
+    // Wait for reset to complete
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    
+    initialized = true;
+    return true;
 }
 
 
@@ -425,53 +476,34 @@ void IMU::configureLIS3MDL(LIS3MDL_DATA_RATE data_rate,
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-bool IMU::initialize() {
-    // Open I2C device
-    i2c_fd = open(i2c_bus.c_str(), O_RDWR);
-    if (i2c_fd < 0) {
-        last_error = "Failed to open I2C bus: " + i2c_bus;
-        std::cerr << last_error << std::endl;
-        return false;
-    }
-
-    // Check LSM6DS3 WHO_AM_I register (should be 0x6A)
-    uint8_t whoami = 0;
-    if (!readBytes(LSM6DS3_ADDR, LSM6DS_WHOAMI, &whoami, 1) || whoami != 0x6A) {
-        last_error = "Failed to identify LSM6DS3 sensor";
-        std::cerr << last_error << " (WHO_AM_I=" << static_cast<int>(whoami) << ")" << std::endl;
-        return false;
-    }
-
-    // Check LIS3MDL WHO_AM_I register (should be 0x3D)
-    if (!readBytes(LIS3MDL_ADDR, LIS3MDL_REG_WHO_AM_I, &whoami, 1) || whoami != 0x3D) {
-        last_error = "Failed to identify LIS3MDL sensor";
-        std::cerr << last_error << " (WHO_AM_I=" << static_cast<int>(whoami) << ")" << std::endl;
-        return false;
-    }
-
-    // Reset sensors to ensure clean state
-    // Reset LSM6DS3
-    if (!writeByte(LSM6DS3_ADDR, LSM6DS_CTRL3_C, 0x01)) {
-        last_error = "Failed to reset LSM6DS3";
-        std::cerr << last_error << std::endl;
-        return false;
-    }
+void IMU::readLoop()
+{
+    std::cerr << "IMU read loop started" << std::endl;
     
-    // Wait for reset to complete
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    const std::chrono::milliseconds read_interval(10); // 100Hz update rate
     
-    // Reset LIS3MDL
-    if (!writeByte(LIS3MDL_ADDR, LIS3MDL_REG_CTRL_REG2, 0x04)) {
-        last_error = "Failed to reset LIS3MDL";
-        std::cerr << last_error << std::endl;
-        return false;
+    while (running) 
+    {
+         std::chrono::time_point start_time = std::chrono::steady_clock::now();
+        
+        if (!initialized) 
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            break;
+        }
+        
+        readData();
+        
+        // Calculate time to sleep
+        std::chrono::duration elapsed = std::chrono::steady_clock::now() - start_time;
+        if (elapsed < read_interval) 
+        {
+            std::this_thread::sleep_for(read_interval - elapsed);
+        }
     }
+    running = false;
     
-    // Wait for reset to complete
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    
-    connected = true;
-    return true;
+    std::cerr << "IMU read loop stopped" << std::endl;
 }
 
 
@@ -481,110 +513,57 @@ bool IMU::initialize() {
 
 bool IMU::readData() 
 {
-    if (i2c_fd < 0) {
+    if (!initialized) 
+    {
         return false;
     }
 
     bool error = false;
 
-    // Check LSM6DS3 status register to see if data is ready
-    uint8_t status = 0;
-    if (!readBytes(LSM6DS3_ADDR, LSM6DS_STATUS_REG, &status, 1)) {
-        std::cerr << "Failed to read LSM6DS3 status register" << std::endl;
+    // Read all LSM6DS3 data in a single transaction (temperature, gyro, accelerometer)
+    // Starting from the temperature register (OUT_TEMP_L), read 14 consecutive bytes
+    uint8_t lsm6ds_buffer[14] = {0};
+    if (!readBytes(LSM6DS3_ADDR, LSM6DS_OUT_TEMP_L, lsm6ds_buffer, 14)) 
+    {
+        std::cerr << "Failed to read LSM6DS3 data" << std::endl;
         error = true;
     }
     
-    // Only proceed with LSM6DS3 reading if data is ready
-    bool accel_ready = (status & 0x01) != 0;
-    bool gyro_ready = (status & 0x02) != 0;
-    
-    // Read accelerometer if data is ready
-    uint8_t accel_buffer[6] = {0};
-    if (accel_ready && !readBytes(LSM6DS3_ADDR, LSM6DS_OUTX_L_A, accel_buffer, 6)) {
-        std::cerr << "Failed to read accelerometer data" << std::endl;
-        error = true;
-    }
-    
-    // Read gyroscope if data is ready
-    uint8_t gyro_buffer[6] = {0};
-    if (gyro_ready && !readBytes(LSM6DS3_ADDR, LSM6DS_OUTX_L_G, gyro_buffer, 6)) {
-        std::cerr << "Failed to read gyroscope data" << std::endl;
-        error = true;
-    }
-    
-    // Read temperature
-    uint8_t temp_buffer[2] = {0};
-    if (!readBytes(LSM6DS3_ADDR, LSM6DS_OUT_TEMP_L, temp_buffer, 2)) {
-        std::cerr << "Failed to read temperature data" << std::endl;
-        error = true;
-    }
-    
-    // Check LIS3MDL status register
-    if (!readBytes(LIS3MDL_ADDR, LIS3MDL_REG_STATUS, &status, 1)) {
-        std::cerr << "Failed to read magnetometer status register" << std::endl;
-        error = true;
-    }
-    
-    // Read magnetometer if data is ready
-    uint8_t mag_buffer[6] = {0};
-    bool mag_ready = (status & 0x08) != 0;
-    if (mag_ready && !readBytes(LIS3MDL_ADDR, LIS3MDL_REG_OUT_X_L, mag_buffer, 6)) {
+    // Read magnetometer data in a single transaction
+    uint8_t lis3mdl_buffer[6] = {0};  
+    if (!readBytes(LIS3MDL_ADDR, LIS3MDL_REG_OUT_X_L, lis3mdl_buffer, 6)) 
+    {
         std::cerr << "Failed to read magnetometer data" << std::endl;
         error = true;
     }
 
-    if (error) {
+    if (error) 
+    {
         std::lock_guard<std::mutex> lock(data_mutex);
         current_data.timestamp = std::chrono::system_clock::now();
         current_data.valid = false;
         return false;
-    } else {
+    }
+    else 
+    {
         // Process all readings
-        int16_t raw_ax = 0, raw_ay = 0, raw_az = 0;
-        int16_t raw_gx = 0, raw_gy = 0, raw_gz = 0;
-        int16_t raw_mx = 0, raw_my = 0, raw_mz = 0;
-        int16_t raw_temp = 0;
+        // Extract temperature data (bytes 0-1)
+        int16_t raw_temp = (lsm6ds_buffer[1] << 8) | lsm6ds_buffer[0];
         
-        // Only update accel values if new data was available
-        if (accel_ready) {
-            raw_ax = (accel_buffer[1] << 8) | accel_buffer[0];
-            raw_ay = (accel_buffer[3] << 8) | accel_buffer[2];
-            raw_az = (accel_buffer[5] << 8) | accel_buffer[4];
-        } else {
-            // Use last values from current_data (already scaled)
-            std::lock_guard<std::mutex> lock(data_mutex);
-            raw_ax = current_data.ax / accel_scale + accel_offset_x;
-            raw_ay = current_data.ay / accel_scale + accel_offset_y;
-            raw_az = current_data.az / accel_scale + accel_offset_z;
-        }
+        // Extract gyroscope data (bytes 2-7)
+        int16_t raw_gx = (lsm6ds_buffer[3] << 8) | lsm6ds_buffer[2];
+        int16_t raw_gy = (lsm6ds_buffer[5] << 8) | lsm6ds_buffer[4];
+        int16_t raw_gz = (lsm6ds_buffer[7] << 8) | lsm6ds_buffer[6];
         
-        // Only update gyro values if new data was available
-        if (gyro_ready) {
-            raw_gx = (gyro_buffer[1] << 8) | gyro_buffer[0];
-            raw_gy = (gyro_buffer[3] << 8) | gyro_buffer[2];
-            raw_gz = (gyro_buffer[5] << 8) | gyro_buffer[4];
-        } else {
-            // Use last values from current_data
-            std::lock_guard<std::mutex> lock(data_mutex);
-            raw_gx = current_data.gx / gyro_scale + gyro_offset_x;
-            raw_gy = current_data.gy / gyro_scale + gyro_offset_y;
-            raw_gz = current_data.gz / gyro_scale + gyro_offset_z;
-        }
+        // Extract accelerometer data (bytes 8-13)
+        int16_t raw_ax = (lsm6ds_buffer[9] << 8) | lsm6ds_buffer[8];
+        int16_t raw_ay = (lsm6ds_buffer[11] << 8) | lsm6ds_buffer[10];
+        int16_t raw_az = (lsm6ds_buffer[13] << 8) | lsm6ds_buffer[12];
         
-        // Only update magnetometer values if new data was available
-        if (mag_ready) {
-            raw_mx = (mag_buffer[1] << 8) | mag_buffer[0];
-            raw_my = (mag_buffer[3] << 8) | mag_buffer[2];
-            raw_mz = (mag_buffer[5] << 8) | mag_buffer[4];
-        } else {
-            // Use last values from current_data
-            std::lock_guard<std::mutex> lock(data_mutex);
-            raw_mx = current_data.mx / mag_scale + mag_offset_x;
-            raw_my = current_data.my / mag_scale + mag_offset_y;
-            raw_mz = current_data.mz / mag_scale + mag_offset_z;
-        }
-        
-        raw_temp = (temp_buffer[1] << 8) | temp_buffer[0];
+        // Extract magnetometer data
+        int16_t raw_mx = (lis3mdl_buffer[1] << 8) | lis3mdl_buffer[0];
+        int16_t raw_my = (lis3mdl_buffer[3] << 8) | lis3mdl_buffer[2];
+        int16_t raw_mz = (lis3mdl_buffer[5] << 8) | lis3mdl_buffer[4];
         
         // Apply scaling and offsets
         float ax = (raw_ax * accel_scale) - accel_offset_x;
@@ -625,7 +604,7 @@ bool IMU::readData()
                 data_history.pop_front();  // Remove the oldest element
             }
         }
-        updateOrientation();
+        //updateOrientation();
     }
     
     return true;
@@ -808,7 +787,8 @@ void IMU::setHeading(float abs_angle) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-bool IMU::isStationary(float threshold) const {
+bool IMU::isStationary(float threshold) const 
+{
     std::lock_guard<std::mutex> lock(data_mutex);
     
     // Need a minimum number of samples
@@ -836,10 +816,19 @@ bool IMU::isStationary(float threshold) const {
     float var_gy = (sum_gy2 / n) - (sum_gy / n) * (sum_gy / n);
     float var_gz = (sum_gz2 / n) - (sum_gz / n) * (sum_gz / n);
     
-    // Total variance
-    float total_variance = var_gx + var_gy + var_gz;
+    // Calculate the standard deviation for each axis
+    float std_gx = std::sqrt(std::abs(var_gx));
+    float std_gy = std::sqrt(std::abs(var_gy));
+    float std_gz = std::sqrt(std::abs(var_gz));
     
-    return total_variance < threshold;
+    // Maximum standard deviation on any axis
+    float max_std = std::max({std_gx, std_gy, std_gz});
+    
+    // For debugging
+    std::cerr << "Movement check - Std Dev (x,y,z): " << std_gx << ", " 
+              << std_gy << ", " << std_gz << " (threshold: " << threshold << ")" << std::endl;
+    
+    return max_std < threshold;
 }
 
 
@@ -849,8 +838,8 @@ bool IMU::isStationary(float threshold) const {
 
 bool IMU::calibrateGyroscope() 
 {
-    if (!running || !connected) {
-        last_error = "IMU must be running and connected to calibrate";
+    if (!running || !initialized) {
+        last_error = "IMU must be running and initialized to calibrate";
         std::cerr << last_error << std::endl;
         return false;
     }
@@ -922,8 +911,8 @@ bool IMU::calibrateGyroscope()
 
 
 bool IMU::calibrateAccelerometer() {
-    if (!running || !connected) {
-        last_error = "IMU must be running and connected to calibrate";
+    if (!running || !initialized) {
+        last_error = "IMU must be running and initialized to calibrate";
         std::cerr << last_error << std::endl;
         return false;
     }
@@ -990,8 +979,8 @@ bool IMU::calibrateAccelerometer() {
 }
 
 bool IMU::calibrateMagnetometer() {
-    if (!running || !connected) {
-        last_error = "IMU must be running and connected to calibrate";
+    if (!running || !initialized) {
+        last_error = "IMU must be running and initialized to calibrate";
         std::cerr << last_error << std::endl;
         return false;
     }

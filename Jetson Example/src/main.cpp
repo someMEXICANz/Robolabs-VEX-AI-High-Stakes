@@ -64,7 +64,7 @@ int main()
 
     boost::asio::io_service myService;
 
-    // UPS ups; // (threaded)
+    UPS ups; // (threaded)
     IMU imu; // (threaded)
     
 

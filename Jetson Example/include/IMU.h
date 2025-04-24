@@ -15,6 +15,7 @@
 #include <linux/i2c-dev.h>
 #include <cmath>
 #include <cfloat>
+#include <algorithm>
 
 #define LSM6DS_I2CADDR_DEFAULT 0x6A  ///< LSM6DS default i2c address
 #define LSM6DS_FUNC_CFG_ACCESS 0x1 ///< Enable embedded functions register
@@ -226,7 +227,7 @@ private:
   mutable std::mutex data_mutex;
   std::unique_ptr<std::thread> read_thread;
   bool running;
-  bool connected;
+  bool initialized;
   IMUData current_data;
   OrientationData current_orientation;
 

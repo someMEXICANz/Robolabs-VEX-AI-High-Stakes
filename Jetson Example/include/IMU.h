@@ -64,20 +64,13 @@ class IMU
 
     // Calibration methods
     bool calibrateAccelerometer();
-    bool calibrateGyroscope();
     bool calibrateMagnetometer();
 
-    // void setYaw(float abs_angle);
-    // void setPitch(float abs_angle);
-    // void setRoll(float abs_angle);
     bool isStationary(float threshold = 0.3f) const;
 
-    // void configureLSM6DS3(LSM6DS3::ODR_G data_rate,
-    //                       LSM6DS_HPF_RAMGE hpf_range);
-    // void configureLIS3MDL(LIS3MDL_DATA_RATE data_rate, 
-    //                       LIS3MDL_PERF_MODE p_mode, 
-    //                       LIS3MDL_OPER_MODE op_mode);
-    // void configureRanges(ACCEL_RAMGE a_range, GYRO_RANGE g_range, MAG_RANGE m_range);
+    void configureLSM6DS3();
+    void configureLIS3MDL();
+    
 
 
     IMUData getSensorData() const;

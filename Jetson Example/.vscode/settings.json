@@ -74,7 +74,8 @@
         "unordered_set": "cpp",
         "__locale": "cpp",
         "core": "cpp",
-        "__config": "cpp"
+        "__config": "cpp",
+        "__string": "cpp"
     }
 
 

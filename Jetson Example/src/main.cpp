@@ -21,7 +21,6 @@
 
 using namespace std;
 
-//camera.setExtrinsic(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 void printIMUData(IMU &imu)
 {
     IMUData raw_data = imu.getSensorData();
@@ -40,7 +39,6 @@ void printIMUData(IMU &imu)
     std::cout << "IMU ORIENTATION DATA" << std::endl;
     std::cout << "Euler (deg):  Roll: " << orient_data.roll << "  Pitch: " << orient_data.pitch << "  Yaw: " << orient_data.yaw << std::endl;      
     std::cout << "Quaternion (deg): W: " << orient_data.qw << " X: " << orient_data.qx << "  Y: " << orient_data.qy << "  Z: " << orient_data.qz << std::endl;                  
-    std::cout << "Heading: " << orient_data.heading << "  Y: " << std::endl;  
                          
     std::time_t time = std::chrono::system_clock::to_time_t(raw_data.timestamp);
     std::tm* tm_now = std::localtime(&time);
@@ -53,8 +51,6 @@ void printIMUData(IMU &imu)
     else
         std::cout << "FALSE " << std::endl ;
     std::cout << "--------------------------------------------" << std::endl;
-    
-
 }
 
 
@@ -81,7 +77,6 @@ int main()
     // std::this_thread::sleep_for(std::chrono::seconds(1));
     // //FieldMapper mapper(camera); //, robotPosition); // (threaded)
     // std::this_thread::sleep_for(std::chrono::seconds(1));
-    imu.setHeading(0.0f);
 
     while (true) 
     {

@@ -72,12 +72,12 @@ class IMU
     // void setRoll(float abs_angle);
     bool isStationary(float threshold = 0.3f) const;
 
-    void configureLSM6DS3(LSM6DS3::AccelDataRate data_rate,
-                          LSM6DS_HPF_RAMGE hpf_range);
-    void configureLIS3MDL(LIS3MDL_DATA_RATE data_rate, 
-                          LIS3MDL_PERF_MODE p_mode, 
-                          LIS3MDL_OPER_MODE op_mode);
-    void configureRanges(ACCEL_RAMGE a_range, GYRO_RANGE g_range, MAG_RANGE m_range);
+    // void configureLSM6DS3(LSM6DS3::ODR_G data_rate,
+    //                       LSM6DS_HPF_RAMGE hpf_range);
+    // void configureLIS3MDL(LIS3MDL_DATA_RATE data_rate, 
+    //                       LIS3MDL_PERF_MODE p_mode, 
+    //                       LIS3MDL_OPER_MODE op_mode);
+    // void configureRanges(ACCEL_RAMGE a_range, GYRO_RANGE g_range, MAG_RANGE m_range);
 
 
     IMUData getSensorData() const;
@@ -99,11 +99,6 @@ class IMU
     int lsm6ds3_fd;
     int lis3mdl_fd;
     std::string last_error;
-
-    // Calibration offsets
-    float accel_offset_x, accel_offset_y, accel_offset_z;
-    float gyro_offset_x, gyro_offset_y, gyro_offset_z;
-    float mag_offset_x, mag_offset_y, mag_offset_z;
 
     // Scale factors
     float accel_scale; // g per LSB

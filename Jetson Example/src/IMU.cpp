@@ -5,9 +5,7 @@ IMU::IMU(const char* i2c_device_)
     : i2c_device(i2c_device_),
       lsm6ds3_fd(-1),
       lis3mdl_fd(-1),
-      accel_offset_x(0.0f), accel_offset_y(0.0f), accel_offset_z(0.0f),
-      gyro_offset_x(0.0f), gyro_offset_y(0.0f), gyro_offset_z(0.0f),
-      mag_offset_x(0.0f), mag_offset_y(0.0f), mag_offset_z(0.0f),
+
       accel_scale(0.0f), 
       gyro_scale(0.0f),  
       mag_scale(0.0f),    
@@ -131,13 +129,13 @@ bool IMU::writeThenreadRegister(int fd, uint8_t reg, uint8_t* buffer, uint8_t le
     struct i2c_rdwr_ioctl_data ioctl_data;
     
     // First message: Write the register address (no STOP condition)
-    messages[0].addr = (fd == lsm6ds3_fd) ? LSM6DS3_ADDR : LIS3MDL_ADDR;
+    messages[0].addr = (fd == lsm6ds3_fd) ? LSM6DS3::DEFAULT_ADDR : LIS3MDL::DEFAULT_ADDR;
     messages[0].flags = 0;        // Write
     messages[0].len = 1;
     messages[0].buf = &reg;
     
     // Second message: Read the data (with implied START condition)
-    messages[1].addr = (fd == lsm6ds3_fd) ? LSM6DS3_ADDR : LIS3MDL_ADDR;
+    messages[1].addr = (fd == lsm6ds3_fd) ? LSM6DS3::DEFAULT_ADDR : LIS3MDL::DEFAULT_ADDR;
     messages[1].flags = I2C_M_RD; // Read
     messages[1].len = length;
     messages[1].buf = buffer;
@@ -173,7 +171,7 @@ bool IMU::initialize()
     }
     
     // Set I2C slave address for LSM6DS3TRC
-    if (ioctl(lsm6ds3_fd, I2C_SLAVE, LSM6DS3_ADDR) < 0) 
+    if (ioctl(lsm6ds3_fd, I2C_SLAVE, LSM6DS3::DEFAULT_ADDR) < 0) 
     {
         std::cerr << "Failed to set LSM6DS3TRC I2C slave address" << std::endl;
         close(lsm6ds3_fd);
@@ -190,7 +188,7 @@ bool IMU::initialize()
     }
     
     // Set I2C slave address for LIS3MDL
-    if (ioctl(lis3mdl_fd, I2C_SLAVE, LIS3MDL_ADDR) < 0) 
+    if (ioctl(lis3mdl_fd, I2C_SLAVE, LIS3MDL::DEFAULT_ADDR) < 0) 
     {
         std::cerr << "Failed to set LIS3MDL I2C slave address" << std::endl;
         close(lis3mdl_fd);
@@ -199,41 +197,41 @@ bool IMU::initialize()
     }
 
     // Check LSM6DS3 WHO_AM_I register
-    uint8_t lsm6ds3_id = readRegister(lsm6ds3_fd, LSM6DS3_WHO_AM_I);
-    if (lsm6ds3_id != LSM6DS3_CHIP_ID) 
+    uint8_t lsm6ds3_id = readRegister(lsm6ds3_fd, LSM6DS3::Reg::WHO_AM_I);
+    if (lsm6ds3_id != LSM6DS3::CHIP_ID) 
     {
         std::cerr << "LSM6DS3TRC not found (got ID 0x" << std::hex << (int)lsm6ds3_id 
-                  << ", expected 0x" << (int)LSM6DS3_CHIP_ID << ")" << std::dec << std::endl;
+                  << ", expected 0x" << (int)LSM6DS3::CHIP_ID << ")" << std::dec << std::endl;
         return false;
     }
     
     // Check LIS3MDL WHO_AM_I register
-    uint8_t lis_id = readRegister(lis3mdl_fd, LIS3MDL_WHO_AM_I);
-    if (lis_id != LIS3MDL_CHIP_ID) 
+    uint8_t lis_id = readRegister(lis3mdl_fd, LIS3MDL::Reg::WHO_AM_I);
+    if (lis_id != LIS3MDL::CHIP_ID) 
     {
         std::cerr << "LIS3MDL not found (got ID 0x" << std::hex << (int)lis_id 
-                  << ", expected 0x" << (int)LIS3MDL_CHIP_ID << ")" << std::dec << std::endl;
+                  << ", expected 0x" << (int)LIS3MDL::CHIP_ID << ")" << std::dec << std::endl;
         return false;
     }
 
     // Reset devices
-    writeRegister(lsm6ds3_fd, LSM6DS3_CTRL3_C, 0x01);         
-    writeRegister(lis3mdl_fd, LIS3MDL_CTRL_REG2, 0x04); 
+    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL3_C, 0x01);         
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG2, 0x04); 
 
-    configureLSM6DS3(LSM6DS_DATA_RATE::RATE_104_HZ,
-                     LSM6DS_HPF_RAMGE::HPF_ODR_DIV_100);
+    // configureLSM6DS3(LSM6DS_DATA_RATE::RATE_104_HZ,
+    //                  LSM6DS_HPF_RAMGE::HPF_ODR_DIV_100);
 
     // Set Block Data Update bit (prevents MSB/LSB data corruption during reads)
-    writeRegister(lsm6ds3_fd, LSM6DS3_CTRL3_C, 0x44);  // BDU=1, IF_INC=1
+    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL3_C, 0x44);  // BDU=1, IF_INC=1
 
-    configureLIS3MDL(LIS3MDL_DATA_RATE::RATE_155_HZ,
-                     LIS3MDL_PERF_MODE::LIS3MDL_ULTRAHIGHMODE,
-                     LIS3MDL_OPER_MODE::LIS3MDL_CONTINUOUSMODE);
+    // configureLIS3MDL(LIS3MDL_DATA_RATE::RATE_155_HZ,
+    //                  LIS3MDL_PERF_MODE::LIS3MDL_ULTRAHIGHMODE,
+    //                  LIS3MDL_OPER_MODE::LIS3MDL_CONTINUOUSMODE);
 
 
-    configureRanges(ACCEL_RAMGE::ACCEL_RANGE_4_G, 
-                    GYRO_RANGE::GYRO_RANGE_2000_DPS, 
-                    MAG_RANGE::LIS3MDL_RANGE_4_GAUSS);
+    // configureRanges(ACCEL_RAMGE::ACCEL_RANGE_4_G, 
+    //                 GYRO_RANGE::GYRO_RANGE_2000_DPS, 
+    //                 MAG_RANGE::LIS3MDL_RANGE_4_GAUSS);
 
 
     initialized = true;

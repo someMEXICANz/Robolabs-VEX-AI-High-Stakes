@@ -6,7 +6,7 @@
 namespace LSM6DS3 {
 
 // Device info
-constexpr uint8_t I2C_ADDR_DEFAULT = 0x6A;  // Default I2C address
+constexpr uint8_t DEFAULT_ADDR = 0x6A;      // Default I2C address
 constexpr uint8_t CHIP_ID = 0x6A;           // Expected WHOAMI value
 
 // Register addresses
@@ -63,7 +63,7 @@ namespace Reg
 enum class ODR_XL : uint8_t
 {
     POWER_DOWN      = 0x00,     // 0000 0000
-    LP_RATE_1_6_HZ  = 0xB0,     // 1011 0000  
+    NP_RATE_1_6_HZ  = 0xB0,     // 1011 0000  
     HP_RATE_12_5_HZ = 0XB0,     // 1011 0000
     RATE_12_5_HZ    = 0x10,     // 0001 0000
     RATE_26_HZ      = 0x20,     // 0010 0000
@@ -80,10 +80,10 @@ enum class ODR_XL : uint8_t
 // (CTRL1_XL)
 enum class FS_XL : uint8_t
 {
-    RANGE_2_G  = 0x00, // 0000 0000
-    RANGE_16_G = 0x04, // 0000 0100
-    RANGE_4_G  = 0x08, // 0000 1000
-    RANGE_8_G  = 0x0C  // 0000 1100
+    RANGE_2_G  = 0x00, // 0000 00 00
+    RANGE_16_G = 0x04, // 0000 01 00
+    RANGE_4_G  = 0x08, // 0000 10 00
+    RANGE_8_G  = 0x0C  // 0000 11 00
 };
 
 
@@ -106,14 +106,14 @@ enum class ODR_G : uint8_t
 // (CTRL2_G)
 enum class FS_G : uint8_t 
 {
-    RANGE_245_DPS  = 0x00,      // 0000 0000
-    RANGE_500_DPS  = 0x04,      // 0000 0100
-    RANGE_1000_DPS = 0x08,      // 0000 1000
-    RANGE_2000_DPS = 0x0C       // 0000 1100
+    RANGE_245_DPS  = 0x00,      // 0000 00 00
+    RANGE_500_DPS  = 0x04,      // 0000 01 00
+    RANGE_1000_DPS = 0x08,      // 0000 10 00
+    RANGE_2000_DPS = 0x0C       // 0000 11 00
 };
 
 
-namespace Mask
+namespace SB_MASK
 {
     constexpr uint8_t CTRL2_FS_125        = 0x02; // Enable gyroscope full-scale at 125 dps
     constexpr uint8_t CTRL3_BOOT          = 0x80; // Reboot memory content

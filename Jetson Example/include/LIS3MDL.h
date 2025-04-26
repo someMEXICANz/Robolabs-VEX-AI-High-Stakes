@@ -6,11 +6,12 @@
 namespace LIS3MDL {
 
 // Device info
-constexpr uint8_t I2C_ADDR_DEFAULT = 0x1C;  // Default I2C address
+constexpr uint8_t DEFAULT_ADDR = 0x1C;      // Default I2C address
 constexpr uint8_t CHIP_ID = 0x3D;           // Expected WHOAMI value
 
 // Register addresses
-namespace Reg {
+namespace Reg 
+{
     constexpr uint8_t OFFSET_X_REG_L = 0x05; // Hard-iron offset X low byte
     constexpr uint8_t OFFSET_X_REG_H = 0x06; // Hard-iron offset X high byte
     constexpr uint8_t OFFSET_Y_REG_L = 0x07; // Hard-iron offset Y low byte
@@ -39,7 +40,8 @@ namespace Reg {
 }
 
 // Performance mode bits (CTRL_REG1)
-enum class PerformanceMode : uint8_t {
+enum class PerformanceMode : uint8_t 
+{
     LOW_POWER  = 0x00, // 0000 0000
     MEDIUM     = 0x20, // 0010 0000
     HIGH       = 0x40, // 0100 0000
@@ -47,7 +49,8 @@ enum class PerformanceMode : uint8_t {
 };
 
 // Output data rate (CTRL_REG1)
-enum class DataRate : uint8_t {
+enum class DataRate : uint8_t 
+{
     RATE_0_625_HZ = 0x00, // 0000 0000
     RATE_1_25_HZ  = 0x04, // 0000 0100
     RATE_2_5_HZ   = 0x08, // 0000 1000
@@ -64,7 +67,8 @@ enum class DataRate : uint8_t {
 };
 
 // CTRL_REG1 bit masks
-namespace CTRL1_Bits {
+namespace CTRL1_Bits 
+{
     constexpr uint8_t TEMP_EN  = 0x80; // Temperature sensor enable
     constexpr uint8_t OM_MASK  = 0x60; // X/Y operating mode mask
     constexpr uint8_t DO_MASK  = 0x1C; // Output data rate mask

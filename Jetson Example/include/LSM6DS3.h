@@ -12,32 +12,14 @@ constexpr uint8_t CHIP_ID = 0x6A;           // Expected WHOAMI value
 // Register addresses
 namespace Reg 
 {
-    // constexpr uint8_t FUNC_CFG_ACCESS = 0x01;               // r/w | Enable embedded functions register
-    // constexpr uint8_t SENSOR_SYNC_TIME_FRAME = 0x04;        // r/w | Sensor synchronization time frame register 
-    // constexpr uint8_t SENSOR_SYNC_RES_RATIO = 0x05;         // r/w | Sensor synchronization resolution ratio 
-    // constexpr uint8_t FIFO_CTRL1 = 0x06;                    // r/w | FIFO control register
-    // constexpr uint8_t FIFO_CTRL2 = 0x08;                    // r/w | FIFO control register
-    // constexpr uint8_t FIFO_CTRL3 = 0x08;                    // r/w | FIFO control register
-    // constexpr uint8_t FIFO_CTRL4 = 0x09;                    // r/w | FIFO control register
-    // constexpr uint8_t FIFO_CTRL5 = 0x0A;                    // r/w | FIFO control register
-    // constexpr uint8_t DRDY_PULSE_CFG_G = 0x0B;              // r/w | DataReady configuration register
-    // constexpr uint8_t INT1_CTRL = 0x0D;                     // r/w | INT1 pad control register
-    // constexpr uint8_t INT2_CTRL = 0x0E;                     // r/w | INT2 pad control register
     constexpr uint8_t WHO_AM_I = 0x0F;                      //  r  | Chip ID register, Its value is fixed at 6Ah.
     constexpr uint8_t CTRL1_XL = 0x10;                      // r/w | Linear acceleration sensor control register 1
     constexpr uint8_t CTRL2_G = 0x11;                       // r/w | Angular rate sensor control register 2
     constexpr uint8_t CTRL3_C = 0x12;                       // r/w | Control register 3
-    // constexpr uint8_t CTRL4_C = 0x13;                       // r/w | Control register 4
-    // constexpr uint8_t CTRL5_C = 0x14;                       // r/w | Control register 5
     constexpr uint8_t CTRL6_C = 0x15;                       // r/w | Angular rate sensor control register 6
     constexpr uint8_t CTRL7_G = 0x16;                       // r/w | Angular rate sensor control register 7
-    constexpr uint8_t CTRL8_XL = 0x17;                      // r/w | Linear acceleration sensor control register 8
-    // constexpr uint8_t CTRL9_XL = 0x18;                      // r/w | Linear acceleration sensor control register 9
-    // constexpr uint8_t CTRL10_C = 0x19;                      // r/w | Control register 10     
     constexpr uint8_t MASTER_CONFIG = 0x1A;                 // r/w | Master configuration register
     constexpr uint8_t WAKEUP_SRC = 0x1B;                    //  r  | Wake up interrupt source register
-    // constexpr uint8_t TAP_SRC = 0x1C;                       //  r  | Tap source registe
-    // constexpr uint8_t D6D_SRC = 0x1D;                       //  r  | Portrait, landscape, face-up and face-down source register
     constexpr uint8_t STATUS_REG = 0x1E;                    //  r  | The STATUS_REG register is read by the SPI/I2C interface
     constexpr uint8_t OUT_TEMP_L = 0x20;                    //  r  | Temperature sensor output data. The value is expressed as two’s complement sign extended on the MSB.
     constexpr uint8_t OUT_TEMP_H = 0x21;                    //  r  | Temperature sensor output data. L and H registers together express a 16-bit word in two’s complement.
@@ -86,7 +68,6 @@ enum class FS_XL : uint8_t
     RANGE_8_G  = 0x0C  // 0000 11 00
 };
 
-
 // (CTRL2_G)
 enum class ODR_G : uint8_t 
 {
@@ -120,16 +101,14 @@ namespace SB_MASK
     constexpr uint8_t CTRL3_BDU           = 0x40; // Block data update
     constexpr uint8_t CTRL3_H_LACTIVE     = 0x20; // Interrupt active low
     constexpr uint8_t CTRL3_PP_OD         = 0x10; // Push-pull/open-drain selection
-    constexpr uint8_t CTRL3_SIM           = 0x08; // SPI serial interface mode
     constexpr uint8_t CTRL3_IF_INC        = 0x04; // Register address automatically incremented
+    constexpr uint8_t CTRL3 BLE           = 0x02; // Big/Little Endian Data selection
     constexpr uint8_t CTRL3_SW_RESET      = 0x01; // Software reset
     constexpr uint8_t CTRL6_XL_HM_MODE    = 0x10; // Enable/disable High-performance operating mode for accelerometer
     constexpr uint8_t CTRL6_USR_OFF_W     = 0x08; // Weight of XL user offset bits of registers (0 = 2 -10 g/LSB | 1 = 2 -6 g/LSB)
     constexpr uint8_t CTRL7_G_HM_MODE     = 0x80; // Enable/disable High-performance operating mode for gyroscope
 }
 
-
-
 } // namespace LSM6DS3
 
-#endif // LSM6DS3_REGISTERS_H
+#endif // LSM6DS3_H

@@ -121,7 +121,7 @@ uint8_t IMU::readRegister(int fd, uint8_t reg)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-bool IMU::writeThenreadRegister(int fd, uint8_t reg, uint8_t* buffer, uint8_t length) 
+bool IMU::readRegisters(int fd, uint8_t reg, uint8_t* buffer, uint8_t length) 
 {
     // Set up the I2C message structures for a combined transaction
     struct i2c_msg messages[2];
@@ -144,12 +144,34 @@ bool IMU::writeThenreadRegister(int fd, uint8_t reg, uint8_t* buffer, uint8_t le
     ioctl_data.nmsgs = 2;
     
     // Execute the combined write-then-read transaction
-    if (ioctl(fd, I2C_RDWR, &ioctl_data) < 0) {
+    if (ioctl(fd, I2C_RDWR, &ioctl_data) < 0) 
+    {
         std::cerr << "Failed to perform I2C combined transaction" << std::endl;
         return false;
     }
     
     return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+bool IMU::setBit(int fd, uint8_t reg, uint8_t mask, bool enable) 
+{
+    // Read current register value
+    uint8_t current_value = readRegister(fd, reg);
+    
+    // Set or clear the specified bits
+    uint8_t new_value;
+    if (enable) 
+        new_value = current_value | mask;
+    else 
+        new_value = current_value & ~mask;
+    
+    // Write the new value
+    return writeRegister(fd, reg, new_value);
 }
 
 
@@ -290,7 +312,7 @@ bool IMU::readData()
     int16_t LSM6DS3_data[7]; 
 
     // Read temperature and accel/gyro data from LSM6DS3
-    if (!writeThenreadRegister(lsm6ds3_fd, LSM6DS3_OUT_TEMP_L, LSM6DS3_buffer, 14)) 
+    if (!readRegisters(lsm6ds3_fd, LSM6DS3::Reg::OUT_TEMP_L, LSM6DS3_buffer, 14)) 
     {
         error = true;
     }
@@ -321,7 +343,7 @@ bool IMU::readData()
     int16_t LIS3MDL_data[3]; 
 
     // Read magnetometer data from LIS3MDL
-    if (!writeThenreadRegister(lis3mdl_fd, LIS3MDL_OUT_X_L, LIS3MDL_buffer, 6)) 
+    if (!readRegisters(lis3mdl_fd, LIS3MDL::Reg::OUT_X_L, LIS3MDL_buffer, 6)) 
     {
         error = true;
     }
@@ -431,6 +453,159 @@ bool IMU::isStationary(float threshold) const
               << std_gy << ", " << std_gz << " (threshold: " << threshold << ")" << std::endl;
     
     return max_std < threshold;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void IMU::setAccelerometerRange(LSM6DS3::FS_XL range)
+{
+    
+    // Read current register value to preserve other bits
+    uint8_t current_value = readRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL1_XL);
+    
+    // Clear range bits (bits 2-3) and set new range
+    uint8_t new_value = (current_value & 0xF3) | static_cast<uint8_t>(range);
+    
+    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL1_XL, new_value);
+    
+    // Update scale factor
+    switch (range) 
+    {
+        case LSM6DS3::FS_XL::RANGE_2_G:
+            accel_scale = 0.061f; // mg/LSB
+            break;
+        case LSM6DS3::FS_XL::RANGE_4_G:
+            accel_scale = 0.122f; // mg/LSB
+            break;
+        case LSM6DS3::FS_XL::RANGE_8_G:
+            accel_scale = 0.244f; // mg/LSB
+            break;
+        case LSM6DS3::FS_XL::RANGE_16_G:
+            accel_scale = 0.488f; // mg/LSB
+            break;
+   
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void IMU::setGyroscopeRange(LSM6DS3::FS_G range)
+{
+    // Read current register value to preserve other bits
+    uint8_t current_value = readRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL2_G);
+    
+    // Clear range bits (bits 2-3) and set new range
+    uint8_t new_value = (current_value & 0xF3) | static_cast<uint8_t>(range);
+    
+    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL2_G, new_value);
+    
+    // Update scale factor
+    switch (range) 
+    {
+        case LSM6DS3::FS_G::RANGE_245_DPS:
+            gyro_scale = 8.75f; // mdps/LSB
+            break;
+        case LSM6DS3::FS_G::RANGE_500_DPS:
+            gyro_scale = 17.5f; // mdps/LSB
+            break;
+        case LSM6DS3::FS_G::RANGE_1000_DPS:
+            gyro_scale = 35.0f; // mdps/LSB
+            break;
+        case LSM6DS3::FS_G::RANGE_2000_DPS:
+            gyro_scale = 70.0f; // mdps/LSB
+            break;
+    }
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void IMU::setMagnetometerRange(LIS3MDL::FS range)
+{
+    // Read current register value to preserve other bits
+    uint8_t current_value = readRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG2);
+    
+    // Clear range bits (bits 5-6) and set new range
+    uint8_t new_value = (current_value & 0x9F) | static_cast<uint8_t>(range);
+    
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG2, new_value);
+    
+    // Update scale factor
+    switch (range) 
+    {
+        case LIS3MDL::FS::RANGE_4_GAUSS:
+            mag_scale = 1.0f / 6842.0f; // gauss/LSB
+            break;
+        case LIS3MDL::FS::RANGE_8_GAUSS:
+            mag_scale = 1.0f / 3421.0f; // gauss/LSB
+            break;
+        case LIS3MDL::FS::RANGE_12_GAUSS:
+            mag_scale = 1.0f / 2281.0f; // gauss/LSB
+            break;
+        case LIS3MDL::FS::RANGE_16_GAUSS:
+            mag_scale = 1.0f / 1711.0f; // gauss/LSB
+            break;
+    }
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void IMU::setAccelerometerRate(LSM6DS3::ODR_XL rate)
+{
+    // Read current register value to preserve range bits
+    uint8_t current_value = readRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL1_XL);
+    
+    // Clear rate bits (bits 4-7) and set new rate
+    uint8_t new_value = (current_value & 0x0F) | static_cast<uint8_t>(rate);
+    
+    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL1_XL, new_value);
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void IMU::setGyroscopeRate(LSM6DS3::ODR_G rate)
+{
+     // Read current register value to preserve range bits
+    uint8_t current_value = readRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL2_G);
+    
+    // Clear rate bits (bits 4-7) and set new rate
+    uint8_t new_value = (current_value & 0x0F) | static_cast<uint8_t>(rate);
+    
+    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL2_G, new_value);
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void IMU::setMagnetometerRate(LIS3MDL::DO rate)
+{
+    // Read current register value to preserve other bits
+    uint8_t current_value = readRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG1);
+    
+    // Clear rate bits (bits 2-4) and set new rate
+    uint8_t new_value = (current_value & 0xE3) | static_cast<uint8_t>(rate);
+    
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG1, new_value);
+
 }
 
 
@@ -574,73 +749,85 @@ bool IMU::isStationary(float threshold) const
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// bool IMU::calibrateAccelerometer() {
-//     if (!running || !initialized) {
-//         last_error = "IMU must be running and initialized to calibrate";
-//         std::cerr << last_error << std::endl;
-//         return false;
-//     }
+bool IMU::calibrateIMU() 
+{
+    if (!running || !initialized) 
+    {
+        last_error = "IMU must be running and initialized to calibrate";
+        std::cerr << last_error << std::endl;
+        return false;
+    }
     
-//     // Wait for the sensor to be stationary
-//     int attempts = 0;
-//     while (!isStationary() && attempts < 30) {
-//         std::cerr << "Waiting for device to be stationary..." << std::endl;
-//         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//         attempts++;
-//     }
+    // Wait for the sensor to be stationary
+    int attempts = 0;
+    while (!isStationary() && attempts < 30) 
+    {
+        std::cerr << "Waiting for device to be stationary..." << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        attempts++;
+    }
     
-//     if (attempts >= 30) {
-//         last_error = "Timed out waiting for device to be stationary";
-//         std::cerr << last_error << std::endl;
-//         return false;
-//     }
+    if (attempts >= 30) 
+    {
+        last_error = "Timed out waiting for device to be stationary";
+        std::cerr << last_error << std::endl;
+        return false;
+    }
     
-//     // Once stationary, wait a bit longer to collect more stable data
-//     std::cerr << "Device is stationary. Collecting stable data for calibration..." << std::endl;
-//     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    // Once stationary, wait a bit longer to collect more stable data
+    std::cerr << "Device is stationary. Collecting stable data for calibration..." << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     
-//     // Make a local copy of the deque to reduce mutex lock time
-//     std::deque<IMUData> calibration_data;
-//     {
-//         std::lock_guard<std::mutex> lock(data_mutex);
-//         calibration_data = data_history; // Copy the deque
-//     }
+    // Make a local copy of the deque to reduce mutex lock time
+    std::deque<IMUData> calibration_data;
+    {
+        std::lock_guard<std::mutex> lock(data_mutex);
+        calibration_data = data_history; // Copy the deque
+    }
     
-//     if (calibration_data.size() < 50) {
-//         last_error = "Not enough data for calibration, need at least 50 samples";
-//         std::cerr << last_error << std::endl;
-//         return false;
-//     }
+    if (calibration_data.size() < 50) 
+    {
+        std::cerr << "Not enough data for calibration, need at least 50 samples" << std::endl;
+        return false;
+    }
     
-//     float sumX = 0.0f, sumY = 0.0f, sumZ = 0.0f;
-//     size_t count = 0;
+    float sumX = 0.0f, sumY = 0.0f, sumZ = 0.0f;
+    size_t count = 0;
     
-//     // Use copied data for calculations (no mutex needed)
-//     for (const auto& data : calibration_data) {
-//         sumX += data.ax;
-//         sumY += data.ay;
-//         sumZ += data.az;
-//         count++;
-//     }
+    // Use copied data for calculations (no mutex needed)
+    for (const auto& data : calibration_data) {
+        sumX += data.ax;
+        sumY += data.ay;
+        sumZ += data.az;
+        count++;
+    }
+
+
+
+
+
+
+
     
-//     float new_offset_x = sumX / count;
-//     float new_offset_y = sumY / count;
-//     float new_offset_z = (sumZ / count) - 1.0f;  // Remove gravity (1g)
     
-//     // Lock mutex again just to update the offsets
-//     {
-//         std::lock_guard<std::mutex> lock(data_mutex);
-//         accel_offset_x = new_offset_x;
-//         accel_offset_y = new_offset_y;
-//         accel_offset_z = new_offset_z;
-//     }
+    float new_offset_x = sumX / count;
+    float new_offset_y = sumY / count;
+    float new_offset_z = (sumZ / count) - 1.0f;  // Remove gravity (1g)
     
-//     std::cerr << "Accelerometer calibration: offsets = ("
-//               << accel_offset_x << ", " << accel_offset_y << ", "
-//               << accel_offset_z << ") using " << count << " samples" << std::endl;
+    // Lock mutex again just to update the offsets
+    {
+        std::lock_guard<std::mutex> lock(data_mutex);
+        accel_offset_x = new_offset_x;
+        accel_offset_y = new_offset_y;
+        accel_offset_z = new_offset_z;
+    }
     
-//     return true;
-// }
+    std::cerr << "Accelerometer calibration: offsets = ("
+              << accel_offset_x << ", " << accel_offset_y << ", "
+              << accel_offset_z << ") using " << count << " samples" << std::endl;
+    
+    return true;
+}
 
 // bool IMU::calibrateMagnetometer() {
 //     if (!running || !initialized) {

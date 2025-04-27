@@ -44,19 +44,18 @@ namespace Reg
 // (CTRL1_XL) 
 enum class ODR_XL : uint8_t
 {
-    POWER_DOWN      = 0x00,     // 0000 0000
-    NP_RATE_1_6_HZ  = 0xB0,     // 1011 0000  
-    HP_RATE_12_5_HZ = 0XB0,     // 1011 0000
-    RATE_12_5_HZ    = 0x10,     // 0001 0000
-    RATE_26_HZ      = 0x20,     // 0010 0000
-    RATE_52_HZ      = 0x30,     // 0011 0000
-    RATE_104_HZ     = 0x40,     // 0100 0000
-    RATE_208_HZ     = 0x50,     // 0101 0000
-    RATE_416_HZ     = 0x60,     // 0110 0000
-    RATE_833_HZ     = 0x70,     // 0111 0000
-    RATE_1_66K_HZ   = 0x80,     // 1000 0000
-    RATE_3_33K_HZ   = 0x90,     // 1001 0000
-    RATE_6_66K_HZ   = 0xA0      // 1010 0000
+    POWER_DOWN              = 0x00,     // 0000 0000
+    RATE_1_6_HP_12_5_HZ     = 0xB0,     // 1011 0000  
+    RATE_12_5_HZ            = 0x10,     // 0001 0000
+    RATE_26_HZ              = 0x20,     // 0010 0000
+    RATE_52_HZ              = 0x30,     // 0011 0000
+    RATE_104_HZ             = 0x40,     // 0100 0000
+    RATE_208_HZ             = 0x50,     // 0101 0000
+    RATE_416_HZ             = 0x60,     // 0110 0000
+    RATE_833_HZ             = 0x70,     // 0111 0000
+    RATE_1_66K_HZ           = 0x80,     // 1000 0000
+    RATE_3_33K_HZ           = 0x90,     // 1001 0000
+    RATE_6_66K_HZ           = 0xA0      // 1010 0000
 };
 
 // (CTRL1_XL)
@@ -87,6 +86,7 @@ enum class ODR_G : uint8_t
 // (CTRL2_G)
 enum class FS_G : uint8_t 
 {
+    RANGE_125_DPS  = 0xFF,      // Special Case
     RANGE_245_DPS  = 0x00,      // 0000 00 00
     RANGE_500_DPS  = 0x04,      // 0000 01 00
     RANGE_1000_DPS = 0x08,      // 0000 10 00
@@ -102,7 +102,7 @@ namespace SB_MASK
     constexpr uint8_t CTRL3_H_LACTIVE     = 0x20; // Interrupt active low
     constexpr uint8_t CTRL3_PP_OD         = 0x10; // Push-pull/open-drain selection
     constexpr uint8_t CTRL3_IF_INC        = 0x04; // Register address automatically incremented
-    constexpr uint8_t CTRL3 BLE           = 0x02; // Big/Little Endian Data selection
+    constexpr uint8_t CTRL3_BLE           = 0x02; // Big/Little Endian Data selection
     constexpr uint8_t CTRL3_SW_RESET      = 0x01; // Software reset
     constexpr uint8_t CTRL6_XL_HM_MODE    = 0x10; // Enable/disable High-performance operating mode for accelerometer
     constexpr uint8_t CTRL6_USR_OFF_W     = 0x08; // Weight of XL user offset bits of registers (0 = 2 -10 g/LSB | 1 = 2 -6 g/LSB)

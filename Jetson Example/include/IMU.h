@@ -62,7 +62,7 @@ class IMU
     bool isRunning() const { return running; }
     bool isInitialized() const { return initialized; }
 
-    bool calibrateIMU();
+    bool calibrateSensors();
     
     bool isStationary(float threshold = 0.3f) const;
 
@@ -82,15 +82,18 @@ class IMU
     bool setBit(int fd, uint8_t reg, uint8_t mask, bool enable);
 
     void setAccelerometerRange(LSM6DS3::FS_XL range);
-    void setGyroscopeRange(LSM6DS3::FS_G range);
-    void setMagnetometerRange(LIS3MDL::FS range);
-
     void setAccelerometerRate(LSM6DS3::ODR_XL rate);
     void setGyroscopeRate(LSM6DS3::ODR_G rate);
+    void setGyroscopeRange(LSM6DS3::FS_G range);
     void setMagnetometerRate(LIS3MDL::DO rate);
+    void setMagnetometerRange(LIS3MDL::FS range);
+    void setMagnetometerMode(LIS3MDL::MD op_mode);
+    void setMagnetometerPower(LIS3MDL::OM power_mode);
+    
 
-    void configureLSM6DS3();
-    void configureLIS3MDL();
+
+    void configureSettings();
+
 
     // I2C device properties
     const char* i2c_device; 

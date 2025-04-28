@@ -22,7 +22,6 @@ IMU::IMU(const char* i2c_device_)
             calibrateAccelerometer();
         }
     }
-        
 }
 
 IMU::~IMU() 
@@ -247,7 +246,6 @@ bool IMU::initialize()
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -354,13 +352,13 @@ bool IMU::readData()
     // Convert temperature (LSB = 256 per degree C, 25°C = 0)
     float temp = 25.0f + ((float)LSM6DS3_data[0] / 256.0f);
     
-    float gx = (float)LSM6DS3_data[1] * gyro_scale * DEG_TO_RAD / 1000;
-    float gy = (float)LSM6DS3_data[2] * gyro_scale * DEG_TO_RAD / 1000;
-    float gz = (float)LSM6DS3_data[3] * gyro_scale * DEG_TO_RAD / 1000;
+    float gx = (float)LSM6DS3_data[1] * gyro_scale / 1000;
+    float gy = (float)LSM6DS3_data[2] * gyro_scale / 1000;
+    float gz = (float)LSM6DS3_data[3] * gyro_scale / 1000;
     
-    float ax = (float)LSM6DS3_data[4] * accel_scale * GRAVITY_STD / 1000;
-    float ay = (float)LSM6DS3_data[5] * accel_scale * GRAVITY_STD / 1000;
-    float az = (float)LSM6DS3_data[6] * accel_scale * GRAVITY_STD / 1000;
+    float ax = (float)LSM6DS3_data[4] * accel_scale / 1000;
+    float ay = (float)LSM6DS3_data[5] * accel_scale / 1000;
+    float az = (float)LSM6DS3_data[6] * accel_scale / 1000;
 
 
     
@@ -713,21 +711,9 @@ void IMU::updateOrientation(bool useMagnetometer)
         return;
     }
     
-    // // Static variables to track last update time and integrated angles
-    // static std::chrono::steady_clock::time_point last_update_time = std::chrono::steady_clock::now();
     static float integrated_roll = 0.0f;
     static float integrated_pitch = 0.0f;
     static float integrated_yaw = 0.0f;
-    
-    // // Calculate time delta
-    // auto current_time = std::chrono::steady_clock::now();
-    // float dt = std::chrono::duration<float>(current_time - last_update_time).count();
-    // last_update_time = current_time;
-    
-    // // Handle invalid time delta (first run or long pause)
-    // if (dt > 0.5f || dt <= 0.0f) {
-    //     dt = 0.01f; // Default to 10ms
-    // }
     
     // Get current sensor data (conversion to standard units)
     float ax = current_data.ax; // Already in g units as per IMUData struct
@@ -747,27 +733,24 @@ void IMU::updateOrientation(bool useMagnetometer)
     // Calculate roll and pitch from accelerometer (gravity)
     // These formulas assume standard aircraft principal axes
     // (X forward, Y right, Z down)
-    float roll = atan2(ay, az);  // Roll is rotation around X-axis
-    float pitch = atan2(-ax, sqrt(ay * ay + az * az));  // Pitch is rotation around Y-axis
+    float accel_roll = atan2(ay, az);  // Roll is rotation around X-axis
+    float accel_pitch = atan2(-ax, sqrt(ay * ay + az * az));  // Pitch is rotation around Y-axis
     
-    // Convert to degrees for easier understanding
-    float roll_deg = roll * RAD_TO_DEG;
-    float pitch_deg = pitch * RAD_TO_DEG;
     
     // Integrate gyroscope data to get orientation
     // Note: gyro provides angular velocity, integrate to get angle
-    float gyro_roll_deg = integrated_roll + (gx * RAD_TO_DEG * dt);
-    float gyro_pitch_deg = integrated_pitch + (gy * RAD_TO_DEG * dt);
-    float gyro_yaw_deg = integrated_yaw + (gz * RAD_TO_DEG * dt);
+    float gyro_roll = integrated_roll + (gx * dt);
+    float gyro_pitch = integrated_pitch + (gy * dt);
+    float gyro_yaw = integrated_yaw + (gz * dt);
     
     // Complementary filter to combine accelerometer and gyroscope data
     // For roll and pitch (alpha determines how much we trust the gyro vs accel)
     const float alpha = 0.98f;  // Typically 0.98 - trust the gyro more
-    float roll_fused = alpha * gyro_roll_deg + (1.0f - alpha) * roll_deg;
-    float pitch_fused = alpha * gyro_pitch_deg + (1.0f - alpha) * pitch_deg;
+    float roll_fused = alpha * gyro_roll + (1.0f - alpha) * accel_roll;
+    float pitch_fused = alpha * gyro_pitch + (1.0f - alpha) * accel_pitch;
     
     // For yaw, we either use gyro only, or fuse with magnetometer if available and calibrated
-    float yaw_fused = gyro_yaw_deg;
+    float yaw_fused = gyro_yaw;
     
     if (useMagnetometer) 
     {
@@ -792,7 +775,7 @@ void IMU::updateOrientation(bool useMagnetometer)
         if (mag_heading < 0) mag_heading += 360.0f;
         
         // Calculate the difference between mag and gyro
-        float yaw_error = mag_heading - gyro_yaw_deg;
+        float yaw_error = mag_heading - gyro_yaw;
         
         // Normalize the error to -180 to +180
         if (yaw_error > 180.0f) yaw_error -= 360.0f;
@@ -801,7 +784,7 @@ void IMU::updateOrientation(bool useMagnetometer)
         // Apply complementary filter for yaw
         // Use a different alpha (lower) for magnetometer fusion
         const float alpha_mag = 0.95f;  // Trust gyro slightly less for yaw
-        yaw_fused = gyro_yaw_deg + (1.0f - alpha_mag) * yaw_error;
+        yaw_fused = gyro_yaw + (1.0f - alpha_mag) * yaw_error;
     }
     
     // Normalize yaw to 0-360
@@ -886,9 +869,9 @@ bool IMU::calibrateAccelerometer()
     }
         
     // Calculate average offsets
-    float avgX = (sumX / count) / GRAVITY_STD;
-    float avgY = (sumY / count) / GRAVITY_STD;
-    float avgZ = (sumZ / count) / GRAVITY_STD;
+    float avgX = (sumX / count);
+    float avgY = (sumY / count);
+    float avgZ = (sumZ / count);
     float desiredZ = -1; // -1g for Z axis when flat
     
     std::cerr << "Current average readings (g): X=" << avgX << ", Y=" << avgY 
@@ -924,185 +907,6 @@ bool IMU::calibrateAccelerometer()
     std::cerr << "Accelerometer calibration complete" << std::endl;
     return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// bool IMU::calibrateSensors() 
-// {
-//     if (!running || !initialized) 
-//     {
-//         last_error = "IMU must be running and initialized to calibrate";
-//         std::cerr << last_error << std::endl;
-//         return false;
-//     }
-    
-//     // Wait for the sensor to be stationary
-//     int attempts = 0;
-//     while (!isStationary() && attempts < 30) 
-//     {
-//         std::cerr << "Waiting for device to be stationary..." << std::endl;
-//         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//         attempts++;
-//     }
-    
-//     if (attempts >= 30) 
-//     {
-//         last_error = "Timed out waiting for device to be stationary";
-//         std::cerr << last_error << std::endl;
-//         return false;
-//     }
-    
-//     // Once stationary, wait a bit longer to collect more stable data
-//     std::cerr << "Device is stationary. Collecting stable data for calibration..." << std::endl;
-//     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    
-//     // Make a local copy of the deque to reduce mutex lock time
-//     std::deque<IMUData> calibration_data;
-//     {
-//         std::lock_guard<std::mutex> lock(data_mutex);
-//         calibration_data = data_history; // Copy the deque
-//     }
-    
-//     if (calibration_data.size() < 50) 
-//     {
-//         std::cerr << "Not enough data for calibration, need at least 50 samples" << std::endl;
-//         return false;
-//     }
-    
-//     float sumAx = 0.0f, sumAy = 0.0f, sumAz = 0.0f;
-//     float sumMx = 0.0f, sumMy = 0.0f, sumMz = 0.0f;
-//     size_t count = 0;
-    
-    
-//     // Use copied data for calculations (no mutex needed)
-//     for (int i = 0; i < calibration_data.size(); i++) 
-//     {
-//         sumAx += calibration_data[i].ax;
-//         sumAy += calibration_data[i].ay;
-//         sumAz += calibration_data[i].az;
-//         sumMx += calibration_data[i].mx;
-//         sumMy += calibration_data[i].my;
-//         sumMz += calibration_data[i].mz;
-//         count++;
-//     }
-
-
-
-
-
-
-
-    
-    
-//     float new_offset_x = sumX / count;
-//     float new_offset_y = sumY / count;
-//     float new_offset_z = (sumZ / count) - 1.0f;  // Remove gravity (1g)
-    
-//     // Lock mutex again just to update the offsets
-//     {
-//         std::lock_guard<std::mutex> lock(data_mutex);
-//         accel_offset_x = new_offset_x;
-//         accel_offset_y = new_offset_y;
-//         accel_offset_z = new_offset_z;
-//     }
-    
-//     std::cerr << "Accelerometer calibration: offsets = ("
-//               << accel_offset_x << ", " << accel_offset_y << ", "
-//               << accel_offset_z << ") using " << count << " samples" << std::endl;
-    
-//     return true;
-// }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////

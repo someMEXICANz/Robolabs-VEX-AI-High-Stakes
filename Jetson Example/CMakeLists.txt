@@ -28,6 +28,10 @@ find_package(OpenCV REQUIRED)
 # Find Open3D
 find_package(Open3D REQUIRED)
 
+# Find Eigen3
+find_package(Eigen3 REQUIRED)
+add_definitions(-DEIGEB_USE_THREADS)
+
 # Find RealSense
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(REALSENSE2 REQUIRED realsense2)
@@ -56,6 +60,7 @@ add_executable(CameraTest
 # Modern approach: target-specific include directories
 target_include_directories(CameraTest PRIVATE
     ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/external/kalman/include
     ${OpenCV_INCLUDE_DIRS}
     ${REALSENSE2_INCLUDE_DIRS}
     ${Open3D_INCLUDE_DIRS}

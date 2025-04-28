@@ -15,7 +15,11 @@ IMU::IMU(const char* i2c_device_)
 {
     if(initialize()) 
     {
-        start();
+        if(start())
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+            calibrateAccelerometer();
+        }
     }
         
 }
@@ -832,6 +836,180 @@ void IMU::setMagnetometerMode(LIS3MDL::MD op_mode)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+bool IMU::calibrateAccelerometer() 
+{
+  
+    int attempts = 0;
+    while (!isStationary()) 
+    {
+        std::cerr << "Waiting for device to be stationary..." << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        attempts++;
+        if (attempts > 30)
+        {
+            std::cerr << "Could not calibrate accelerometer, timed out waiting for device to be stationary" << std::endl;
+            return false;
+        }
+    }
+    
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    
+    // Make a local copy of the deque to reduce mutex lock time
+    std::deque<IMUData> calibration_data;
+    {
+        std::lock_guard<std::mutex> lock(data_mutex);
+        calibration_data = data_history; // Copy the deque
+    }
+    
+    float sumX = 0.0f, sumY = 0.0f, sumZ = 0.0f;
+    size_t count = 0;
+    
+    // Use copied data for calculations (no mutex needed)
+    for (int i = 0; i < calibration_data.size(); i++) 
+    {
+        if(calibration_data[i].valid)
+        {
+            sumX += calibration_data[i].ax;
+            sumY += calibration_data[i].ay;
+            sumZ += calibration_data[i].az;
+            count++;
+        }
+    }
+        
+    // Calculate average offsets
+    float avgX = (sumX / count) / GRAVITY_STD;
+    float avgY = (sumY / count) / GRAVITY_STD;
+    float avgZ = (sumZ / count) / GRAVITY_STD;
+    float desiredZ = -1; // -1g for Z axis when flat
+    
+    std::cerr << "Current average readings (g): X=" << avgX << ", Y=" << avgY 
+              << ", Z=" << avgZ << std::endl;
+    
+    // Read current USR_OFF_W setting (weight of the offset)
+    uint8_t ctrl6_c = readRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL6_C);
+    bool high_weight = (ctrl6_c & LSM6DS3::SB_MASK::CTRL6_USR_OFF_W) > 0;
+    
+    // Scale factor for offset registers
+    // 2^(-6) g/LSB when USR_OFF_W=1, 2^(-10) g/LSB when USR_OFF_W=0
+    float scale_factor = high_weight ? (1.0f / 64.0f) : (1.0f / 1024.0f);
+    
+    // Calculate offset values in register units (signed 8-bit values)
+    int8_t offsetX = -static_cast<int8_t>(avgX / scale_factor);
+    int8_t offsetY = -static_cast<int8_t>(avgY / scale_factor);
+    int8_t offsetZ = -static_cast<int8_t>((avgZ - desiredZ) / scale_factor);
+    
+    // Ensure values are within valid range (-127 to +127)
+    offsetX = std::max(std::min(offsetX, static_cast<int8_t>(127)), static_cast<int8_t>(-127));
+    offsetY = std::max(std::min(offsetY, static_cast<int8_t>(127)), static_cast<int8_t>(-127));
+    offsetZ = std::max(std::min(offsetZ, static_cast<int8_t>(127)), static_cast<int8_t>(-127));
+    
+    std::cerr << "Writing offsets: X=" << static_cast<int>(offsetX) 
+              << ", Y=" << static_cast<int>(offsetY) 
+              << ", Z=" << static_cast<int>(offsetZ) << std::endl;
+    
+    // Write offsets to registers
+    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::X_OFS_USR, static_cast<uint8_t>(offsetX));
+    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::Y_OFS_USR, static_cast<uint8_t>(offsetY));
+    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::Z_OFS_USR, static_cast<uint8_t>(offsetZ));
+    
+    std::cerr << "Accelerometer calibration complete" << std::endl;
+    return true;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // bool IMU::calibrateSensors() 

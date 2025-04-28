@@ -64,6 +64,7 @@ class IMU
     bool isInitialized() const { return initialized; }
 
     bool calibrateSensors();
+    bool calibrateAccelerometer();
     
     bool isStationary(float threshold = 0.3f) const;
 

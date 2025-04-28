@@ -235,23 +235,55 @@ bool IMU::initialize()
         return false;
     }
 
-    // Reset devices
-    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL3_C, 0x01);         
-    writeRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG2, 0x04); 
-
-    // configureLSM6DS3(LSM6DS_DATA_RATE::RATE_104_HZ,
-    //                  LSM6DS_HPF_RAMGE::HPF_ODR_DIV_100);
-
-    // Set Block Data Update bit (prevents MSB/LSB data corruption during reads)
-    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL3_C, 0x44);  // BDU=1, IF_INC=1
-
     configureSettings();
 
     initialized = true;
     return true;
 }
 
-  
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void IMU::configureSettings() 
+{
+    
+    // Reset devices
+    setBit(lsm6ds3_fd,LSM6DS3::Reg::CTRL3_C, LSM6DS3::SB_MASK::CTRL3_SW_RESET, true);         
+    setBit(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG2, LIS3MDL::SB_MASK::CTRL2_SOFT_RST, true);  
+
+    // Set Block Data Update bit (prevents MSB/LSB data corruption during reads)
+    setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL3_C, LSM6DS3::SB_MASK::CTRL3_BDU, false);
+    setMagnetometerMode(LIS3MDL::MD::CONTINUOUS);
+
+    
+    setAccelerometerRate(LSM6DS3::ODR_XL::RATE_208_HZ);
+    setGyroscopeRate(LSM6DS3::ODR_G::RATE_208_HZ);
+    
+    setAccelerometerRange(LSM6DS3::FS_XL::RANGE_2_G);
+    setGyroscopeRange(LSM6DS3::FS_G::RANGE_125_DPS);
+
+    // Enables First Low Pass Filter
+    setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL1_XL, LSM6DS3::SB_MASK::CTRL1_LPF1_BW_SEL, true);
+    // Enables second Low Pass Filter
+    setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL8_XL, LSM6DS3::SB_MASK::CTRL8_LPF2_XL_EN, true);
+    // Enables high performance mode for accel
+    setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL6_C, LSM6DS3::SB_MASK::CTRL6_XL_HM_MODE, true);
+    // Enables high performance mode for gyro
+    setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL7_G, LSM6DS3::SB_MASK::CTRL7_G_HM_MODE, true);
+
+    setMagnetometerRate(LIS3MDL::DO::RATE_80_HZ);
+    setMagnetometerRange(LIS3MDL::FS::RANGE_4_GAUSS);
+
+    //Turns on FAST_ODR 
+    setBit(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG1, LIS3MDL::SB_MASK::CTRL1_FAST_ODR,true);
+    setMagnetometerPower(LIS3MDL::OM::HIGH);
+
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -342,11 +374,9 @@ bool IMU::readData()
         LIS3MDL_data[i] = (LIS3MDL_buffer[i*2+1] << 8) | LIS3MDL_buffer[i*2];
     }
 
-    // Convert magnetometer data (raw to μT)
-    const float GAUSS_TO_MICROTESLA = 100.0f; // 1 gauss = 100 μT
-    float mx = (float)LIS3MDL_data[0] * mag_scale * GAUSS_TO_MICROTESLA;
-    float my = (float)LIS3MDL_data[1] * mag_scale * GAUSS_TO_MICROTESLA;
-    float mz = (float)LIS3MDL_data[2] * mag_scale * GAUSS_TO_MICROTESLA;
+    float mx = (float)LIS3MDL_data[0] / mag_scale * 100;
+    float my = (float)LIS3MDL_data[1] / mag_scale * 100;
+    float mz = (float)LIS3MDL_data[2] / mag_scale * 100;
 
     if(!error)
     {
@@ -659,35 +689,6 @@ void IMU::setMagnetometerMode(LIS3MDL::MD op_mode)
     uint8_t new_value = (current_value & 0xFC) | static_cast<uint8_t>(op_mode);
 
     writeRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG3, new_value);
-
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-void IMU::configureSettings() 
-{
-    
-    setAccelerometerRate(LSM6DS3::ODR_XL::RATE_208_HZ);
-    setGyroscopeRate(LSM6DS3::ODR_G::RATE_208_HZ);
-    
-    setAccelerometerRange(LSM6DS3::FS_XL::RANGE_2_G);
-    setGyroscopeRange(LSM6DS3::FS_G::RANGE_125_DPS);
-
-    // Enables high performance mode for accel
-    setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL6_C, LSM6DS3::SB_MASK::CTRL6_XL_HM_MODE, true);
-    // Enables high performance mode for gyro
-    setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL7_G, LSM6DS3::SB_MASK::CTRL7_G_HM_MODE, true);
-
-    setMagnetometerRate(LIS3MDL::DO::RATE_80_HZ);
-    setMagnetometerRange(LIS3MDL::FS::RANGE_4_GAUSS);
-
-    //Turns on FAST_ODR 
-    setBit(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG1, LIS3MDL::SB_MASK::CTRL1_FAST_ODR,true);
-    setMagnetometerMode(LIS3MDL::MD::CONTINUOUS);
-    setMagnetometerPower(LIS3MDL::OM::HIGH);
 
 }
 

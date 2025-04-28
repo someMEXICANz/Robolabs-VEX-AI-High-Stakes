@@ -18,6 +18,7 @@ namespace Reg
     constexpr uint8_t CTRL3_C = 0x12;                       // r/w | Control register 3
     constexpr uint8_t CTRL6_C = 0x15;                       // r/w | Angular rate sensor control register 6
     constexpr uint8_t CTRL7_G = 0x16;                       // r/w | Angular rate sensor control register 7
+    constexpr uint8_t CTRL8_XL = 0x17;                      // r/w | Angular rate sensor control register 8 
     constexpr uint8_t MASTER_CONFIG = 0x1A;                 // r/w | Master configuration register
     constexpr uint8_t WAKEUP_SRC = 0x1B;                    //  r  | Wake up interrupt source register
     constexpr uint8_t STATUS_REG = 0x1E;                    //  r  | The STATUS_REG register is read by the SPI/I2C interface
@@ -96,6 +97,7 @@ enum class FS_G : uint8_t
 
 namespace SB_MASK
 {
+    constexpr uint8_t CTRL1_LPF1_BW_SEL   = 0x02; // Accelerometer digital LPF (LPF1)
     constexpr uint8_t CTRL2_FS_125        = 0x02; // Enable gyroscope full-scale at 125 dps
     constexpr uint8_t CTRL3_BOOT          = 0x80; // Reboot memory content
     constexpr uint8_t CTRL3_BDU           = 0x40; // Block data update
@@ -107,6 +109,7 @@ namespace SB_MASK
     constexpr uint8_t CTRL6_XL_HM_MODE    = 0x10; // Enable/disable High-performance operating mode for accelerometer
     constexpr uint8_t CTRL6_USR_OFF_W     = 0x08; // Weight of XL user offset bits of registers (0 = 2 -10 g/LSB | 1 = 2 -6 g/LSB)
     constexpr uint8_t CTRL7_G_HM_MODE     = 0x80; // Enable/disable High-performance operating mode for gyroscope
+    constexpr uint8_t CTRL8_LPF2_XL_EN    = 0x80; // Accelerometer low-pass filter LPF2 selection
 }
 
 } // namespace LSM6DS3

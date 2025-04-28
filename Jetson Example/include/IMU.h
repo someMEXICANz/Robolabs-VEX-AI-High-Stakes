@@ -41,6 +41,7 @@ struct OrientationData
   std::chrono::system_clock::time_point timestamp;
   bool valid; // Flag indicating if data is valid
 };
+ 
 
 class IMU
 {
@@ -119,6 +120,10 @@ class IMU
     
     static constexpr float RAD_TO_DEG = 180.0f / M_PI;
     static constexpr float DEG_TO_RAD = M_PI / 180.0f;
+    static constexpr float GRAVITY_STD = 9.80665f;
+    
+
+   
 
 };
 

@@ -317,17 +317,13 @@ bool IMU::readData()
     // Convert temperature (LSB = 256 per degree C, 25°C = 0)
     float temp = 25.0f + ((float)LSM6DS3_data[0] / 256.0f);
     
-    // Convert gyroscope data (raw to rad/s)
-    const float GYRO_TO_RAD_PS = M_PI / 180.0f / 1000.0f; // mdps to rad/s
-    float gx = (float)LSM6DS3_data[1] * gyro_scale * GYRO_TO_RAD_PS;
-    float gy = (float)LSM6DS3_data[2] * gyro_scale * GYRO_TO_RAD_PS;
-    float gz = (float)LSM6DS3_data[3] * gyro_scale * GYRO_TO_RAD_PS;
+    float gx = (float)LSM6DS3_data[1] * gyro_scale * DEG_TO_RAD / 1000;
+    float gy = (float)LSM6DS3_data[2] * gyro_scale * DEG_TO_RAD / 1000;
+    float gz = (float)LSM6DS3_data[3] * gyro_scale * DEG_TO_RAD / 1000;
     
-    // Convert accelerometer data (raw to m/s²)
-    const float ACC_TO_MS2 = 9.80665f / 1000.0f; // mg to m/s²
-    float ax = (float)LSM6DS3_data[4] * accel_scale * ACC_TO_MS2;
-    float ay = (float)LSM6DS3_data[5] * accel_scale * ACC_TO_MS2;
-    float az = (float)LSM6DS3_data[6] * accel_scale * ACC_TO_MS2;
+    float ax = (float)LSM6DS3_data[4] * accel_scale * GRAVITY_STD / 1000;
+    float ay = (float)LSM6DS3_data[5] * accel_scale * GRAVITY_STD / 1000;
+    float az = (float)LSM6DS3_data[6] * accel_scale * GRAVITY_STD / 1000;
 
 
     
@@ -642,8 +638,8 @@ void IMU::setMagnetometerPower(LIS3MDL::OM power_mode)
     uint8_t current_REG1 = readRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG1);
     uint8_t current_REG4 = readRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG4);
 
-    uint8_t new_REG1 = (current_REG1 & 0xE3) | static_cast<uint8_t>(power_mode);
-    uint8_t new_REG4 = (current_REG4 & 0xE3) | static_cast<uint8_t>(z_mode);
+    uint8_t new_REG1 = (current_REG1 & 0x9F) | static_cast<uint8_t>(power_mode);
+    uint8_t new_REG4 = (current_REG4 & 0xF3) | static_cast<uint8_t>(z_mode);
 
     writeRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG1, new_REG1);
     writeRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG4, new_REG4);
@@ -660,7 +656,7 @@ void IMU::setMagnetometerMode(LIS3MDL::MD op_mode)
     // Read current register value to preserve other bit
     uint8_t current_value = readRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG3);
     
-    uint8_t new_value = (current_value & 0xE3) | static_cast<uint8_t>(op_mode);
+    uint8_t new_value = (current_value & 0xFC) | static_cast<uint8_t>(op_mode);
 
     writeRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG3, new_value);
 
@@ -684,11 +680,6 @@ void IMU::configureSettings()
     setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL6_C, LSM6DS3::SB_MASK::CTRL6_XL_HM_MODE, true);
     // Enables high performance mode for gyro
     setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL7_G, LSM6DS3::SB_MASK::CTRL7_G_HM_MODE, true);
-
-
-
-
-
 
     setMagnetometerRate(LIS3MDL::DO::RATE_80_HZ);
     setMagnetometerRange(LIS3MDL::FS::RANGE_4_GAUSS);

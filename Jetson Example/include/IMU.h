@@ -76,7 +76,7 @@ class IMU
 
     void readLoop();
     bool readData();
-    bool updateOrientation();
+    void updateOrientation(bool useMagnetometer = false);
 
     bool writeRegister(int fd, uint8_t reg, uint8_t value);
     uint8_t readRegister(int fd, uint8_t reg);

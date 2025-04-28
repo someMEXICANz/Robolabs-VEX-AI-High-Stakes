@@ -1,5 +1,6 @@
 #include "IMU.h"
 
+using std::chrono::system_clock;
 
 IMU::IMU(const char* i2c_device_)
     : i2c_device(i2c_device_),
@@ -408,8 +409,7 @@ bool IMU::readData()
             }
         }
 
-        //updateOrientation();
-
+        updateOrientation();
         return true;
     }
     else
@@ -702,141 +702,147 @@ void IMU::setMagnetometerMode(LIS3MDL::MD op_mode)
 
 
 
-// bool IMU::updateOrientation() 
-// {
-//     std::lock_guard<std::mutex> lock(data_mutex);
+void IMU::updateOrientation(bool useMagnetometer) 
+{
+    std::lock_guard<std::mutex> lock(data_mutex);
     
-//     if (!current_data.valid) {
-//         current_orientation.valid = false;
-//         current_orientation.timestamp = std::chrono::system_clock::now();
-//         return false;
-//     }
+    if (!current_data.valid) 
+    {
+        current_orientation.valid = false;
+        current_orientation.timestamp = std::chrono::system_clock::now();
+        return;
+    }
     
-//     // Static variables to track last update time and integrated angles
-//     static std::chrono::steady_clock::time_point last_update_time = 
-//         std::chrono::steady_clock::now();
-//     static float integrated_roll = 0.0f;
-//     static float integrated_pitch = 0.0f;
-//     static float integrated_yaw = 0.0f;
+    // // Static variables to track last update time and integrated angles
+    // static std::chrono::steady_clock::time_point last_update_time = std::chrono::steady_clock::now();
+    static float integrated_roll = 0.0f;
+    static float integrated_pitch = 0.0f;
+    static float integrated_yaw = 0.0f;
     
-//     // Calculate time delta
-//     auto current_time = std::chrono::steady_clock::now();
-//     float dt = std::chrono::duration<float>(current_time - last_update_time).count();
-//     last_update_time = current_time;
+    // // Calculate time delta
+    // auto current_time = std::chrono::steady_clock::now();
+    // float dt = std::chrono::duration<float>(current_time - last_update_time).count();
+    // last_update_time = current_time;
     
-//     // Skip if this is the first update or timing is off
-//     if (dt > 0.5f || dt <= 0.0f) 
-//     {
-//         dt = 0.01f; // Default to 10ms if timing seems wrong
-//     }
+    // // Handle invalid time delta (first run or long pause)
+    // if (dt > 0.5f || dt <= 0.0f) {
+    //     dt = 0.01f; // Default to 10ms
+    // }
     
-//     // Get current sensor data
-//     float ax = current_data.ax;
-//     float ay = current_data.ay;
-//     float az = current_data.az;
-//     float gx = current_data.gx;
-//     float gy = current_data.gy;
-//     float gz = current_data.gz;
-//     float mx = current_data.mx;
-//     float my = current_data.my;
-//     float mz = current_data.mz;
+    // Get current sensor data (conversion to standard units)
+    float ax = current_data.ax; // Already in g units as per IMUData struct
+    float ay = current_data.ay;
+    float az = current_data.az;
+    float gx = current_data.gx; // Already in rad/s as per IMUData struct
+    float gy = current_data.gy;
+    float gz = current_data.gz;
+    float mx = current_data.mx;
+    float my = current_data.my;
+    float mz = current_data.mz;
+    system_clock::time_point RAW_ts = current_data.timestamp;
+    system_clock::time_point OR_ts = current_orientation.timestamp;
+
+    float dt = std::chrono::duration<float>(RAW_ts- OR_ts).count();
+
+    // Calculate roll and pitch from accelerometer (gravity)
+    // These formulas assume standard aircraft principal axes
+    // (X forward, Y right, Z down)
+    float roll = atan2(ay, az);  // Roll is rotation around X-axis
+    float pitch = atan2(-ax, sqrt(ay * ay + az * az));  // Pitch is rotation around Y-axis
     
-//     // Calculate accel-based pitch and roll (in radians)
-//     float accel_roll = atan2(ay, az);
-//     float accel_pitch = atan2(-ax, sqrt(ay * ay + az * az));
+    // Convert to degrees for easier understanding
+    float roll_deg = roll * RAD_TO_DEG;
+    float pitch_deg = pitch * RAD_TO_DEG;
     
-//     // Integrate gyro data (in degrees)
-//     integrated_roll += gx * dt;
-//     integrated_pitch += gy * dt;
-//     integrated_yaw += gz * dt;
+    // Integrate gyroscope data to get orientation
+    // Note: gyro provides angular velocity, integrate to get angle
+    float gyro_roll_deg = integrated_roll + (gx * RAD_TO_DEG * dt);
+    float gyro_pitch_deg = integrated_pitch + (gy * RAD_TO_DEG * dt);
+    float gyro_yaw_deg = integrated_yaw + (gz * RAD_TO_DEG * dt);
     
-//     // Calculate tilt-compensated magnetometer heading
-//     // Apply the tilt compensation to magnetometer readings
-//     float tilt_comp_mx = mx * cos(accel_pitch) + mz * sin(accel_pitch);
-//     float tilt_comp_my = mx * sin(accel_roll) * sin(accel_pitch) + 
-//                          my * cos(accel_roll) - 
-//                          mz * sin(accel_roll) * cos(accel_pitch);
+    // Complementary filter to combine accelerometer and gyroscope data
+    // For roll and pitch (alpha determines how much we trust the gyro vs accel)
+    const float alpha = 0.98f;  // Typically 0.98 - trust the gyro more
+    float roll_fused = alpha * gyro_roll_deg + (1.0f - alpha) * roll_deg;
+    float pitch_fused = alpha * gyro_pitch_deg + (1.0f - alpha) * pitch_deg;
     
-//     // // Calculate the raw mag heading (0-360 degrees)
-//     // float mag_heading = atan2(tilt_comp_my, tilt_comp_mx) * RAD_TO_DEG;
-//     // if (mag_heading < 0) mag_heading += 360.0f;
+    // For yaw, we either use gyro only, or fuse with magnetometer if available and calibrated
+    float yaw_fused = gyro_yaw_deg;
     
-//     // // Normalize to 0-360
-//     // while (mag_heading < 0) mag_heading += 360.0f;
-//     // while (mag_heading >= 360.0f) mag_heading -= 360.0f;
+    if (useMagnetometer) 
+    {
+        // Calculate tilt-compensated magnetometer heading
+        // This compensates for the fact that the magnetometer is tilted
+        // with respect to the earth when the device is not level
+        float roll_rad = roll_fused * DEG_TO_RAD;
+        float pitch_rad = pitch_fused * DEG_TO_RAD;
+        
+        // Apply tilt compensation
+        float mag_x = mx * cos(pitch_rad) + 
+                      mz * sin(pitch_rad);
+        
+        float mag_y = mx * sin(roll_rad) * sin(pitch_rad) +
+                     my * cos(roll_rad) - 
+                     mz * sin(roll_rad) * cos(pitch_rad);
+        
+        // Calculate magnetometer heading (in degrees)
+        float mag_heading = atan2(mag_y, mag_x) * RAD_TO_DEG;
+        
+        // Normalize to 0-360
+        if (mag_heading < 0) mag_heading += 360.0f;
+        
+        // Calculate the difference between mag and gyro
+        float yaw_error = mag_heading - gyro_yaw_deg;
+        
+        // Normalize the error to -180 to +180
+        if (yaw_error > 180.0f) yaw_error -= 360.0f;
+        if (yaw_error < -180.0f) yaw_error += 360.0f;
+        
+        // Apply complementary filter for yaw
+        // Use a different alpha (lower) for magnetometer fusion
+        const float alpha_mag = 0.95f;  // Trust gyro slightly less for yaw
+        yaw_fused = gyro_yaw_deg + (1.0f - alpha_mag) * yaw_error;
+    }
     
-//     // Complementary filter to combine gyro and accel/mag data
-//     const float alpha = 0.98f;
+    // Normalize yaw to 0-360
+    while (yaw_fused < 0) yaw_fused += 360.0f;
+    while (yaw_fused >= 360.0f) yaw_fused -= 360.0f;
     
-//     // Convert accel values to degrees
-//     float roll_deg = accel_roll * RAD_TO_DEG;
-//     float pitch_deg = accel_pitch * RAD_TO_DEG;
+    // Save the integrated values for next iteration
+    integrated_roll = roll_fused;
+    integrated_pitch = pitch_fused;
+    integrated_yaw = yaw_fused;
     
-//     // Apply complementary filter for roll and pitch
-//     float roll = alpha * integrated_roll + (1.0f - alpha) * roll_deg;
-//     float pitch = alpha * integrated_pitch + (1.0f - alpha) * pitch_deg;
+    // Convert back to radians for quaternion calculation
+    float roll_rad = roll_fused * DEG_TO_RAD;
+    float pitch_rad = pitch_fused * DEG_TO_RAD;
+    float yaw_rad = yaw_fused * DEG_TO_RAD;
     
-//     // For yaw/heading, use a complementary filter between gyro and magnetometer
-//     // First calculate the difference between mag and gyro
-//     float yaw_error = mag_heading - integrated_yaw;
-//     // Normalize the error to -180 to +180
-//     if (yaw_error > 180.0f) yaw_error -= 360.0f;
-//     if (yaw_error < -180.0f) yaw_error += 360.0f;
+    // Calculate quaternion (more stable representation)
+    float cy = cos(yaw_rad * 0.5f);
+    float sy = sin(yaw_rad * 0.5f);
+    float cp = cos(pitch_rad * 0.5f);
+    float sp = sin(pitch_rad * 0.5f);
+    float cr = cos(roll_rad * 0.5f);
+    float sr = sin(roll_rad * 0.5f);
     
-//     // Apply the filter with a smaller alpha for heading (more magnetometer influence)
-//     // Gyro provides short-term accuracy, mag provides long-term stability
-//     float yaw = integrated_yaw + (1.0f - alpha) * yaw_error;
+    current_orientation.qw = cr * cp * cy + sr * sp * sy;
+    current_orientation.qx = sr * cp * cy - cr * sp * sy;
+    current_orientation.qy = cr * sp * cy + sr * cp * sy;
+    current_orientation.qz = cr * cp * sy - sr * sp * cy;
     
-//     // Normalize yaw to 0-360
-//     if (yaw < 0) yaw += 360.0f;
-//     if (yaw >= 360.0f) yaw -= 360.0f;
+    // Store Euler angles in degrees
+    current_orientation.roll = roll_fused;
+    current_orientation.pitch = pitch_fused;
+    current_orientation.yaw = yaw_fused;
+    current_orientation.timestamp = std::chrono::system_clock::now();
+    current_orientation.valid = true;
     
-//     // Save the new integrated values
-//     integrated_roll = roll;
-//     integrated_pitch = pitch;
-//     integrated_yaw = yaw;
-    
-//     // The absolute heading is the same as the yaw for a robot
-//     float heading = yaw;
-    
-//     // Convert to radians for quaternion calculation
-//     float roll_rad = roll * DEG_TO_RAD;
-//     float pitch_rad = pitch * DEG_TO_RAD;
-//     float yaw_rad = yaw * DEG_TO_RAD;
-    
-//     // Convert Euler angles to quaternion
-//     // Calculate half angles
-//     float cr = cos(roll_rad * 0.5f);
-//     float sr = sin(roll_rad * 0.5f);
-//     float cp = cos(pitch_rad * 0.5f);
-//     float sp = sin(pitch_rad * 0.5f);
-//     float cy = cos(yaw_rad * 0.5f);
-//     float sy = sin(yaw_rad * 0.5f);
-    
-//     // Quaternion
-//     float qw = cr * cp * cy + sr * sp * sy;
-//     float qx = sr * cp * cy - cr * sp * sy;
-//     float qy = cr * sp * cy + sr * cp * sy;
-//     float qz = cr * cp * sy - sr * sp * cy;
-    
-//     // Update orientation structure
-//     current_orientation.roll = roll;
-//     current_orientation.pitch = pitch;
-//     current_orientation.yaw = yaw;
-//     current_orientation.qw = qw;
-//     current_orientation.qx = qx;
-//     current_orientation.qy = qy;
-//     current_orientation.qz = qz;
-//     current_orientation.timestamp = std::chrono::system_clock::now();
-//     current_orientation.valid = true;
-    
-//     return true;
-// }
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 
 bool IMU::calibrateAccelerometer() 

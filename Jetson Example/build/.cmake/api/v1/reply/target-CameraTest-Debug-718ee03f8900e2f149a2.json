@@ -39,7 +39,7 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 86,
+				"line" : 85,
 				"parent" : 0
 			},
 			{
@@ -61,13 +61,13 @@
 			{
 				"command" : 4,
 				"file" : 0,
-				"line" : 72,
+				"line" : 71,
 				"parent" : 0
 			},
 			{
 				"command" : 5,
 				"file" : 0,
-				"line" : 78,
+				"line" : 77,
 				"parent" : 0
 			},
 			{
@@ -85,13 +85,13 @@
 			{
 				"command" : 7,
 				"file" : 0,
-				"line" : 61,
+				"line" : 60,
 				"parent" : 0
 			},
 			{
 				"command" : 8,
 				"file" : 0,
-				"line" : 83,
+				"line" : 82,
 				"parent" : 0
 			}
 		]
@@ -195,8 +195,7 @@
 				8,
 				9,
 				10,
-				11,
-				12
+				11
 			]
 		}
 	],
@@ -1089,8 +1088,7 @@
 				8,
 				9,
 				10,
-				11,
-				12
+				11
 			]
 		}
 	],
@@ -1166,12 +1164,6 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "src/FieldMapper.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "src/RobotVisualizer.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

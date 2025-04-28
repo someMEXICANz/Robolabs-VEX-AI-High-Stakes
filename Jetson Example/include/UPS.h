@@ -42,13 +42,13 @@ struct UPSData
         float power;
         float batteryLevel;
         bool valid;      
-        std::chrono::high_resolution_clock::time_point timestamp;
+        std::chrono::system_clock::time_point timestamp;
           
 };
 
 class UPS {
 public:
-    explicit UPS(const std::string& i2c_bus = "/dev/i2c-1");    // Constructor
+    explicit UPS(const char* i2c_device = "/dev/i2c-1");    // Constructor
     ~UPS();                                                     // Destructor
     
     // Delete copy constructor and assignment operator
@@ -64,15 +64,13 @@ public:
 
     // Status Checks
     bool isRunning() const { return running; }
-    bool isConnected() const { return i2c_fd >= 0; }
+    bool isInitialized() const { return initialized; }
     
 
     void set_calibration_32V_2A();
 
     UPSData getUPSData() const;
     
-    // Error handling
-    std::string getLastError() const { return last_error; }
 
 private:
     
@@ -85,12 +83,8 @@ private:
     int16_t readWord(uint8_t reg);
 
     // I2C device properties
-    std::string i2c_bus;
-    int i2c_fd;
-    std::string last_error;
-
-     // Sensor address
-    static constexpr uint8_t UPS_ADDR = 0x42;
+    const char* i2c_device; 
+    int ina219_fd;
 
     // Calibration values
     uint16_t cal_value;
@@ -109,8 +103,11 @@ private:
     mutable std::mutex data_mutex;
     std::unique_ptr<std::thread> read_thread;
     bool running;
-    bool connected;
+    bool initialized;
     UPSData current_data;
+
+    // Sensor address
+    static constexpr uint8_t UPS_ADDR = 0x42;
     
 
 

@@ -54,7 +54,7 @@ bool IMU::start()
         read_thread= std::make_unique<std::thread>(&IMU::readLoop, this);
     } catch (const std::exception& e) 
     {
-        std::cerr << "Failed to start GPS read threads: " << e.what() << std::endl;
+        std::cerr << "Failed to start IMU read thread: " << e.what() << std::endl;
         running = false;
         return false;  
     }
@@ -66,11 +66,11 @@ void IMU::stop()
 {
     running = false;
     
-    if (read_thread&& read_thread->joinable()) {
+    if (read_thread && read_thread->joinable()) 
+    {
         read_thread->join();
+        read_thread.reset();
     }
-    
-    read_thread.reset();
 }
 
 bool IMU::restart() 
@@ -299,7 +299,7 @@ void IMU::readLoop()
     
     while (running) 
     {
-         std::chrono::time_point start_time = std::chrono::steady_clock::now();
+         std::chrono::time_point start_time = std::chrono::system_clock::now();
         
         if (!initialized) 
         {
@@ -310,7 +310,7 @@ void IMU::readLoop()
         readData();
         
         // Calculate time to sleep
-        std::chrono::duration elapsed = std::chrono::steady_clock::now() - start_time;
+        std::chrono::duration elapsed = std::chrono::system_clock::now() - start_time;
         if (elapsed < read_interval) 
         {
             std::this_thread::sleep_for(read_interval - elapsed);

@@ -63,9 +63,7 @@ class IMU
     bool isRunning() const { return running; }
     bool isInitialized() const { return initialized; }
 
-    bool calibrateSensors();
     bool calibrateAccelerometer();
-    
     bool isStationary(float threshold = 0.3f) const;
 
     IMUData getSensorData() const;
@@ -101,7 +99,6 @@ class IMU
     const char* i2c_device; 
     int lsm6ds3_fd;
     int lis3mdl_fd;
-    std::string last_error;
 
     // Scale factors
     float accel_scale; // g per LSB

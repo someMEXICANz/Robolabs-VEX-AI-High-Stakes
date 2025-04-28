@@ -54,7 +54,6 @@ add_executable(CameraTest
     src/IMU.cpp
     src/UPS.cpp
     src/FieldMapper.cpp
-    src/RobotVisualizer.cpp
 )
 
 # Modern approach: target-specific include directories

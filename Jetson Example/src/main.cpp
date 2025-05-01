@@ -79,22 +79,49 @@ int main()
     boost::asio::io_service myService;
 
     UPS ups; // (threaded)
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     IMU imu; // (threaded)
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     
-
     // Camera camera; // (threaded)
     // std::this_thread::sleep_for(std::chrono::seconds(1));
-    // Brain::BrainComm brain(myService); // (threaded)
+    Brain::BrainComm brain(myService); // (threaded)
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    // RobotPosition robotPosition(brain, imu, myService); // (threaded) 
     // std::this_thread::sleep_for(std::chrono::seconds(1));
-    // // RobotPosition robotPosition(brain, imu, myService); // (threaded) 
-    // // std::this_thread::sleep_for(std::chrono::seconds(1));
 
     // Model model;
     // ObjectDetection objdet;
     // std::vector<DetectedObject> Detections;
     // std::this_thread::sleep_for(std::chrono::seconds(1));
+    
     // //FieldMapper mapper(camera); //, robotPosition); // (threaded)
     // std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    for(int i = 5; i > 0; i--)
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::cerr << i << ", ";
+        
+    }
+    std::cerr << endl;
+
+    imu.calibrateAccelerometer();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    imu.calibrateMagnetometer(brain);
+
+
+
+    for(int i = 5; i > 0; i--)
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::cerr << i << ", ";
+        
+    }
+
+
+    
 
     while (true) 
     {
@@ -112,10 +139,10 @@ int main()
         if(ups.isRunning())
             printUPSdata(ups);
             
-        // if(brain.isConnected() && brain.isRunning())
-        // {
-        //     brain.setJetsonBattery(ups.getBatteryPercentage());
-        // }
+        if(brain.isConnected() && brain.isRunning())
+        {
+            brain.setJetsonBattery(ups.getBatteryPercentage());
+        }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));    
     }

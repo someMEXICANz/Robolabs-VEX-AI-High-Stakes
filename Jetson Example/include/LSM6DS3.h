@@ -109,9 +109,11 @@ namespace SB_MASK
     constexpr uint8_t CTRL6_XL_HM_MODE    = 0x10; // Enable/disable High-performance operating mode for accelerometer
     constexpr uint8_t CTRL6_USR_OFF_W     = 0x08; // Weight of XL user offset bits of registers (0 = 2 -10 g/LSB | 1 = 2 -6 g/LSB)
     constexpr uint8_t CTRL7_G_HM_MODE     = 0x80; // Enable/disable High-performance operating mode for gyroscope
-    constexpr uint8_t CTRL8_LPF2_XL_EN    = 0x80; // Accelerometer low-pass filter LPF2 selection
+    constexpr uint8_t CTRL7_HP_EN_G       = 0x40; // Gyroscope digital high-pass filter enable. The filter is enabled only if the gyro is in HP mode.
+    constexpr uint8_t CTRL8_LPF2_XL_EN    = 0x80; // Enable/disable accelerometer second low-pass filter LPF2 selection
 }
 
 } // namespace LSM6DS3
+
 
 #endif // LSM6DS3_H

@@ -228,6 +228,11 @@ void UPS::set_calibration_32V_2A() {
     writeWord(REG_CONFIG, config);
 }
 
+uint32_t UPS::getBatteryPercentage()
+{
+    std::lock_guard<std::mutex> lock(data_mutex);
+    return current_data.batteryLevel;
+}
 
 bool UPS::writeByte(uint8_t reg, uint8_t data) 
 {

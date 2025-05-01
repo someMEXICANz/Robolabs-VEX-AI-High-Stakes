@@ -16,11 +16,7 @@ IMU::IMU(const char* i2c_device_)
 {
     if(initialize()) 
     {
-        if(start())
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-            calibrateAccelerometer();
-        }
+       start();
     }
 }
 
@@ -240,6 +236,7 @@ bool IMU::initialize()
     }
 
     configureSettings();
+    kalman_filter.initialize();
 
     initialized = true;
     return true;
@@ -265,20 +262,23 @@ void IMU::configureSettings()
     setAccelerometerRate(LSM6DS3::ODR_XL::RATE_208_HZ);
     setGyroscopeRate(LSM6DS3::ODR_G::RATE_208_HZ);
     
-    setAccelerometerRange(LSM6DS3::FS_XL::RANGE_2_G);
-    setGyroscopeRange(LSM6DS3::FS_G::RANGE_125_DPS);
+    setAccelerometerRange(LSM6DS3::FS_XL::RANGE_4_G);
+    setGyroscopeRange(LSM6DS3::FS_G::RANGE_245_DPS);
 
-    // Enables First Low Pass Filter
+    // Enables First accel Low Pass Filter
     setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL1_XL, LSM6DS3::SB_MASK::CTRL1_LPF1_BW_SEL, true);
-    // Enables second Low Pass Filter
+    // Enables second accel Low Pass Filter
     setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL8_XL, LSM6DS3::SB_MASK::CTRL8_LPF2_XL_EN, true);
     // Enables high performance mode for accel
     setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL6_C, LSM6DS3::SB_MASK::CTRL6_XL_HM_MODE, true);
     // Enables high performance mode for gyro
     setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL7_G, LSM6DS3::SB_MASK::CTRL7_G_HM_MODE, true);
+    // Enables gyro digital High Pass Filter 
+    setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL7_G, LSM6DS3::SB_MASK::CTRL7_HP_EN_G, true);
+
 
     setMagnetometerRate(LIS3MDL::DO::RATE_80_HZ);
-    setMagnetometerRange(LIS3MDL::FS::RANGE_4_GAUSS);
+    setMagnetometerRange(LIS3MDL::FS::RANGE_8_GAUSS);
 
     //Turns on FAST_ODR 
     setBit(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG1, LIS3MDL::SB_MASK::CTRL1_FAST_ODR,true);
@@ -433,19 +433,27 @@ bool IMU::readData()
 
 bool IMU::isStationary(float threshold) const 
 {
+    std::deque<IMUData> smaples; 
     std::lock_guard<std::mutex> lock(data_mutex);
     
     // Need a minimum number of samples
-    if (data_history.size() < 10) {
+    if (data_history.size() < 100) 
+    {
+        std::cerr << "Not enough samples in deque to determine if device is stationary" << std::endl;
         return false;
     }
-    
+    else
+    {
+        smaples = data_history; // Copy the deque
+    }
+
     // Calculate variance of angular velocity
     float sum_gx = 0.0f, sum_gy = 0.0f, sum_gz = 0.0f;
     float sum_gx2 = 0.0f, sum_gy2 = 0.0f, sum_gz2 = 0.0f;
     
     // Calculate means and squared values
-    for (const auto& data : data_history) {
+    for (const auto& data : smaples) 
+    {
         sum_gx += data.gx;
         sum_gy += data.gy;
         sum_gz += data.gz;
@@ -700,7 +708,8 @@ void IMU::setMagnetometerMode(LIS3MDL::MD op_mode)
 
 
 
-void IMU::updateOrientation(bool useMagnetometer) 
+// Modify your updateOrientation method to use Kalman filter when enabled
+void IMU::updateOrientation(bool useMagnetometer)
 {
     std::lock_guard<std::mutex> lock(data_mutex);
     
@@ -711,116 +720,9 @@ void IMU::updateOrientation(bool useMagnetometer)
         return;
     }
     
-    static float integrated_roll = 0.0f;
-    static float integrated_pitch = 0.0f;
-    static float integrated_yaw = 0.0f;
-    
-    // Get current sensor data (conversion to standard units)
-    float ax = current_data.ax; // Already in g units as per IMUData struct
-    float ay = current_data.ay;
-    float az = current_data.az;
-    float gx = current_data.gx; // Already in rad/s as per IMUData struct
-    float gy = current_data.gy;
-    float gz = current_data.gz;
-    float mx = current_data.mx;
-    float my = current_data.my;
-    float mz = current_data.mz;
-    system_clock::time_point RAW_ts = current_data.timestamp;
-    system_clock::time_point OR_ts = current_orientation.timestamp;
-
-    float dt = std::chrono::duration<float>(RAW_ts- OR_ts).count();
-
-    // Calculate roll and pitch from accelerometer (gravity)
-    // These formulas assume standard aircraft principal axes
-    // (X forward, Y right, Z down)
-    float accel_roll = atan2(ay, az);  // Roll is rotation around X-axis
-    float accel_pitch = atan2(-ax, sqrt(ay * ay + az * az));  // Pitch is rotation around Y-axis
-    
-    
-    // Integrate gyroscope data to get orientation
-    // Note: gyro provides angular velocity, integrate to get angle
-    float gyro_roll = integrated_roll + (gx * dt);
-    float gyro_pitch = integrated_pitch + (gy * dt);
-    float gyro_yaw = integrated_yaw + (gz * dt);
-    
-    // Complementary filter to combine accelerometer and gyroscope data
-    // For roll and pitch (alpha determines how much we trust the gyro vs accel)
-    const float alpha = 0.98f;  // Typically 0.98 - trust the gyro more
-    float roll_fused = alpha * gyro_roll + (1.0f - alpha) * accel_roll;
-    float pitch_fused = alpha * gyro_pitch + (1.0f - alpha) * accel_pitch;
-    
-    // For yaw, we either use gyro only, or fuse with magnetometer if available and calibrated
-    float yaw_fused = gyro_yaw;
-    
-    if (useMagnetometer) 
-    {
-        // Calculate tilt-compensated magnetometer heading
-        // This compensates for the fact that the magnetometer is tilted
-        // with respect to the earth when the device is not level
-        float roll_rad = roll_fused * DEG_TO_RAD;
-        float pitch_rad = pitch_fused * DEG_TO_RAD;
-        
-        // Apply tilt compensation
-        float mag_x = mx * cos(pitch_rad) + 
-                      mz * sin(pitch_rad);
-        
-        float mag_y = mx * sin(roll_rad) * sin(pitch_rad) +
-                     my * cos(roll_rad) - 
-                     mz * sin(roll_rad) * cos(pitch_rad);
-        
-        // Calculate magnetometer heading (in degrees)
-        float mag_heading = atan2(mag_y, mag_x) * RAD_TO_DEG;
-        
-        // Normalize to 0-360
-        if (mag_heading < 0) mag_heading += 360.0f;
-        
-        // Calculate the difference between mag and gyro
-        float yaw_error = mag_heading - gyro_yaw;
-        
-        // Normalize the error to -180 to +180
-        if (yaw_error > 180.0f) yaw_error -= 360.0f;
-        if (yaw_error < -180.0f) yaw_error += 360.0f;
-        
-        // Apply complementary filter for yaw
-        // Use a different alpha (lower) for magnetometer fusion
-        const float alpha_mag = 0.95f;  // Trust gyro slightly less for yaw
-        yaw_fused = gyro_yaw + (1.0f - alpha_mag) * yaw_error;
-    }
-    
-    // Normalize yaw to 0-360
-    while (yaw_fused < 0) yaw_fused += 360.0f;
-    while (yaw_fused >= 360.0f) yaw_fused -= 360.0f;
-    
-    // Save the integrated values for next iteration
-    integrated_roll = roll_fused;
-    integrated_pitch = pitch_fused;
-    integrated_yaw = yaw_fused;
-    
-    // Convert back to radians for quaternion calculation
-    float roll_rad = roll_fused * DEG_TO_RAD;
-    float pitch_rad = pitch_fused * DEG_TO_RAD;
-    float yaw_rad = yaw_fused * DEG_TO_RAD;
-    
-    // Calculate quaternion (more stable representation)
-    float cy = cos(yaw_rad * 0.5f);
-    float sy = sin(yaw_rad * 0.5f);
-    float cp = cos(pitch_rad * 0.5f);
-    float sp = sin(pitch_rad * 0.5f);
-    float cr = cos(roll_rad * 0.5f);
-    float sr = sin(roll_rad * 0.5f);
-    
-    current_orientation.qw = cr * cp * cy + sr * sp * sy;
-    current_orientation.qx = sr * cp * cy - cr * sp * sy;
-    current_orientation.qy = cr * sp * cy + sr * cp * sy;
-    current_orientation.qz = cr * cp * sy - sr * sp * cy;
-    
-    // Store Euler angles in degrees
-    current_orientation.roll = roll_fused;
-    current_orientation.pitch = pitch_fused;
-    current_orientation.yaw = yaw_fused;
-    current_orientation.timestamp = std::chrono::system_clock::now();
-    current_orientation.valid = true;
-    
+    kalman_filter.update(current_data, useMagnetometer);
+    current_orientation = kalman_filter.getOrientation();
+   
 }
 
 
@@ -905,6 +807,187 @@ bool IMU::calibrateAccelerometer()
     writeRegister(lsm6ds3_fd, LSM6DS3::Reg::Z_OFS_USR, static_cast<uint8_t>(offsetZ));
     
     std::cerr << "Accelerometer calibration complete" << std::endl;
+    return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+bool IMU::calibrateMagnetometer(Brain::BrainComm& brain)
+{
+    std::cout << "Starting magnetometer calibration..." << std::endl;
+    std::cout << "Please rotate the robot slowly around its Z axis (full 360° rotation)" << std::endl;
+    
+    // Clear existing data history
+    {
+        std::lock_guard<std::mutex> lock(data_mutex);
+        data_history.clear();
+    }
+    
+    // Collection variables
+    float min_mx = std::numeric_limits<float>::max();
+    float max_mx = std::numeric_limits<float>::lowest();
+    float min_my = std::numeric_limits<float>::max();
+    float max_my = std::numeric_limits<float>::lowest();
+    
+    // Rotation tracking variables
+    float start_angle = 0.0f;
+    float current_angle = 0.0f;
+    float total_rotation = 0.0f;
+    bool initialized_angle = false;
+    const float rotation_threshold = 345.0f; // We require at least 345 degrees of rotation
+    
+    // Start motors rotating
+    brain.setMotorVoltages(-3.5, 3.5);
+    std::cout << "Motors started, beginning rotation..." << std::endl;
+    
+    // Allow a brief delay for motors to start
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    // Maximum time for calibration
+    const int max_calibration_time_ms = 30000; // 30 seconds timeout
+    auto start_time = std::chrono::system_clock::now();
+    
+    while (std::chrono::duration_cast<std::chrono::milliseconds>(
+           std::chrono::system_clock::now() - start_time).count() < max_calibration_time_ms) 
+    {
+        // Get current data
+        IMUData current;
+        {
+            std::lock_guard<std::mutex> lock(data_mutex);
+            if (!data_history.empty() && data_history.back().valid) {
+                current = data_history.back();
+            }
+        }
+        
+        if (!current.valid) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            continue;
+        }
+        
+        // Update min/max values for each sample
+        min_mx = std::min(min_mx, current.mx);
+        max_mx = std::max(max_mx, current.mx);
+        min_my = std::min(min_my, current.my);
+        max_my = std::max(max_my, current.my);
+        
+        // Calculate current angle from magnetometer data
+        // Normalize magnetometer readings by removing offsets
+        float center_x = (min_mx + max_mx) / 2.0f;
+        float center_y = (min_my + max_my) / 2.0f;
+        float norm_x = current.mx - center_x;
+        float norm_y = current.my - center_y;
+        
+        // Calculate angle in range [-PI, PI]
+        float angle = std::atan2(norm_y, norm_x);
+        
+        // Initialize start angle if not set
+        if (!initialized_angle) 
+        {
+            start_angle = angle;
+            current_angle = angle;
+            initialized_angle = true;
+            total_rotation = 0.0f;
+            std::cout << "Starting angle: " << (start_angle * RAD_TO_DEG) << " degrees" << std::endl;
+        } 
+        else 
+        {
+            // Calculate angle change - taking care of wrapping around -PI/PI
+            float angle_change = angle - current_angle;
+            
+            // Handle wrap-around cases
+            if (angle_change > M_PI) 
+            {
+                angle_change -= 2.0f * M_PI;
+            } 
+            else if (angle_change < -M_PI) 
+            {
+                angle_change += 2.0f * M_PI;
+            }
+            
+            // Update total rotation
+            total_rotation += std::abs(angle_change);
+            current_angle = angle;
+            
+            // Print progress
+            if (std::fmod(total_rotation * RAD_TO_DEG, 45.0f) < 5.0f) 
+            {
+                std::cout << "Rotation progress: " << (total_rotation * RAD_TO_DEG) 
+                          << " / " << rotation_threshold << " degrees" << std::endl;
+            }
+            
+            // Check if we've completed a full rotation
+            if (total_rotation * RAD_TO_DEG >= rotation_threshold) 
+            {
+                std::cout << "Full rotation detected! Calibration complete." << std::endl;
+                // At this point, you would send a signal to stop your motors
+                // For example: stopMotors(); or signalCompletionToMotors();
+                break;
+            }
+        }
+        
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    brain.setMotorVoltages(0.0f, 0.0f);
+    
+    // Check if we timed out
+    if (total_rotation * RAD_TO_DEG < rotation_threshold) 
+    {
+        std::cerr << "Calibration timed out before completing a full rotation." << std::endl;
+        std::cerr << "Completed " << (total_rotation * RAD_TO_DEG) << " degrees of rotation." << std::endl;
+        return false;
+    }
+    
+    // Calculate center offsets (hard iron distortion)
+    float offset_x = (min_mx + max_mx) / 2.0f;
+    float offset_y = (min_my + max_my) / 2.0f;
+    
+    // Get average Z value (assuming we're level during calibration)
+    float avg_z = 0.0f;
+    int count = 0;
+    {
+        std::lock_guard<std::mutex> lock(data_mutex);
+        for (const auto& data : data_history) {
+            if (data.valid) {
+                avg_z += data.mz;
+                count++;
+            }
+        }
+    }
+    float offset_z = (count > 0) ? (avg_z / count) : 0.0f;
+    
+    std::cout << "Magnetometer calibration complete:" << std::endl;
+    std::cout << "Offsets: X=" << offset_x << ", Y=" << offset_y << ", Z=" << offset_z << std::endl;
+    
+    // Convert offsets to register values
+    int16_t raw_offset_x = static_cast<int16_t>(offset_x * mag_scale / 100.0f);
+    int16_t raw_offset_y = static_cast<int16_t>(offset_y * mag_scale / 100.0f);
+    int16_t raw_offset_z = static_cast<int16_t>(offset_z * mag_scale / 100.0f);
+    
+    // Write offsets to the magnetometer registers
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::OFFSET_X_REG_L_M, raw_offset_x & 0xFF);
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::OFFSET_X_REG_H_M, (raw_offset_x >> 8) & 0xFF);
+    
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::OFFSET_Y_REG_L_M, raw_offset_y & 0xFF);
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::OFFSET_Y_REG_H_M, (raw_offset_y >> 8) & 0xFF);
+    
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::OFFSET_Z_REG_L_M, raw_offset_z & 0xFF);
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::OFFSET_Z_REG_H_M, (raw_offset_z >> 8) & 0xFF);
+    
+    std::cout << "Magnetometer offset registers updated" << std::endl;
+    
+    // Calculate scale factors (soft iron distortion)
+    float avg_radius = ((max_mx - min_mx) + (max_my - min_my)) / 4.0f;
+    float scale_factor_x = avg_radius / ((max_mx - min_mx) / 2.0f);
+    float scale_factor_y = avg_radius / ((max_my - min_my) / 2.0f);
+    
+    // Set scaling factors in Kalman filter (since hardware doesn't handle scaling)
+    kalman_filter.setMagneticOffsets(0.0f, 0.0f, 0.0f); // Zero since hardware registers handle offsets
+    kalman_filter.setMagneticScaling(scale_factor_x, scale_factor_y, 1.0f);
+    
     return true;
 }
 

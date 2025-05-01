@@ -20,28 +20,11 @@
 #include <iomanip>
 #include <LSM6DS3.h>
 #include <LIS3MDL.h>
+#include "KalmanIMU.h"
+#include "IMUDataTypes.h"  
+#include "BrainComm.h"
 
 
-struct IMUData
-{
-  float ax, ay, az;  // Accelerometer (g)
-  float gx, gy, gz;  // Gyroscope (dps)
-  float mx, my, mz;  // Magnetometer (gauss)
-  float temperature; // Temperature (°C)
-  std::chrono::system_clock::time_point timestamp;
-  bool valid; // Flag indicating if data is valid
-};
-
-struct OrientationData
-{
-  float roll;           // Rotation around X-axis (tilt left/right)
-  float pitch;          // Rotation around Y-axis (tilt forward/backward)
-  float yaw;            // Rotation around Z-axis (heading, compass direction)
-  float qw, qx, qy, qz; // Quaternion
-  std::chrono::system_clock::time_point timestamp;
-  bool valid; // Flag indicating if data is valid
-};
- 
 
 class IMU
 {
@@ -58,13 +41,16 @@ class IMU
     void stop();
     bool restart();
     bool initialize();
-
+    
     // Status Checks
     bool isRunning() const { return running; }
     bool isInitialized() const { return initialized; }
 
+
     bool calibrateAccelerometer();
-    bool isStationary(float threshold = 0.3f) const;
+    bool calibrateMagnetometer(Brain::BrainComm& brain);
+
+    bool isStationary(float threshold = 0.4f) const;
 
     IMUData getSensorData() const;
     OrientationData getOrientationData() const;
@@ -114,11 +100,14 @@ class IMU
     OrientationData current_orientation;
 
     std::deque<IMUData> data_history;
-    static constexpr size_t HISTORY_BUFFER_SIZE = 100;
+    static constexpr size_t HISTORY_BUFFER_SIZE = 250;
     
     static constexpr float RAD_TO_DEG = 180.0f / M_PI;
     static constexpr float DEG_TO_RAD = M_PI / 180.0f;
     static constexpr float GRAVITY_STD = 9.80665f;
+
+    KalmanFilter::KalmanIMU kalman_filter;
+
     
 
    

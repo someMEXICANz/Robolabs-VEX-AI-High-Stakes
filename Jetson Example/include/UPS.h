@@ -68,7 +68,7 @@ public:
     
 
     void set_calibration_32V_2A();
-
+    uint32_t getBatteryPercentage();
     UPSData getUPSData() const;
     
 

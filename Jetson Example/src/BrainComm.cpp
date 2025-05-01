@@ -257,6 +257,7 @@ bool BrainComm::findPort()
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
 void BrainComm::readLoop() 
 {
     cerr << "Brain read loop started" << endl;
@@ -387,7 +388,7 @@ void BrainComm::readLoop()
             }
         }
     }
-    
+    running = false;
     cerr << "Read thread stopped" << endl;
 
 }
@@ -911,13 +912,8 @@ void BrainComm::setMotorVoltages(float left, float right)
     current_motor_command.left_voltage = left;
     current_motor_command.right_voltage = right;
     current_motor_command.timestamp = 
-        chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
+    chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
 }
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 void BrainComm::setMacroBits(uint32_t macro_bits) 
 {

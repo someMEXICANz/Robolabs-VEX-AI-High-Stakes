@@ -52,6 +52,7 @@ add_executable(CameraTest
     src/BrainCommStats.cpp
     src/BrainComm.cpp
     src/IMU.cpp
+    src/KalmanIMU.cpp
     src/UPS.cpp
     src/FieldMapper.cpp
 )

@@ -48,7 +48,7 @@ class IMU
 
 
     bool calibrateAccelerometer();
-    bool calibrateMagnetometer(Brain::BrainComm& brain);
+    bool calibrateMagnetometer(/*Brain::BrainComm& brain*/);
 
     bool isStationary(float threshold = 0.4f) const;
 

@@ -815,17 +815,13 @@ bool IMU::calibrateAccelerometer()
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-bool IMU::calibrateMagnetometer(Brain::BrainComm& brain)
+bool IMU::calibrateMagnetometer(/*Brain::BrainComm& brain*/)
 {
     std::cout << "Starting magnetometer calibration..." << std::endl;
     std::cout << "Please rotate the robot slowly around its Z axis (full 360° rotation)" << std::endl;
     
-    // Clear existing data history
-    {
-        std::lock_guard<std::mutex> lock(data_mutex);
-        data_history.clear();
-    }
-    
+    std::deque<IMUData> calibration_data;
+
     // Collection variables
     float min_mx = std::numeric_limits<float>::max();
     float max_mx = std::numeric_limits<float>::lowest();
@@ -833,38 +829,39 @@ bool IMU::calibrateMagnetometer(Brain::BrainComm& brain)
     float max_my = std::numeric_limits<float>::lowest();
     
     // Rotation tracking variables
-    float start_angle = 0.0f;
     float current_angle = 0.0f;
     float total_rotation = 0.0f;
-    bool initialized_angle = false;
-    const float rotation_threshold = 345.0f; // We require at least 345 degrees of rotation
+    bool angle_tracking = false;
     
     // Start motors rotating
-    brain.setMotorVoltages(-3.5, 3.5);
+    // brain.setMotorVoltages(-3.5, 3.5);
     std::cout << "Motors started, beginning rotation..." << std::endl;
     
     // Allow a brief delay for motors to start
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     // Maximum time for calibration
-    const int max_calibration_time_ms = 30000; // 30 seconds timeout
+    const int max_calibration_time_s = 30000; // 30 seconds timeout
     auto start_time = std::chrono::system_clock::now();
     
-    while (std::chrono::duration_cast<std::chrono::milliseconds>(
-           std::chrono::system_clock::now() - start_time).count() < max_calibration_time_ms) 
+    while (true)
     {
         // Get current data
         IMUData current;
+
         {
             std::lock_guard<std::mutex> lock(data_mutex);
-            if (!data_history.empty() && data_history.back().valid) {
-                current = data_history.back();
-            }
+            current = current_data;
         }
         
-        if (!current.valid) {
+        if (!current.valid) 
+        {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             continue;
+        }
+        else 
+        {
+            calibration_data.push_back(current);
         }
         
         // Update min/max values for each sample
@@ -873,6 +870,7 @@ bool IMU::calibrateMagnetometer(Brain::BrainComm& brain)
         min_my = std::min(min_my, current.my);
         max_my = std::max(max_my, current.my);
         
+        
         // Calculate current angle from magnetometer data
         // Normalize magnetometer readings by removing offsets
         float center_x = (min_mx + max_mx) / 2.0f;
@@ -880,24 +878,24 @@ bool IMU::calibrateMagnetometer(Brain::BrainComm& brain)
         float norm_x = current.mx - center_x;
         float norm_y = current.my - center_y;
         
-        // Calculate angle in range [-PI, PI]
-        float angle = std::atan2(norm_y, norm_x);
-        
+      
         // Initialize start angle if not set
-        if (!initialized_angle) 
+        if (!angle_tracking) 
         {
-            start_angle = angle;
-            current_angle = angle;
-            initialized_angle = true;
+            current_angle = std::atan2(norm_x, norm_y);
+            angle_tracking = true;
             total_rotation = 0.0f;
-            std::cout << "Starting angle: " << (start_angle * RAD_TO_DEG) << " degrees" << std::endl;
+            std::cout << "Beginning rotation tracking..." << std::endl;
+            // brain.setMotorVoltages(-3.5, 3.5);
+            std::cout << "Motors started, beginning rotation..." << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
         } 
         else 
         {
-            // Calculate angle change - taking care of wrapping around -PI/PI
-            float angle_change = angle - current_angle;
-            
-            // Handle wrap-around cases
+            float new_angle = std::atan2(norm_x, norm_y);
+            float angle_change = new_angle - current_angle;
+
             if (angle_change > M_PI) 
             {
                 angle_change -= 2.0f * M_PI;
@@ -909,37 +907,26 @@ bool IMU::calibrateMagnetometer(Brain::BrainComm& brain)
             
             // Update total rotation
             total_rotation += std::abs(angle_change);
-            current_angle = angle;
+            current_angle = new_angle;
             
             // Print progress
             if (std::fmod(total_rotation * RAD_TO_DEG, 45.0f) < 5.0f) 
             {
                 std::cout << "Rotation progress: " << (total_rotation * RAD_TO_DEG) 
-                          << " / " << rotation_threshold << " degrees" << std::endl;
+                          << " / 360" <<  " degrees" << std::endl;
             }
             
             // Check if we've completed a full rotation
-            if (total_rotation * RAD_TO_DEG >= rotation_threshold) 
+            if (total_rotation  >= (2.0f * M_PI - 0.2f)) 
             {
-                std::cout << "Full rotation detected! Calibration complete." << std::endl;
-                // At this point, you would send a signal to stop your motors
-                // For example: stopMotors(); or signalCompletionToMotors();
+                std::cout << "Full rotation detected! Calibration complete. Stopping motors..." << std::endl;
+                // brain.setMotorVoltages(0, 0);
                 break;
             }
         }
-        
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
-    brain.setMotorVoltages(0.0f, 0.0f);
-    
-    // Check if we timed out
-    if (total_rotation * RAD_TO_DEG < rotation_threshold) 
-    {
-        std::cerr << "Calibration timed out before completing a full rotation." << std::endl;
-        std::cerr << "Completed " << (total_rotation * RAD_TO_DEG) << " degrees of rotation." << std::endl;
-        return false;
-    }
     
     // Calculate center offsets (hard iron distortion)
     float offset_x = (min_mx + max_mx) / 2.0f;
@@ -948,15 +935,16 @@ bool IMU::calibrateMagnetometer(Brain::BrainComm& brain)
     // Get average Z value (assuming we're level during calibration)
     float avg_z = 0.0f;
     int count = 0;
+
+    for (const auto& data : calibration_data) 
     {
-        std::lock_guard<std::mutex> lock(data_mutex);
-        for (const auto& data : data_history) {
-            if (data.valid) {
-                avg_z += data.mz;
-                count++;
-            }
+        if (data.valid) 
+        {
+            avg_z += data.mz;
+            count++;
         }
     }
+
     float offset_z = (count > 0) ? (avg_z / count) : 0.0f;
     
     std::cout << "Magnetometer calibration complete:" << std::endl;

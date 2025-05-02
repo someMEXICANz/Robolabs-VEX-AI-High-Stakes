@@ -85,8 +85,8 @@ int main()
     
     // Camera camera; // (threaded)
     // std::this_thread::sleep_for(std::chrono::seconds(1));
-    Brain::BrainComm brain(myService); // (threaded)
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    // Brain::BrainComm brain(myService); // (threaded)
+    // std::this_thread::sleep_for(std::chrono::seconds(1));
 
     // RobotPosition robotPosition(brain, imu, myService); // (threaded) 
     // std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -109,7 +109,7 @@ int main()
 
     imu.calibrateAccelerometer();
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    imu.calibrateMagnetometer(brain);
+    imu.calibrateMagnetometer(/*brain*/);
 
 
 
@@ -136,13 +136,13 @@ int main()
         // }
         if(imu.isRunning())
             printIMUData(imu);
-        if(ups.isRunning())
-            printUPSdata(ups);
+        // if(ups.isRunning())
+        //     printUPSdata(ups);
             
-        if(brain.isConnected() && brain.isRunning())
-        {
-            brain.setJetsonBattery(ups.getBatteryPercentage());
-        }
+        // if(brain.isConnected() && brain.isRunning())
+        // {
+        //     brain.setJetsonBattery(ups.getBatteryPercentage());
+        // }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));    
     }

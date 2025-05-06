@@ -210,11 +210,9 @@ bool KalmanIMU::initialize()
         ekf->init(initial_state);
         
         // Set initial process noise
-        setProcessNoise(0.01f, 0.001f);
-        
+        setProcessNoise(0.01f, 0.02f);
         // Set initial measurement noise
-        setMeasurementNoise(0.1f, 0.2f);
-        
+        setMeasurementNoise(0.01f, 0.03f); 
         // Set Earth's magnetic field (north-aligned by default)
         measurement_model->setMagneticField(1.0f, 0.0f, 0.0f);
         
@@ -234,11 +232,16 @@ bool KalmanIMU::initialize()
 
 void KalmanIMU::update(const IMUData& imu_data, bool useMagnetometer)
 {
-    if (!initialized || !imu_data.valid) {
+    // std::cerr << "Test5" << std::endl;
+
+    if (!initialized || !imu_data.valid) 
+    {
         current_orientation.valid = false;
         return;
     }
     
+    // std::cerr << "Test6" << std::endl;
+
     // Calculate time delta
     auto current_time = imu_data.timestamp;
     float dt = std::chrono::duration<float>(current_time - last_update_time).count();
@@ -270,7 +273,9 @@ void KalmanIMU::update(const IMUData& imu_data, bool useMagnetometer)
         
         // Update with measurements
         ekf->update(*measurement_model, z);
-    } else {
+    } 
+    else 
+    {
         // Only use accelerometer data, create a custom update with higher uncertainty for yaw
         IMUMeasurement<float> z;
         z.accel_x() = imu_data.ax;
@@ -317,6 +322,198 @@ void KalmanIMU::update(const IMUData& imu_data, bool useMagnetometer)
     current_orientation.timestamp = current_time;
     current_orientation.valid = true;
 }
+
+
+
+
+
+
+
+
+
+// void KalmanIMU::update(const IMUData& imu_data, bool useMagnetometer)
+// {
+//     if (!initialized || !imu_data.valid) 
+//     {
+//         current_orientation.valid = false;
+//         return;
+//     }
+    
+//     // Calculate time delta
+//     auto current_time = imu_data.timestamp;
+//     float dt = std::chrono::duration<float>(current_time - last_update_time).count();
+//     last_update_time = current_time;
+    
+//     // Update system model with the time delta
+//     system_model->setDeltaT(dt);
+    
+//     // Create control input from gyro data (converting from degrees to radians)
+//     GyroInput<float> u;
+//     u.gyro_x() = imu_data.gx * DEG_TO_RAD;
+//     u.gyro_y() = imu_data.gy * DEG_TO_RAD;
+//     u.gyro_z() = imu_data.gz * DEG_TO_RAD;
+    
+//     // Predict next state
+//     ekf->predict(*system_model, u);
+    
+//     if (useMagnetometer) {
+//         // Create measurement from accel and mag data
+//         IMUMeasurement<float> z;
+//         z.accel_x() = imu_data.ax;
+//         z.accel_y() = imu_data.ay;
+//         z.accel_z() = imu_data.az;
+        
+//         // Apply magnetometer calibration
+//         z.mag_x() = (imu_data.mx - mag_offset_x) * mag_scale_x;
+//         z.mag_y() = (imu_data.my - mag_offset_y) * mag_scale_y;
+//         z.mag_z() = (imu_data.mz - mag_offset_z) * mag_scale_z;
+        
+//         // IMPROVEMENT 1: Calculate the magnetometer-based heading
+//         float mag_heading = std::atan2(z.mag_y(), z.mag_x());
+        
+//         // Get current Kalman heading
+//         const auto& state = ekf->getState();
+//         float kalman_heading = state.yaw();
+        
+//         // Calculate heading difference (accounting for wrap-around)
+//         float heading_diff = mag_heading - kalman_heading;
+//         while (heading_diff > M_PI) heading_diff -= 2.0f * M_PI;
+//         while (heading_diff < -M_PI) heading_diff += 2.0f * M_PI;
+        
+//         // IMPROVEMENT 2: Save original measurement noise
+//         Eigen::Matrix<float, 6, 6> R_original = measurement_model->getCovariance();
+//         Eigen::Matrix<float, 6, 6> R_temp = R_original;
+        
+//         // IMPROVEMENT 3: Adaptive measurement noise - trust magnetometer more when diff is large
+//         if (std::abs(heading_diff) > 0.5f) { // More than ~30 degrees difference
+//             // Significantly reduce magnetometer noise to force faster convergence
+//             R_temp(3, 3) = 0.1f;  // Much lower variance for mag_x
+//             R_temp(4, 4) = 0.1f;  // Much lower variance for mag_y
+            
+//             // Apply temporary covariance
+//             measurement_model->setCovariance(R_temp);
+            
+//             // Optional: Debug output
+//             // std::cerr << "Large heading diff detected: " << (heading_diff * RAD_TO_DEG) 
+//             //          << " degrees. Boosting mag trust." << std::endl;
+//         }
+        
+//         // Update with measurements
+//         ekf->update(*measurement_model, z);
+        
+//         // Restore original covariance if it was changed
+//         if (std::abs(heading_diff) > 0.5f) {
+//             measurement_model->setCovariance(R_original);
+//         }
+        
+//         // IMPROVEMENT 4: For very large changes, consider a partial direct update
+//         if (std::abs(heading_diff) > 1.2f) { // More than ~70 degrees
+//             // Get updated state after Kalman update
+//             auto updated_state = ekf->getState();
+            
+//             // Apply a complementary filter approach for heading
+//             float alpha = 0.3f; // Blend factor - adjust as needed
+//             float blended_yaw = kalman_heading + alpha * heading_diff;
+            
+//             // Update the state with the blended yaw
+//             updated_state.yaw() = blended_yaw;
+            
+//             // Reinitialize the filter with the modified state
+//             ekf->init(updated_state);
+            
+//             // Optional: Debug output
+//             // std::cerr << "Very large heading diff: " << (heading_diff * RAD_TO_DEG) 
+//             //          << " degrees. Applying complementary filter." << std::endl;
+//         }
+//     } 
+//     else 
+//     {
+//         // Only use accelerometer data, create a custom update with higher uncertainty for yaw
+//         IMUMeasurement<float> z;
+//         z.accel_x() = imu_data.ax;
+//         z.accel_y() = imu_data.ay;
+//         z.accel_z() = imu_data.az;
+        
+//         // Set magnetometer values to zero with very high variance (will be ignored)
+//         z.mag_x() = 0.0f;
+//         z.mag_y() = 0.0f;
+//         z.mag_z() = 0.0f;
+        
+//         // Save original magnetic noise setting
+//         Eigen::Matrix<float, 6, 6> R = measurement_model->getCovariance();
+        
+//         // Create a temporary higher noise matrix for magnetometer readings
+//         Eigen::Matrix<float, 6, 6> R_temp = R;
+//         R_temp(3, 3) = 1000.0f;  // Very high variance for mag_x
+//         R_temp(4, 4) = 1000.0f;  // Very high variance for mag_y
+//         R_temp(5, 5) = 1000.0f;  // Very high variance for mag_z
+        
+//         // Set the temporary covariance
+//         measurement_model->setCovariance(R_temp);
+        
+//         // Update with only accelerometer measurements
+//         ekf->update(*measurement_model, z);
+        
+//         // Restore original covariance
+//         measurement_model->setCovariance(R);
+//     }
+    
+//     // Get filtered state
+//     const auto& state = ekf->getState();
+    
+//     // Update orientation data
+//     current_orientation.roll = state.roll() * RAD_TO_DEG;
+//     current_orientation.pitch = state.pitch() * RAD_TO_DEG;
+//     current_orientation.yaw = state.yaw() * RAD_TO_DEG;
+    
+//     // Update quaternion
+//     eulerToQuaternion(state.roll(), state.pitch(), state.yaw(),
+//                       current_orientation.qw, current_orientation.qx, 
+//                       current_orientation.qy, current_orientation.qz);
+    
+//     current_orientation.timestamp = current_time;
+//     current_orientation.valid = true;
+// }
+
+
+// Add this method to your KalmanIMU class
+void KalmanIMU::setYaw(float yaw_degrees)
+{
+    if (!initialized) {
+        std::cerr << "Cannot set yaw: KalmanIMU not initialized" << std::endl;
+        return;
+    }
+    
+    // Get current state
+    OrientationState<float> current_state = ekf->getState();
+    
+    // Convert desired yaw to radians
+    float desired_yaw = yaw_degrees * DEG_TO_RAD;
+    
+    // Normalize to range [0, 2π]
+    while (desired_yaw < 0) desired_yaw += 2.0f * M_PI;
+    while (desired_yaw >= 2.0f * M_PI) desired_yaw -= 2.0f * M_PI;
+    
+    // Update the yaw in the state vector
+    current_state.yaw() = desired_yaw;
+    
+    // Reinitialize the filter with the modified state
+    ekf->init(current_state);
+    
+    // Update the orientation data
+    current_orientation.yaw = yaw_degrees;
+    eulerToQuaternion(current_state.roll(), current_state.pitch(), current_state.yaw(),
+                      current_orientation.qw, current_orientation.qx, 
+                      current_orientation.qy, current_orientation.qz);
+    
+    std::cout << "Yaw reference set to " << yaw_degrees << " degrees" << std::endl;
+}
+
+
+
+
+
+
 OrientationData KalmanIMU::getOrientation() const
 {
     return current_orientation;

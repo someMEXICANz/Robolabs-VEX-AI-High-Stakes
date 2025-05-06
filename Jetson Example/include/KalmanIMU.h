@@ -148,6 +148,10 @@ public:
     
     // Update Jacobians (linearization)
     void updateJacobians(const State& x) override;
+
+ 
+
+    
     
     // Non-linear measurement function
     Measurement h(const State& x) const override;
@@ -191,6 +195,7 @@ public:
     void setMeasurementNoise(float accel_noise, float mag_noise);
     void setMagneticOffsets(float x, float y, float z);
     void setMagneticScaling(float x, float y, float z);
+    void setYaw(float yaw_degrees);
     
 private:
     // Convert Euler angles to quaternion

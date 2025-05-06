@@ -49,6 +49,7 @@ class IMU
 
     bool calibrateAccelerometer();
     bool calibrateMagnetometer(/*Brain::BrainComm& brain*/);
+    void setHeading(float yaw_degrees);
 
     bool isStationary(float threshold = 0.4f) const;
 
@@ -60,7 +61,7 @@ class IMU
 
     void readLoop();
     bool readData();
-    void updateOrientation(bool useMagnetometer = false);
+    void updateOrientation();
 
     bool writeRegister(int fd, uint8_t reg, uint8_t value);
     uint8_t readRegister(int fd, uint8_t reg);
@@ -99,8 +100,11 @@ class IMU
     IMUData current_data;
     OrientationData current_orientation;
 
+    bool magCalibrated;
+    bool accelCalibrated;
+
     std::deque<IMUData> data_history;
-    static constexpr size_t HISTORY_BUFFER_SIZE = 250;
+    static constexpr size_t HISTORY_BUFFER_SIZE = 75;
     
     static constexpr float RAD_TO_DEG = 180.0f / M_PI;
     static constexpr float DEG_TO_RAD = M_PI / 180.0f;

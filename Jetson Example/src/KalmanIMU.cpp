@@ -12,6 +12,11 @@ OrientationSystemModel<T, CovarianceBase>::OrientationSystemModel()
 {
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 template<typename T, template<class> class CovarianceBase>
 void OrientationSystemModel<T, CovarianceBase>::updateJacobians(const State& x, const Control& u)
 {
@@ -48,6 +53,11 @@ OrientationSystemModel<T, CovarianceBase>::f(const State& x, const Control& u) c
     return x_next;
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 // IMUMeasurementModel implementation
 template<typename T, template<class> class CovarianceBase>
 IMUMeasurementModel<T, CovarianceBase>::IMUMeasurementModel()
@@ -57,6 +67,11 @@ IMUMeasurementModel<T, CovarianceBase>::IMUMeasurementModel()
 {
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 template<typename T, template<class> class CovarianceBase>
 void IMUMeasurementModel<T, CovarianceBase>::setMagneticField(T mx, T my, T mz)
 {
@@ -64,6 +79,11 @@ void IMUMeasurementModel<T, CovarianceBase>::setMagneticField(T mx, T my, T mz)
     mag_field_y = my;
     mag_field_z = mz;
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 template<typename T, template<class> class CovarianceBase>
 void IMUMeasurementModel<T, CovarianceBase>::setMagneticOffsets(T offset_x, T offset_y, T offset_z)
@@ -73,6 +93,11 @@ void IMUMeasurementModel<T, CovarianceBase>::setMagneticOffsets(T offset_x, T of
     mag_offset_z = offset_z;
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 template<typename T, template<class> class CovarianceBase>
 void IMUMeasurementModel<T, CovarianceBase>::setMagneticScaling(T scale_x, T scale_y, T scale_z)
 {
@@ -80,6 +105,11 @@ void IMUMeasurementModel<T, CovarianceBase>::setMagneticScaling(T scale_x, T sca
     mag_scale_y = scale_y;
     mag_scale_z = scale_z;
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 template<typename T, template<class> class CovarianceBase>
 void IMUMeasurementModel<T, CovarianceBase>::updateJacobians(const State& x)
@@ -118,6 +148,11 @@ void IMUMeasurementModel<T, CovarianceBase>::updateJacobians(const State& x)
     // V = measurement noise transformation (identity)
     this->V.setIdentity();
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 template<typename T, template<class> class CovarianceBase>
 typename IMUMeasurementModel<T, CovarianceBase>::Measurement 
@@ -158,6 +193,15 @@ IMUMeasurementModel<T, CovarianceBase>::h(const State& x) const
     return z;
 }
 
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
 // Instantiate the templates
 template class OrientationSystemModel<float>;
 template class IMUMeasurementModel<float>;
@@ -182,6 +226,11 @@ KalmanIMU::KalmanIMU()
     // Set initial timestamp
     last_update_time = std::chrono::system_clock::now();
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 KalmanIMU::~KalmanIMU()
 {
@@ -230,18 +279,19 @@ bool KalmanIMU::initialize()
     }
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 void KalmanIMU::update(const IMUData& imu_data, bool useMagnetometer)
 {
-    // std::cerr << "Test5" << std::endl;
-
     if (!initialized || !imu_data.valid) 
     {
         current_orientation.valid = false;
         return;
     }
     
-    // std::cerr << "Test6" << std::endl;
-
     // Calculate time delta
     auto current_time = imu_data.timestamp;
     float dt = std::chrono::duration<float>(current_time - last_update_time).count();
@@ -271,8 +321,63 @@ void KalmanIMU::update(const IMUData& imu_data, bool useMagnetometer)
         z.mag_y() = (imu_data.my - mag_offset_y) * mag_scale_y;
         z.mag_z() = (imu_data.mz - mag_offset_z) * mag_scale_z;
         
+        // IMPROVEMENT 1: Calculate the magnetometer-based heading
+        float mag_heading = std::atan2(z.mag_y(), z.mag_x());
+        
+        // Get current Kalman heading
+        const auto& state = ekf->getState();
+        float kalman_heading = state.yaw();
+        
+        // Calculate heading difference (accounting for wrap-around)
+        float heading_diff = mag_heading - kalman_heading;
+        while (heading_diff > M_PI) heading_diff -= 2.0f * M_PI;
+        while (heading_diff < -M_PI) heading_diff += 2.0f * M_PI;
+        
+        // IMPROVEMENT 2: Save original measurement noise
+        Eigen::Matrix<float, 6, 6> R_original = measurement_model->getCovariance();
+        Eigen::Matrix<float, 6, 6> R_temp = R_original;
+        
+        // IMPROVEMENT 3: Adaptive measurement noise - trust magnetometer more when diff is large
+        if (std::abs(heading_diff) > 0.5f) { // More than ~30 degrees difference
+            // Significantly reduce magnetometer noise to force faster convergence
+            R_temp(3, 3) = 0.1f;  // Much lower variance for mag_x
+            R_temp(4, 4) = 0.1f;  // Much lower variance for mag_y
+            
+            // Apply temporary covariance
+            measurement_model->setCovariance(R_temp);
+            
+            // Optional: Debug output
+            // std::cerr << "Large heading diff detected: " << (heading_diff * RAD_TO_DEG) 
+            //          << " degrees. Boosting mag trust." << std::endl;
+        }
+        
         // Update with measurements
         ekf->update(*measurement_model, z);
+        
+        // Restore original covariance if it was changed
+        if (std::abs(heading_diff) > 0.5f) {
+            measurement_model->setCovariance(R_original);
+        }
+        
+        // IMPROVEMENT 4: For very large changes, consider a partial direct update
+        if (std::abs(heading_diff) > 1.2f) { // More than ~70 degrees
+            // Get updated state after Kalman update
+            auto updated_state = ekf->getState();
+            
+            // Apply a complementary filter approach for heading
+            float alpha = 0.3f; // Blend factor - adjust as needed
+            float blended_yaw = kalman_heading + alpha * heading_diff;
+            
+            // Update the state with the blended yaw
+            updated_state.yaw() = blended_yaw;
+            
+            // Reinitialize the filter with the modified state
+            ekf->init(updated_state);
+            
+            // Optional: Debug output
+            // std::cerr << "Very large heading diff: " << (heading_diff * RAD_TO_DEG) 
+            //          << " degrees. Applying complementary filter." << std::endl;
+        }
     } 
     else 
     {
@@ -324,6 +429,168 @@ void KalmanIMU::update(const IMUData& imu_data, bool useMagnetometer)
 }
 
 
+// Add this method to your KalmanIMU class
+void KalmanIMU::setYaw(float yaw_degrees)
+{
+    if (!initialized) {
+        std::cerr << "Cannot set yaw: KalmanIMU not initialized" << std::endl;
+        return;
+    }
+    
+    // Get current state
+    OrientationState<float> current_state = ekf->getState();
+    
+    // Convert desired yaw to radians
+    float desired_yaw = yaw_degrees * DEG_TO_RAD;
+    
+    // Normalize to range [0, 2π]
+    while (desired_yaw < 0) desired_yaw += 2.0f * M_PI;
+    while (desired_yaw >= 2.0f * M_PI) desired_yaw -= 2.0f * M_PI;
+    
+    // Update the yaw in the state vector
+    current_state.yaw() = desired_yaw;
+    
+    // Reinitialize the filter with the modified state
+    ekf->init(current_state);
+    
+    // Update the orientation data
+    current_orientation.yaw = yaw_degrees;
+    eulerToQuaternion(current_state.roll(), current_state.pitch(), current_state.yaw(),
+                      current_orientation.qw, current_orientation.qx, 
+                      current_orientation.qy, current_orientation.qz);
+    
+    std::cout << "Yaw reference set to " << yaw_degrees << " degrees" << std::endl;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+OrientationData KalmanIMU::getOrientation() const
+{
+    return current_orientation;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void KalmanIMU::setProcessNoise(float gyro_noise, float gyro_bias_noise)
+{
+    if (!initialized) return;
+    
+    // Create process noise covariance matrix
+    Eigen::Matrix<float, 6, 6> Q = Eigen::Matrix<float, 6, 6>::Zero();
+    
+    // Gyro noise affects orientation states
+    Q(0, 0) = gyro_noise;
+    Q(1, 1) = gyro_noise;
+    Q(2, 2) = gyro_noise;
+    
+    // Gyro bias noise affects bias states
+    Q(3, 3) = gyro_bias_noise;
+    Q(4, 4) = gyro_bias_noise;
+    Q(5, 5) = gyro_bias_noise;
+    
+    system_model->setCovariance(Q);
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void KalmanIMU::setMeasurementNoise(float accel_noise, float mag_noise)
+{
+    if (!initialized) return;
+    
+    // Create measurement noise covariance matrix
+    Eigen::Matrix<float, 6, 6> R = Eigen::Matrix<float, 6, 6>::Zero();
+    
+    // Accelerometer noise
+    R(0, 0) = accel_noise;
+    R(1, 1) = accel_noise;
+    R(2, 2) = accel_noise;
+    
+    // Magnetometer noise
+    R(3, 3) = mag_noise;
+    R(4, 4) = mag_noise;
+    R(5, 5) = mag_noise;
+    
+    measurement_model->setCovariance(R);
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void KalmanIMU::eulerToQuaternion(float roll, float pitch, float yaw, 
+                                float& qw, float& qx, float& qy, float& qz) const
+{
+    // Calculate trig functions once
+    float cy = std::cos(yaw * 0.5f);
+    float sy = std::sin(yaw * 0.5f);
+    float cp = std::cos(pitch * 0.5f);
+    float sp = std::sin(pitch * 0.5f);
+    float cr = std::cos(roll * 0.5f);
+    float sr = std::sin(roll * 0.5f);
+    
+    // Calculate quaternion components
+    qw = cr * cp * cy + sr * sp * sy;
+    qx = sr * cp * cy - cr * sp * sy;
+    qy = cr * sp * cy + sr * cp * sy;
+    qz = cr * cp * sy - sr * sp * cy;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void KalmanIMU::setMagneticOffsets(float x, float y, float z)
+{
+    mag_offset_x = x;
+    mag_offset_y = y;
+    mag_offset_z = z;
+    
+    if (initialized && measurement_model) {
+        measurement_model->setMagneticOffsets(x, y, z);
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void KalmanIMU::setMagneticScaling(float x, float y, float z)
+{
+    mag_scale_x = x;
+    mag_scale_y = y;
+    mag_scale_z = z;
+    
+    if (initialized && measurement_model) {
+        measurement_model->setMagneticScaling(x, y, z);
+    }
+}
+
+
+
+
+
+} // namespace KalmanFilter
+
+
+
+
+
+
+
+
+
 
 
 
@@ -333,12 +600,16 @@ void KalmanIMU::update(const IMUData& imu_data, bool useMagnetometer)
 
 // void KalmanIMU::update(const IMUData& imu_data, bool useMagnetometer)
 // {
+//     // std::cerr << "Test5" << std::endl;
+
 //     if (!initialized || !imu_data.valid) 
 //     {
 //         current_orientation.valid = false;
 //         return;
 //     }
     
+//     // std::cerr << "Test6" << std::endl;
+
 //     // Calculate time delta
 //     auto current_time = imu_data.timestamp;
 //     float dt = std::chrono::duration<float>(current_time - last_update_time).count();
@@ -368,63 +639,8 @@ void KalmanIMU::update(const IMUData& imu_data, bool useMagnetometer)
 //         z.mag_y() = (imu_data.my - mag_offset_y) * mag_scale_y;
 //         z.mag_z() = (imu_data.mz - mag_offset_z) * mag_scale_z;
         
-//         // IMPROVEMENT 1: Calculate the magnetometer-based heading
-//         float mag_heading = std::atan2(z.mag_y(), z.mag_x());
-        
-//         // Get current Kalman heading
-//         const auto& state = ekf->getState();
-//         float kalman_heading = state.yaw();
-        
-//         // Calculate heading difference (accounting for wrap-around)
-//         float heading_diff = mag_heading - kalman_heading;
-//         while (heading_diff > M_PI) heading_diff -= 2.0f * M_PI;
-//         while (heading_diff < -M_PI) heading_diff += 2.0f * M_PI;
-        
-//         // IMPROVEMENT 2: Save original measurement noise
-//         Eigen::Matrix<float, 6, 6> R_original = measurement_model->getCovariance();
-//         Eigen::Matrix<float, 6, 6> R_temp = R_original;
-        
-//         // IMPROVEMENT 3: Adaptive measurement noise - trust magnetometer more when diff is large
-//         if (std::abs(heading_diff) > 0.5f) { // More than ~30 degrees difference
-//             // Significantly reduce magnetometer noise to force faster convergence
-//             R_temp(3, 3) = 0.1f;  // Much lower variance for mag_x
-//             R_temp(4, 4) = 0.1f;  // Much lower variance for mag_y
-            
-//             // Apply temporary covariance
-//             measurement_model->setCovariance(R_temp);
-            
-//             // Optional: Debug output
-//             // std::cerr << "Large heading diff detected: " << (heading_diff * RAD_TO_DEG) 
-//             //          << " degrees. Boosting mag trust." << std::endl;
-//         }
-        
 //         // Update with measurements
 //         ekf->update(*measurement_model, z);
-        
-//         // Restore original covariance if it was changed
-//         if (std::abs(heading_diff) > 0.5f) {
-//             measurement_model->setCovariance(R_original);
-//         }
-        
-//         // IMPROVEMENT 4: For very large changes, consider a partial direct update
-//         if (std::abs(heading_diff) > 1.2f) { // More than ~70 degrees
-//             // Get updated state after Kalman update
-//             auto updated_state = ekf->getState();
-            
-//             // Apply a complementary filter approach for heading
-//             float alpha = 0.3f; // Blend factor - adjust as needed
-//             float blended_yaw = kalman_heading + alpha * heading_diff;
-            
-//             // Update the state with the blended yaw
-//             updated_state.yaw() = blended_yaw;
-            
-//             // Reinitialize the filter with the modified state
-//             ekf->init(updated_state);
-            
-//             // Optional: Debug output
-//             // std::cerr << "Very large heading diff: " << (heading_diff * RAD_TO_DEG) 
-//             //          << " degrees. Applying complementary filter." << std::endl;
-//         }
 //     } 
 //     else 
 //     {
@@ -475,134 +691,3 @@ void KalmanIMU::update(const IMUData& imu_data, bool useMagnetometer)
 //     current_orientation.valid = true;
 // }
 
-
-// Add this method to your KalmanIMU class
-void KalmanIMU::setYaw(float yaw_degrees)
-{
-    if (!initialized) {
-        std::cerr << "Cannot set yaw: KalmanIMU not initialized" << std::endl;
-        return;
-    }
-    
-    // Get current state
-    OrientationState<float> current_state = ekf->getState();
-    
-    // Convert desired yaw to radians
-    float desired_yaw = yaw_degrees * DEG_TO_RAD;
-    
-    // Normalize to range [0, 2π]
-    while (desired_yaw < 0) desired_yaw += 2.0f * M_PI;
-    while (desired_yaw >= 2.0f * M_PI) desired_yaw -= 2.0f * M_PI;
-    
-    // Update the yaw in the state vector
-    current_state.yaw() = desired_yaw;
-    
-    // Reinitialize the filter with the modified state
-    ekf->init(current_state);
-    
-    // Update the orientation data
-    current_orientation.yaw = yaw_degrees;
-    eulerToQuaternion(current_state.roll(), current_state.pitch(), current_state.yaw(),
-                      current_orientation.qw, current_orientation.qx, 
-                      current_orientation.qy, current_orientation.qz);
-    
-    std::cout << "Yaw reference set to " << yaw_degrees << " degrees" << std::endl;
-}
-
-
-
-
-
-
-OrientationData KalmanIMU::getOrientation() const
-{
-    return current_orientation;
-}
-
-
-
-void KalmanIMU::setProcessNoise(float gyro_noise, float gyro_bias_noise)
-{
-    if (!initialized) return;
-    
-    // Create process noise covariance matrix
-    Eigen::Matrix<float, 6, 6> Q = Eigen::Matrix<float, 6, 6>::Zero();
-    
-    // Gyro noise affects orientation states
-    Q(0, 0) = gyro_noise;
-    Q(1, 1) = gyro_noise;
-    Q(2, 2) = gyro_noise;
-    
-    // Gyro bias noise affects bias states
-    Q(3, 3) = gyro_bias_noise;
-    Q(4, 4) = gyro_bias_noise;
-    Q(5, 5) = gyro_bias_noise;
-    
-    system_model->setCovariance(Q);
-}
-
-void KalmanIMU::setMeasurementNoise(float accel_noise, float mag_noise)
-{
-    if (!initialized) return;
-    
-    // Create measurement noise covariance matrix
-    Eigen::Matrix<float, 6, 6> R = Eigen::Matrix<float, 6, 6>::Zero();
-    
-    // Accelerometer noise
-    R(0, 0) = accel_noise;
-    R(1, 1) = accel_noise;
-    R(2, 2) = accel_noise;
-    
-    // Magnetometer noise
-    R(3, 3) = mag_noise;
-    R(4, 4) = mag_noise;
-    R(5, 5) = mag_noise;
-    
-    measurement_model->setCovariance(R);
-}
-
-void KalmanIMU::eulerToQuaternion(float roll, float pitch, float yaw, 
-                                float& qw, float& qx, float& qy, float& qz) const
-{
-    // Calculate trig functions once
-    float cy = std::cos(yaw * 0.5f);
-    float sy = std::sin(yaw * 0.5f);
-    float cp = std::cos(pitch * 0.5f);
-    float sp = std::sin(pitch * 0.5f);
-    float cr = std::cos(roll * 0.5f);
-    float sr = std::sin(roll * 0.5f);
-    
-    // Calculate quaternion components
-    qw = cr * cp * cy + sr * sp * sy;
-    qx = sr * cp * cy - cr * sp * sy;
-    qy = cr * sp * cy + sr * cp * sy;
-    qz = cr * cp * sy - sr * sp * cy;
-}
-
-
-void KalmanIMU::setMagneticOffsets(float x, float y, float z)
-{
-    mag_offset_x = x;
-    mag_offset_y = y;
-    mag_offset_z = z;
-    
-    if (initialized && measurement_model) {
-        measurement_model->setMagneticOffsets(x, y, z);
-    }
-}
-
-void KalmanIMU::setMagneticScaling(float x, float y, float z)
-{
-    mag_scale_x = x;
-    mag_scale_y = y;
-    mag_scale_z = z;
-    
-    if (initialized && measurement_model) {
-        measurement_model->setMagneticScaling(x, y, z);
-    }
-}
-
-
-
-
-} // namespace KalmanFilter

@@ -1,4 +1,5 @@
 #include "IMU.h"
+#include "IMUDataTypes.h"
 
 using std::chrono::system_clock;
 
@@ -421,67 +422,9 @@ bool IMU::readData()
 }
 
 
-
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-bool IMU::isStationary(float threshold) const 
-{
-    std::deque<IMUData> smaples; 
-    std::lock_guard<std::mutex> lock(data_mutex);
-    
-    // Need a minimum number of samples
-    if (data_history.size() < HISTORY_BUFFER_SIZE) 
-    {
-        std::cerr << "Not enough samples in deque to determine if device is stationary" << std::endl;
-        return false;
-    }
-    else
-    {
-        smaples = data_history; // Copy the deque
-    }
-
-    // Calculate variance of angular velocity
-    float sum_gx = 0.0f, sum_gy = 0.0f, sum_gz = 0.0f;
-    float sum_gx2 = 0.0f, sum_gy2 = 0.0f, sum_gz2 = 0.0f;
-    
-    // Calculate means and squared values
-    for (const auto& data : smaples) 
-    {
-        sum_gx += data.gx;
-        sum_gy += data.gy;
-        sum_gz += data.gz;
-        
-        sum_gx2 += data.gx * data.gx;
-        sum_gy2 += data.gy * data.gy;
-        sum_gz2 += data.gz * data.gz;
-    }
-    
-    float n = static_cast<float>(data_history.size());
-    float var_gx = (sum_gx2 / n) - (sum_gx / n) * (sum_gx / n);
-    float var_gy = (sum_gy2 / n) - (sum_gy / n) * (sum_gy / n);
-    float var_gz = (sum_gz2 / n) - (sum_gz / n) * (sum_gz / n);
-    
-    // Calculate the standard deviation for each axis
-    float std_gx = std::sqrt(std::abs(var_gx));
-    float std_gy = std::sqrt(std::abs(var_gy));
-    float std_gz = std::sqrt(std::abs(var_gz));
-    
-    // Maximum standard deviation on any axis
-    float max_std = std::max({std_gx, std_gy, std_gz});
-    
-    // For debugging
-    std::cerr << "Movement check - Std Dev (x,y,z): " << std_gx << ", " 
-              << std_gy << ", " << std_gz << " (threshold: " << threshold << ")" << std::endl;
-    
-    return max_std < threshold;
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void IMU::setAccelerometerRange(LSM6DS3::FS_XL range)
 {
@@ -815,8 +758,8 @@ bool IMU::calibrateAccelerometer()
 
 bool IMU::calibrateMagnetometer()
 {
-    std::cout << "Starting magnetometer calibration..." << std::endl;
-    std::cout << "Please rotate the robot slowly around its Z axis (full 360° rotation)" << std::endl;
+    std::cerr << "Starting magnetometer calibration..." << std::endl;
+    std::cerr << "Please rotate the robot slowly around its Z axis (full 360° rotation)" << std::endl;
     
     std::deque<IMUData> calibration_data;
 
@@ -826,48 +769,44 @@ bool IMU::calibrateMagnetometer()
     float min_my = std::numeric_limits<float>::max();
     float max_my = std::numeric_limits<float>::lowest();
     
-    // Rotation tracking variables using gyroscope
-    float total_rotation = 0.0f;
+
+    float gyro_rotation = 0.0f;
+    float mag_rotation = 0.0f;
     bool calibration_started = false;
+    float current_mag_angle = 0.0f;
+    float starting_mag_angle = 0.0f;
     
-    // Gyroscope threshold for rotation detection
     const float gyro_threshold = 0.5f; // dps - adjust based on your observations
+    const float mag_threshold = 0.5f; // gauss - adjust based on your observations
     
-    // Magnetometer angle tracking for validation
-    float mag_angle = 0.0f;
-    float mag_total_rotation = 0.0f;
-    bool mag_tracking_initialized = false;
     
     // Required rotation for calibration
     const float required_rotation = 360.0f; // degrees
     
     // Maximum time for calibration
-    const int max_calibration_time_ms = 60000; // 60 seconds timeout
-    auto start_time = std::chrono::system_clock::now();
-    
-    // Time window for gyro integration
-    auto last_update_time = start_time;
+    const int calibration_timeout = 60000; // 60 seconds timeout
+    std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
+    std::chrono::system_clock::time_point last_update_time = start_time;
     
     // Minimum number of data points required
     const size_t min_data_points = 100;
     
     // Sampling interval for progress updates
-    const int update_interval_ms = 1000; // 1 second
+    const int update_interval_ms = 200; // 1 second
     auto last_update = start_time;
     
-    std::cout << "Starting calibration - rotate robot slowly..." << std::endl;
+    std::cerr << "Starting calibration - rotate robot slowly..." << std::endl;
     
     while (std::chrono::duration_cast<std::chrono::milliseconds>(
-           std::chrono::system_clock::now() - start_time).count() < max_calibration_time_ms) 
+           std::chrono::system_clock::now() - start_time).count() < calibration_timeout) 
     {
-        // Get current data
         IMUData current;
         {
             std::lock_guard<std::mutex> lock(data_mutex);
             current = current_data;
         }
-        
-        if (!current.valid) {
+        if (!current.valid) 
+        {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             continue;
         }
@@ -878,12 +817,16 @@ bool IMU::calibrateMagnetometer()
         last_update_time = current_time;
         
         // Check if rotation has started (using gyro)
-        if (!calibration_started) {
-            if (std::abs(current.gz) > gyro_threshold) {
+        if (!calibration_started) 
+        {
+            if (std::abs(current.gz) > gyro_threshold) 
+            {
                 calibration_started = true;
-                std::cout << "Rotation detected! Beginning calibration..." << std::endl;
-            } else {
-                // Still waiting for rotation to start
+                std::cerr << "Rotation detected! Beginning calibration..." << std::endl;
+                starting_mag_angle = (std::atan2(current.my, current.mx) * 180 / M_PI);
+            } 
+            else 
+            {
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
                 continue;
             }
@@ -892,55 +835,42 @@ bool IMU::calibrateMagnetometer()
         // Add data to calibration set once rotation has started
         calibration_data.push_back(current);
         
-        // Update min/max values for magnetometer data
-        min_mx = std::min(min_mx, current.mx);
-        max_mx = std::max(max_mx, current.mx);
-        min_my = std::min(min_my, current.my);
-        max_my = std::max(max_my, current.my);
-        
-        // Calculate rotation from gyroscope
-        // Only integrate gyro readings above the threshold to filter noise
-        if (std::abs(current.gz) > gyro_threshold) {
-            total_rotation += std::abs(current.gz) * dt;
+
+        if (std::abs(current.gz) > gyro_threshold)
+        {
+            gyro_rotation += std::abs(current.gz) * dt;
         }
         
-        // Also track rotation using magnetometer (for validation)
-        // Calculate center point using current min/max
-        float center_x = (min_mx + max_mx) / 2.0f;
-        float center_y = (min_my + max_my) / 2.0f;
+
+        float new_mag_angle = (std::atan2(current.my, current.mx) * 180 / M_PI);
+        std::cerr << "New agnetometer angle: " <<  new_mag_angle << std::endl;
+        if (new_mag_angle < 0)
+        {
+            new_mag_angle += 360;
+        }
         
-        // Calculate normalized magnetometer vector
-        float norm_x = current.mx - center_x;
-        float norm_y = current.my - center_y;
-        
-        // Calculate current angle in the x-y plane
-        float new_mag_angle = std::atan2(norm_y, norm_x);
-        
-        if (!mag_tracking_initialized) {
-            mag_angle = new_mag_angle;
-            mag_tracking_initialized = true;
-        } else {
-            // Calculate angle change - taking care of wrapping around -PI/PI
-            float angle_change = new_mag_angle - mag_angle;
-            
-            // Handle wrap-around cases
-            if (angle_change > M_PI) {
-                angle_change -= 2.0f * M_PI;
-            } else if (angle_change < -M_PI) {
-                angle_change += 2.0f * M_PI;
-            }
-            
-            // Update total magnetometer-based rotation
-            mag_total_rotation += std::abs(angle_change);
-            mag_angle = new_mag_angle;
+        float angle_diff = new_mag_angle - current_mag_angle;
+        std::cerr << "Magnetometer angle diffrence: " <<  angle_diff << std::endl;
+
+        if((angle_diff > mag_threshold))
+        {
+            current_mag_angle = new_mag_angle;
+            mag_rotation +=  std::abs(angle_diff);
+
+            //Update min/max values for magnetometer data
+            min_mx = std::min(min_mx, current.mx);
+            max_mx = std::max(max_mx, current.mx);
+            min_my = std::min(min_my, current.my);
+            max_my = std::max(max_my, current.my);
         }
         
         // Show progress updates at regular intervals
         auto now = std::chrono::system_clock::now();
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_update).count() > update_interval_ms) {
-            std::cout << "Rotation progress (gyro): " << total_rotation 
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_update).count() > update_interval_ms) 
+        {
+            std::cout << "Rotation progress (gyro): " << gyro_rotation
                       << "° / " << required_rotation << "°" << std::endl;
-            std::cout << "Rotation progress (mag): " << (mag_total_rotation * RAD_TO_DEG) 
+            std::cout << "Rotation progress (mag): " << (mag_rotation * RAD_TO_DEG) 
                       << "° / " << required_rotation << "°" << std::endl;
             std::cout << "Data points collected: " << calibration_data.size() << std::endl;
             
@@ -950,25 +880,35 @@ bool IMU::calibrateMagnetometer()
         
         // Check if we've completed a full rotation using gyro measurement
         // Also verify we have enough data points
-        if (total_rotation >= required_rotation && calibration_data.size() >= min_data_points) {
-            std::cout << "Full rotation detected! Gyro-based rotation: " << total_rotation 
-                      << "°, Mag-based rotation: " << (mag_total_rotation * RAD_TO_DEG) << "°" << std::endl;
+        if (gyro_rotation >= required_rotation && calibration_data.size() >= min_data_points) 
+        {
+            std::cout << "Full rotation detected! Gyro-based rotation: " << gyro_rotation
+                      << "°, Mag-based rotation: " << (mag_rotation * RAD_TO_DEG) << "°" << std::endl;
             break;
         }
         
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+
+
+
+
+
+
+
     
     // Check if we have enough data
-    if (calibration_data.size() < min_data_points) {
+    if (calibration_data.size() < min_data_points) 
+    {
         std::cerr << "Insufficient data for calibration. Only " << calibration_data.size() 
                   << " data points collected." << std::endl;
         return false;
     }
     
     // Check if we completed a full rotation
-    if (total_rotation < required_rotation) {
-        std::cerr << "Calibration incomplete. Only " << total_rotation 
+    if (gyro_rotation < required_rotation) 
+    {
+        std::cerr << "Calibration incomplete. Only " << gyro_rotation 
                   << "° rotation detected (required: " << required_rotation << "°)" << std::endl;
         return false;
     }
@@ -1024,14 +964,67 @@ bool IMU::calibrateMagnetometer()
     float circle_error = std::abs(radius_x - radius_y) / avg_radius * 100.0f;
     std::cout << "Circle fit quality: " << (100.0f - circle_error) << "% (closer to 100% is better)" << std::endl;
     
-
-    // {
-    //     std::lock_guard<std::mutex> lock(data_mutex);
-    //     magCalibrated = true;
-    // }
     magCalibrated = true;
     return true;
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+bool IMU::isStationary(float threshold) const 
+{
+    std::deque<IMUData> smaples; 
+    std::lock_guard<std::mutex> lock(data_mutex);
+    
+    // Need a minimum number of samples
+    if (data_history.size() < HISTORY_BUFFER_SIZE) 
+    {
+        std::cerr << "Not enough samples in deque to determine if device is stationary" << std::endl;
+        return false;
+    }
+    else
+    {
+        smaples = data_history; // Copy the deque
+    }
+
+    // Calculate variance of angular velocity
+    float sum_gx = 0.0f, sum_gy = 0.0f, sum_gz = 0.0f;
+    float sum_gx2 = 0.0f, sum_gy2 = 0.0f, sum_gz2 = 0.0f;
+    
+    // Calculate means and squared values
+    for (const auto& data : smaples) 
+    {
+        sum_gx += data.gx;
+        sum_gy += data.gy;
+        sum_gz += data.gz;
+        
+        sum_gx2 += data.gx * data.gx;
+        sum_gy2 += data.gy * data.gy;
+        sum_gz2 += data.gz * data.gz;
+    }
+    
+    float n = static_cast<float>(data_history.size());
+    float var_gx = (sum_gx2 / n) - (sum_gx / n) * (sum_gx / n);
+    float var_gy = (sum_gy2 / n) - (sum_gy / n) * (sum_gy / n);
+    float var_gz = (sum_gz2 / n) - (sum_gz / n) * (sum_gz / n);
+    
+    // Calculate the standard deviation for each axis
+    float std_gx = std::sqrt(std::abs(var_gx));
+    float std_gy = std::sqrt(std::abs(var_gy));
+    float std_gz = std::sqrt(std::abs(var_gz));
+    
+    // Maximum standard deviation on any axis
+    float max_std = std::max({std_gx, std_gy, std_gz});
+    
+    // For debugging
+    std::cerr << "Movement check - Std Dev (x,y,z): " << std_gx << ", " 
+              << std_gy << ", " << std_gz << " (threshold: " << threshold << ")" << std::endl;
+    
+    return max_std < threshold;
+}
+
+
 
 
 

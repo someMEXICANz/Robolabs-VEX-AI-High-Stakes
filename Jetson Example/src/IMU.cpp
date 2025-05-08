@@ -774,10 +774,10 @@ bool IMU::calibrateMagnetometer()
     float mag_rotation = 0.0f;
     bool calibration_started = false;
     float current_mag_angle = 0.0f;
-    float starting_mag_angle = 0.0f;
+    float mag_starting_angle = 0.0f;
     
     const float gyro_threshold = 0.5f; // dps - adjust based on your observations
-    const float mag_threshold = 0.5f; // gauss - adjust based on your observations
+    const float mag_threshold = 0.1f; // gauss - adjust based on your observations
     
     
     // Required rotation for calibration
@@ -823,7 +823,7 @@ bool IMU::calibrateMagnetometer()
             {
                 calibration_started = true;
                 std::cerr << "Rotation detected! Beginning calibration..." << std::endl;
-                starting_mag_angle = (std::atan2(current.my, current.mx) * 180 / M_PI);
+                mag_starting_angle = (std::atan2(current.my, current.mx) * 180 / M_PI);
             } 
             else 
             {
@@ -889,12 +889,6 @@ bool IMU::calibrateMagnetometer()
         
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-
-
-
-
-
-
 
     
     // Check if we have enough data

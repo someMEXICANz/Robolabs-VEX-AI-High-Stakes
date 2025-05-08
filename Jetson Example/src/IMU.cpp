@@ -777,7 +777,7 @@ bool IMU::calibrateMagnetometer()
     float mag_starting_angle = 0.0f;
     
     const float gyro_threshold = 0.5f; // dps - adjust based on your observations
-    const float mag_threshold = 0.1f; // gauss - adjust based on your observations
+    const float mag_threshold = 12.5f; // gauss - adjust based on your observations
     
     
     // Required rotation for calibration
@@ -823,7 +823,6 @@ bool IMU::calibrateMagnetometer()
             {
                 calibration_started = true;
                 std::cerr << "Rotation detected! Beginning calibration..." << std::endl;
-                mag_starting_angle = (std::atan2(current.my, current.mx) * 180 / M_PI);
             } 
             else 
             {
@@ -838,24 +837,31 @@ bool IMU::calibrateMagnetometer()
 
         if (std::abs(current.gz) > gyro_threshold)
         {
-            gyro_rotation += std::abs(current.gz) * dt;
+            float gyro_angle_diff =  std::abs(current.gz) * dt;
+            std::cerr << "Gyro angle difference: " <<  gyro_angle_diff << std::endl;
+            gyro_rotation += gyro_angle_diff;
         }
         
 
-        float new_mag_angle = (std::atan2(current.my, current.mx) * 180 / M_PI);
-        std::cerr << "New agnetometer angle: " <<  new_mag_angle << std::endl;
-        if (new_mag_angle < 0)
-        {
+        float new_mag_angle = (std::atan2(current.my, current.mx) * RAD_TO_DEG);
+
+        if(new_mag_angle < 0)
             new_mag_angle += 360;
-        }
-        
-        float angle_diff = new_mag_angle - current_mag_angle;
-        std::cerr << "Magnetometer angle diffrence: " <<  angle_diff << std::endl;
 
-        if((angle_diff > mag_threshold))
+        float angle_diff = new_mag_angle - current_mag_angle;
+
+        if(angle_diff > 180)
+            angle_diff -= 360;
+        
+        else if(angle_diff < -180)
+            angle_diff += 360;
+
+        std::cerr << "Mag angle difference: " <<  angle_diff << std::endl;
+
+        if((std::abs(angle_diff) > mag_threshold))
         {
-            current_mag_angle = new_mag_angle;
             mag_rotation +=  std::abs(angle_diff);
+            current_mag_angle = new_mag_angle;
 
             //Update min/max values for magnetometer data
             min_mx = std::min(min_mx, current.mx);
@@ -924,9 +930,9 @@ bool IMU::calibrateMagnetometer()
     std::cout << "Hard iron offsets: X=" << offset_x << ", Y=" << offset_y << ", Z=" << offset_z << std::endl;
     
     // Convert offsets to register values
-    int16_t raw_offset_x = static_cast<int16_t>(offset_x * mag_scale / 100.0f);
-    int16_t raw_offset_y = static_cast<int16_t>(offset_y * mag_scale / 100.0f);
-    int16_t raw_offset_z = static_cast<int16_t>(offset_z * mag_scale / 100.0f);
+    int16_t raw_offset_x = static_cast<int16_t>(offset_x * mag_scale);
+    int16_t raw_offset_y = static_cast<int16_t>(offset_y * mag_scale);
+    int16_t raw_offset_z = static_cast<int16_t>(offset_z * mag_scale);
     
     // Write offsets to the magnetometer registers
     writeRegister(lis3mdl_fd, LIS3MDL::Reg::OFFSET_X_REG_L_M, raw_offset_x & 0xFF);

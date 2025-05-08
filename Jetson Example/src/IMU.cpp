@@ -768,11 +768,14 @@ bool IMU::calibrateMagnetometer()
     float max_mx = std::numeric_limits<float>::lowest();
     float min_my = std::numeric_limits<float>::max();
     float max_my = std::numeric_limits<float>::lowest();
-    
 
+    float filtered_mx = 0.0f;
+    float filtered_my = 0.0f;
+    float alpha = 0.2f;
+
+    bool calibration_started = false;
     float gyro_rotation = 0.0f;
     float mag_rotation = 0.0f;
-    bool calibration_started = false;
     float current_mag_angle = 0.0f;
     
     const float gyro_threshold = 0.5f; // dps - adjust based on your observations
@@ -822,7 +825,11 @@ bool IMU::calibrateMagnetometer()
             {
                 calibration_started = true;
                 std::cerr << "Rotation detected! Beginning calibration..." << std::endl;
-                current_mag_angle = (std::atan2(current.my, current.mx) * RAD_TO_DEG);
+                filtered_mx = current.mx;
+                filtered_my = current.my;
+                current_mag_angle = (std::atan2(filtered_my, filtered_mx) * RAD_TO_DEG);
+                if(current_mag_angle < 0)
+                    current_mag_angle += 360;
             } 
             else 
             {
@@ -842,8 +849,11 @@ bool IMU::calibrateMagnetometer()
             gyro_rotation += gyro_angle_diff;
         }
         
+        //Low Pass Filter
+        filtered_mx = alpha * current.mx + ((1 - alpha) * filtered_mx);
+        filtered_my = alpha * current.my + ((1 - alpha) * filtered_my);
 
-        float new_mag_angle = (std::atan2(current.my, current.mx) * RAD_TO_DEG);
+        float new_mag_angle = (std::atan2(filtered_my, filtered_mx) * RAD_TO_DEG);
 
         if(new_mag_angle < 0)
             new_mag_angle += 360;

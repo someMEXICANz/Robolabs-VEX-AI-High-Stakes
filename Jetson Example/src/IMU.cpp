@@ -768,152 +768,94 @@ bool IMU::calibrateMagnetometer()
     float max_mx = std::numeric_limits<float>::lowest();
     float min_my = std::numeric_limits<float>::max();
     float max_my = std::numeric_limits<float>::lowest();
-
-    float filtered_mx = 0.0f;
-    float filtered_my = 0.0f;
-    float alpha = 0.2f;
+    float min_mz = std::numeric_limits<float>::max();
+    float max_mz = std::numeric_limits<float>::lowest();
 
     bool calibration_started = false;
     float gyro_rotation = 0.0f;
-    float mag_rotation = 0.0f;
-    float current_mag_angle = 0.0f;
-    
+
+
     const float gyro_threshold = 0.5f; // dps - adjust based on your observations
-    const float mag_threshold = 1.5f; //  adjust based on your observations
-    
-    
-    // Required rotation for calibration
     const float required_rotation = 360.0f; // degrees
-    
-    // Maximum time for calibration
     const int calibration_timeout = 60000; // 60 seconds timeout
+
+    const int update_interval_ms = 200; // 1 second
+  
+    
+    
     std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
     std::chrono::system_clock::time_point last_update_time = start_time;
+    std::chrono::system_clock::time_point last_progress_time = start_time;
     
-    // Minimum number of data points required
-    const size_t min_data_points = 100;
-    
-    // Sampling interval for progress updates
-    const int update_interval_ms = 200; // 1 second
-    auto last_update = start_time;
     
     std::cerr << "Starting calibration - rotate robot slowly..." << std::endl;
     
     while (std::chrono::duration_cast<std::chrono::milliseconds>(
            std::chrono::system_clock::now() - start_time).count() < calibration_timeout) 
     {
-        IMUData current;
-        {
-            std::lock_guard<std::mutex> lock(data_mutex);
-            current = current_data;
-        }
-        if (!current.valid) 
+       
+        std::lock_guard<std::mutex> lock(data_mutex);
+    
+        if (!current_data.valid) 
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             continue;
         }
         
         // Calculate time delta for gyro integration
-        auto current_time = current.timestamp;
+        auto current_time = current_data.timestamp;
         float dt = std::chrono::duration<float>(current_time - last_update_time).count();
         last_update_time = current_time;
         
         // Check if rotation has started (using gyro)
-        if (!calibration_started) 
+        if (!calibration_started && std::abs(current_data.gz) > gyro_threshold)
         {
-            if (std::abs(current.gz) > gyro_threshold) 
-            {
-                calibration_started = true;
-                std::cerr << "Rotation detected! Beginning calibration..." << std::endl;
-                filtered_mx = current.mx;
-                filtered_my = current.my;
-                current_mag_angle = (std::atan2(filtered_my, filtered_mx) * RAD_TO_DEG);
-                if(current_mag_angle < 0)
-                    current_mag_angle += 360;
-            } 
-            else 
-            {
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
-                continue;
-            }
+            calibration_started = true;
+            std::cerr << "Rotation detected! Beginning calibration..." << std::endl;
+        }
+    
+        if(!calibration_started) 
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            continue;
+        }
+
+        if (std::abs(current_data.gz) > gyro_threshold)
+        {
+       
+            gyro_rotation += std::abs(current_data.gz) * dt;
+
+            min_mx = std::min(min_mx, current_data.mx);
+            max_mx = std::max(max_mx, current_data.mx);
+            min_my = std::min(min_my, current_data.my);
+            max_my = std::max(max_my, current_data.my);
+            min_mz = std::min(min_mz, current_data.mz);
+            max_mz = std::max(max_mz, current_data.mz);
         }
         
-        // Add data to calibration set once rotation has started
-        calibration_data.push_back(current);
-        
 
-        if (std::abs(current.gz) > gyro_threshold)
-        {
-            float gyro_angle_diff =  std::abs(current.gz) * dt;
-            std::cerr << "Gyro angle difference: " <<  gyro_angle_diff << std::endl;
-            gyro_rotation += gyro_angle_diff;
-        }
-        
-        //Low Pass Filter
-        filtered_mx = alpha * current.mx + ((1 - alpha) * filtered_mx);
-        filtered_my = alpha * current.my + ((1 - alpha) * filtered_my);
-
-        float new_mag_angle = (std::atan2(filtered_my, filtered_mx) * RAD_TO_DEG);
-
-        if(new_mag_angle < 0)
-            new_mag_angle += 360;
-
-        float angle_diff = new_mag_angle - current_mag_angle;
-
-        if(angle_diff > 180)
-            angle_diff -= 360;
-        
-        else if(angle_diff < -180)
-            angle_diff += 360;
-
-        std::cerr << "Mag angle difference: " <<  angle_diff << std::endl;
-
-        if((std::abs(angle_diff) > mag_threshold))
-        {
-            mag_rotation +=  std::abs(angle_diff);
-            current_mag_angle = new_mag_angle;
-
-            //Update min/max values for magnetometer data
-            min_mx = std::min(min_mx, current.mx);
-            max_mx = std::max(max_mx, current.mx);
-            min_my = std::min(min_my, current.my);
-            max_my = std::max(max_my, current.my);
-        }
         
         // Show progress updates at regular intervals
-        auto now = std::chrono::system_clock::now();
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_update).count() > update_interval_ms) 
+        std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_progress_time).count() > update_interval_ms) 
         {
-            std::cout << "Rotation progress (gyro): " << gyro_rotation
-                      << "° / " << required_rotation << "°" << std::endl;
-            std::cout << "Rotation progress (mag): " << (mag_rotation * RAD_TO_DEG) 
-                      << "° / " << required_rotation << "°" << std::endl;
-            std::cout << "Data points collected: " << calibration_data.size() << std::endl;
+            std::cout << "Rotation progress: " << gyro_rotation << "° / " << required_rotation << "°" << std::endl;
+            std::cout << "Current min/max - X: [" << min_mx << ", " << max_mx << ", " << "], Y: [" 
+                      << min_my << ", " << max_my << "]" << std::endl;
             
-            // Update timestamp for next progress update
-            last_update = now;
+            last_progress_time = now;
         }
         
-        // Check if we've completed a full rotation using gyro measurement
-        // Also verify we have enough data points
-        if (gyro_rotation >= required_rotation && calibration_data.size() >= min_data_points) 
+      
+        if (gyro_rotation >= required_rotation) 
         {
-            std::cout << "Full rotation detected! Gyro-based rotation: " << gyro_rotation
-                      << "°, Mag-based rotation: " << (mag_rotation * RAD_TO_DEG) << "°" << std::endl;
+            std::cout << "Full rotation detected! Gyro-based rotation: " << gyro_rotation << "°" << std::endl;
             break;
         }
         
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
-    
-    // Check if we have enough data
-    if (calibration_data.size() < min_data_points) 
-    {
-        std::cerr << "Insufficient data for calibration. Only " << calibration_data.size() 
-                  << " data points collected." << std::endl;
-        return false;
-    }
     
     // Check if we completed a full rotation
     if (gyro_rotation < required_rotation) 
@@ -926,15 +868,7 @@ bool IMU::calibrateMagnetometer()
     // Calculate center offsets (hard iron distortion)
     float offset_x = (min_mx + max_mx) / 2.0f;
     float offset_y = (min_my + max_my) / 2.0f;
-    
-    // For Z-axis, we use the average of all readings
-    float sum_mz = 0.0f;
-    int count = 0;
-    for (const auto& data : calibration_data) {
-        sum_mz += data.mz;
-        count++;
-    }
-    float offset_z = (count > 0) ? (sum_mz / count) : 0.0f;
+    float offset_z = (min_mz + max_mz) / 2.0f;
     
     std::cout << "Magnetometer calibration complete:" << std::endl;
     std::cout << "Hard iron offsets: X=" << offset_x << ", Y=" << offset_y << ", Z=" << offset_z << std::endl;

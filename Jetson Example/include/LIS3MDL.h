@@ -2,7 +2,6 @@
 #define LIS3MDL_H
 
 #include <cstdint>
-
 namespace LIS3MDL {
 
 // Device info

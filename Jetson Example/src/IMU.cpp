@@ -1,5 +1,7 @@
 #include "IMU.h"
+#include "IMUDataTypes.h"
 
+using std::chrono::system_clock;
 
 IMU::IMU(const char* i2c_device_)
     : i2c_device(i2c_device_),
@@ -11,13 +13,14 @@ IMU::IMU(const char* i2c_device_)
       running(false),
       initialized(false),
       current_data{0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, std::chrono::system_clock::now(),false},
-      current_orientation{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, std::chrono::system_clock::now(),false}
+      current_orientation{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, std::chrono::system_clock::now(),false},
+      magCalibrated(false),
+      accelCalibrated(false)
 {
     if(initialize()) 
     {
-        start();
+       start();
     }
-        
 }
 
 IMU::~IMU() 
@@ -50,7 +53,7 @@ bool IMU::start()
         read_thread= std::make_unique<std::thread>(&IMU::readLoop, this);
     } catch (const std::exception& e) 
     {
-        std::cerr << "Failed to start GPS read threads: " << e.what() << std::endl;
+        std::cerr << "Failed to start IMU read thread: " << e.what() << std::endl;
         running = false;
         return false;  
     }
@@ -62,11 +65,11 @@ void IMU::stop()
 {
     running = false;
     
-    if (read_thread&& read_thread->joinable()) {
+    if (read_thread && read_thread->joinable()) 
+    {
         read_thread->join();
+        read_thread.reset();
     }
-    
-    read_thread.reset();
 }
 
 bool IMU::restart() 
@@ -121,7 +124,7 @@ uint8_t IMU::readRegister(int fd, uint8_t reg)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-bool IMU::writeThenreadRegister(int fd, uint8_t reg, uint8_t* buffer, uint8_t length) 
+bool IMU::readRegisters(int fd, uint8_t reg, uint8_t* buffer, uint8_t length) 
 {
     // Set up the I2C message structures for a combined transaction
     struct i2c_msg messages[2];
@@ -144,12 +147,34 @@ bool IMU::writeThenreadRegister(int fd, uint8_t reg, uint8_t* buffer, uint8_t le
     ioctl_data.nmsgs = 2;
     
     // Execute the combined write-then-read transaction
-    if (ioctl(fd, I2C_RDWR, &ioctl_data) < 0) {
+    if (ioctl(fd, I2C_RDWR, &ioctl_data) < 0) 
+    {
         std::cerr << "Failed to perform I2C combined transaction" << std::endl;
         return false;
     }
     
     return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+bool IMU::setBit(int fd, uint8_t reg, uint8_t mask, bool enable) 
+{
+    // Read current register value
+    uint8_t current_value = readRegister(fd, reg);
+    
+    // Set or clear the specified bits
+    uint8_t new_value;
+    if (enable) 
+        new_value = current_value | mask;
+    else 
+        new_value = current_value & ~mask;
+    
+    // Write the new value
+    return writeRegister(fd, reg, new_value);
 }
 
 
@@ -213,31 +238,58 @@ bool IMU::initialize()
         return false;
     }
 
-    // Reset devices
-    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL3_C, 0x01);         
-    writeRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG2, 0x04); 
-
-    // configureLSM6DS3(LSM6DS_DATA_RATE::RATE_104_HZ,
-    //                  LSM6DS_HPF_RAMGE::HPF_ODR_DIV_100);
-
-    // Set Block Data Update bit (prevents MSB/LSB data corruption during reads)
-    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL3_C, 0x44);  // BDU=1, IF_INC=1
-
-    // configureLIS3MDL(LIS3MDL_DATA_RATE::RATE_155_HZ,
-    //                  LIS3MDL_PERF_MODE::LIS3MDL_ULTRAHIGHMODE,
-    //                  LIS3MDL_OPER_MODE::LIS3MDL_CONTINUOUSMODE);
-
-
-    // configureRanges(ACCEL_RAMGE::ACCEL_RANGE_4_G, 
-    //                 GYRO_RANGE::GYRO_RANGE_2000_DPS, 
-    //                 MAG_RANGE::LIS3MDL_RANGE_4_GAUSS);
-
+    configureSettings();
+    kalman_filter.initialize();
 
     initialized = true;
     return true;
 }
 
-  
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void IMU::configureSettings() 
+{
+    
+    // Reset devices
+    setBit(lsm6ds3_fd,LSM6DS3::Reg::CTRL3_C, LSM6DS3::SB_MASK::CTRL3_SW_RESET, true);         
+    setBit(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG2, LIS3MDL::SB_MASK::CTRL2_SOFT_RST, true);  
+
+    // Set Block Data Update bit (prevents MSB/LSB data corruption during reads)
+    setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL3_C, LSM6DS3::SB_MASK::CTRL3_BDU, false);
+    setMagnetometerMode(LIS3MDL::MD::CONTINUOUS);
+
+    
+    setAccelerometerRate(LSM6DS3::ODR_XL::RATE_208_HZ);
+    setGyroscopeRate(LSM6DS3::ODR_G::RATE_208_HZ);
+    
+    setAccelerometerRange(LSM6DS3::FS_XL::RANGE_4_G);
+    setGyroscopeRange(LSM6DS3::FS_G::RANGE_245_DPS);
+
+    // Enables First accel Low Pass Filter
+    setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL1_XL, LSM6DS3::SB_MASK::CTRL1_LPF1_BW_SEL, true);
+    // Enables second accel Low Pass Filter
+    setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL8_XL, LSM6DS3::SB_MASK::CTRL8_LPF2_XL_EN, true);
+    // Enables high performance mode for accel
+    setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL6_C, LSM6DS3::SB_MASK::CTRL6_XL_HM_MODE, true);
+    // Enables high performance mode for gyro
+    setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL7_G, LSM6DS3::SB_MASK::CTRL7_G_HM_MODE, true);
+    // Enables gyro digital High Pass Filter 
+    setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL7_G, LSM6DS3::SB_MASK::CTRL7_HP_EN_G, true);
+
+
+    setMagnetometerRate(LIS3MDL::DO::RATE_80_HZ);
+    setMagnetometerRange(LIS3MDL::FS::RANGE_4_GAUSS);
+
+    //Turns on FAST_ODR 
+    setBit(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG1, LIS3MDL::SB_MASK::CTRL1_FAST_ODR,true);
+    setMagnetometerPower(LIS3MDL::OM::HIGH);
+
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -250,25 +302,19 @@ void IMU::readLoop()
     
     while (running) 
     {
-         std::chrono::time_point start_time = std::chrono::steady_clock::now();
+         std::chrono::time_point start_time = std::chrono::system_clock::now();
         
         if (!initialized) 
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
             break;
         }
-        
         readData();
-        
-        // Calculate time to sleep
-        std::chrono::duration elapsed = std::chrono::steady_clock::now() - start_time;
+        std::chrono::duration elapsed = std::chrono::system_clock::now() - start_time;
         if (elapsed < read_interval) 
-        {
             std::this_thread::sleep_for(read_interval - elapsed);
-        }
     }
     running = false;
-    
     std::cerr << "IMU read loop stopped" << std::endl;
 }
 
@@ -290,7 +336,7 @@ bool IMU::readData()
     int16_t LSM6DS3_data[7]; 
 
     // Read temperature and accel/gyro data from LSM6DS3
-    if (!writeThenreadRegister(lsm6ds3_fd, LSM6DS3_OUT_TEMP_L, LSM6DS3_buffer, 14)) 
+    if (!readRegisters(lsm6ds3_fd, LSM6DS3::Reg::OUT_TEMP_L, LSM6DS3_buffer, 14)) 
     {
         error = true;
     }
@@ -303,17 +349,13 @@ bool IMU::readData()
     // Convert temperature (LSB = 256 per degree C, 25°C = 0)
     float temp = 25.0f + ((float)LSM6DS3_data[0] / 256.0f);
     
-    // Convert gyroscope data (raw to rad/s)
-    const float GYRO_TO_RAD_PS = M_PI / 180.0f / 1000.0f; // mdps to rad/s
-    float gx = (float)LSM6DS3_data[1] * gyro_scale * GYRO_TO_RAD_PS;
-    float gy = (float)LSM6DS3_data[2] * gyro_scale * GYRO_TO_RAD_PS;
-    float gz = (float)LSM6DS3_data[3] * gyro_scale * GYRO_TO_RAD_PS;
+    float gx = (float)LSM6DS3_data[1] * gyro_scale / 1000;
+    float gy = (float)LSM6DS3_data[2] * gyro_scale / 1000;
+    float gz = (float)LSM6DS3_data[3] * gyro_scale / 1000;
     
-    // Convert accelerometer data (raw to m/s²)
-    const float ACC_TO_MS2 = 9.80665f / 1000.0f; // mg to m/s²
-    float ax = (float)LSM6DS3_data[4] * accel_scale * ACC_TO_MS2;
-    float ay = (float)LSM6DS3_data[5] * accel_scale * ACC_TO_MS2;
-    float az = (float)LSM6DS3_data[6] * accel_scale * ACC_TO_MS2;
+    float ax = (float)LSM6DS3_data[4] * accel_scale / 1000;
+    float ay = (float)LSM6DS3_data[5] * accel_scale / 1000;
+    float az = (float)LSM6DS3_data[6] * accel_scale / 1000;
 
 
     
@@ -321,7 +363,7 @@ bool IMU::readData()
     int16_t LIS3MDL_data[3]; 
 
     // Read magnetometer data from LIS3MDL
-    if (!writeThenreadRegister(lis3mdl_fd, LIS3MDL_OUT_X_L, LIS3MDL_buffer, 6)) 
+    if (!readRegisters(lis3mdl_fd, LIS3MDL::Reg::OUT_X_L, LIS3MDL_buffer, 6)) 
     {
         error = true;
     }
@@ -332,11 +374,9 @@ bool IMU::readData()
         LIS3MDL_data[i] = (LIS3MDL_buffer[i*2+1] << 8) | LIS3MDL_buffer[i*2];
     }
 
-    // Convert magnetometer data (raw to μT)
-    const float GAUSS_TO_MICROTESLA = 100.0f; // 1 gauss = 100 μT
-    float mx = (float)LIS3MDL_data[0] * mag_scale * GAUSS_TO_MICROTESLA;
-    float my = (float)LIS3MDL_data[1] * mag_scale * GAUSS_TO_MICROTESLA;
-    float mz = (float)LIS3MDL_data[2] * mag_scale * GAUSS_TO_MICROTESLA;
+    float mx = (float)LIS3MDL_data[0] / mag_scale ;
+    float my = (float)LIS3MDL_data[1] / mag_scale ;
+    float mz = (float)LIS3MDL_data[2] / mag_scale ;
 
     if(!error)
     {
@@ -362,10 +402,9 @@ bool IMU::readData()
             {
                 data_history.pop_front(); 
             }
+
         }
-
-        //updateOrientation();
-
+        updateOrientation();
         return true;
     }
     else
@@ -383,7 +422,495 @@ bool IMU::readData()
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+void IMU::setAccelerometerRange(LSM6DS3::FS_XL range)
+{
+    
+    // Read current register value to preserve other bits
+    uint8_t current_value = readRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL1_XL);
+    
+    // Clear range bits (bits 2-3) and set new range
+    uint8_t new_value = (current_value & 0xF3) | static_cast<uint8_t>(range);
+    
+    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL1_XL, new_value);
+    
+    // Update scale factor
+    switch (range) 
+    {
+        case LSM6DS3::FS_XL::RANGE_2_G:
+            accel_scale = 0.061f; // mg/LSB
+            break;
+        case LSM6DS3::FS_XL::RANGE_4_G:
+            accel_scale = 0.122f; // mg/LSB
+            break;
+        case LSM6DS3::FS_XL::RANGE_8_G:
+            accel_scale = 0.244f; // mg/LSB
+            break;
+        case LSM6DS3::FS_XL::RANGE_16_G:
+            accel_scale = 0.488f; // mg/LSB
+            break;
+   
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void IMU::setGyroscopeRange(LSM6DS3::FS_G range)
+{
+    // Read current register value to preserve other bits
+    uint8_t current_value = readRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL2_G);
+    
+    if(range != LSM6DS3::FS_G::RANGE_125_DPS)
+    {
+        // Clear range bits (bits 2-3) and set new range
+        setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL2_G, LSM6DS3::SB_MASK::CTRL2_FS_125, false);
+        uint8_t new_value = (current_value & 0xF3) | static_cast<uint8_t>(range);
+        writeRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL2_G, new_value);
+    }
+    else
+    {
+        setBit(lsm6ds3_fd, LSM6DS3::Reg::CTRL2_G, LSM6DS3::SB_MASK::CTRL2_FS_125, true);
+        std::cerr << " *SPECIAL CASE* Enabled gyroscope full-scale at 125 dps" <<std::endl;
+        
+    }
+    
+    // Update scale factor
+    switch (range) 
+    {
+        case LSM6DS3::FS_G::RANGE_125_DPS:
+            gyro_scale = 4.375f; // mdps/LSB
+            break;
+        case LSM6DS3::FS_G::RANGE_245_DPS:
+            gyro_scale = 8.75f; // mdps/LSB
+            break;
+        case LSM6DS3::FS_G::RANGE_500_DPS:
+            gyro_scale = 17.5f; // mdps/LSB
+            break;
+        case LSM6DS3::FS_G::RANGE_1000_DPS:
+            gyro_scale = 35.0f; // mdps/LSB
+            break;
+        case LSM6DS3::FS_G::RANGE_2000_DPS:
+            gyro_scale = 70.0f; // mdps/LSB
+            break;
+    }
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void IMU::setMagnetometerRange(LIS3MDL::FS range)
+{
+    // Read current register value to preserve other bits
+    uint8_t current_value = readRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG2);
+    
+    // Clear range bits (bits 5-6) and set new range
+    uint8_t new_value = (current_value & 0x9F) | static_cast<uint8_t>(range);
+    
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG2, new_value);
+    
+    // Update scale factor
+    switch (range) 
+    {
+        case LIS3MDL::FS::RANGE_4_GAUSS:
+            mag_scale = 6842.0f;        // gauss/LSB
+            break;
+        case LIS3MDL::FS::RANGE_8_GAUSS:
+            mag_scale = 3421.0f;        // gauss/LSB
+            break;
+        case LIS3MDL::FS::RANGE_12_GAUSS:
+            mag_scale = 2281.0f;        // gauss/LSB
+            break;
+        case LIS3MDL::FS::RANGE_16_GAUSS:
+            mag_scale = 1711.0f;        // gauss/LSB
+            break;
+    }
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void IMU::setAccelerometerRate(LSM6DS3::ODR_XL rate)
+{
+    // Read current register value to preserve range bits
+    uint8_t current_value = readRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL1_XL);
+    
+    // Clear rate bits (bits 4-7) and set new rate
+    uint8_t new_value = (current_value & 0x0F) | static_cast<uint8_t>(rate);
+    
+    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL1_XL, new_value);
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void IMU::setGyroscopeRate(LSM6DS3::ODR_G rate)
+{
+     // Read current register value to preserve range bits
+    uint8_t current_value = readRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL2_G);
+    
+    // Clear rate bits (bits 4-7) and set new rate
+    uint8_t new_value = (current_value & 0x0F) | static_cast<uint8_t>(rate);
+    
+    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL2_G, new_value);
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void IMU::setMagnetometerRate(LIS3MDL::DO rate)
+{
+    // Read current register value to preserve other bits
+    uint8_t current_value = readRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG1);
+    
+    // Clear rate bits (bits 2-4) and set new rate
+    uint8_t new_value = (current_value & 0xE3) | static_cast<uint8_t>(rate);
+    // Make sure Fast_ODR is disabled 
+    setBit(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG1, LIS3MDL::SB_MASK::CTRL1_FAST_ODR,false);
+    
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG1, new_value);
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void IMU::setMagnetometerPower(LIS3MDL::OM power_mode)
+{
+    LIS3MDL::OMZ z_mode;
+
+    switch (power_mode) 
+    {
+        case LIS3MDL::OM::LOW_POWER:
+            z_mode = LIS3MDL::OMZ::LOW_POWER;
+            break;
+        case LIS3MDL::OM::MEDIUM:
+            z_mode = LIS3MDL::OMZ::MEDIUM;
+            break;
+        case LIS3MDL::OM::HIGH:
+            z_mode = LIS3MDL::OMZ::HIGH;
+            break;
+        case LIS3MDL::OM::ULTRA_HIGH:
+            z_mode = LIS3MDL::OMZ::ULTRA_HIGH;
+            break;
+    }
+
+    uint8_t current_REG1 = readRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG1);
+    uint8_t current_REG4 = readRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG4);
+
+    uint8_t new_REG1 = (current_REG1 & 0x9F) | static_cast<uint8_t>(power_mode);
+    uint8_t new_REG4 = (current_REG4 & 0xF3) | static_cast<uint8_t>(z_mode);
+
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG1, new_REG1);
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG4, new_REG4);
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void IMU::setMagnetometerMode(LIS3MDL::MD op_mode)
+{
+    // Read current register value to preserve other bit
+    uint8_t current_value = readRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG3);
+    
+    uint8_t new_value = (current_value & 0xFC) | static_cast<uint8_t>(op_mode);
+
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::CTRL_REG3, new_value);
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+// Modify your updateOrientation method to use Kalman filter when enabled
+void IMU::updateOrientation()
+{
+    std::lock_guard<std::mutex> lock(data_mutex);
+    
+    if (!current_data.valid) 
+    {
+        current_orientation.valid = false;
+        current_orientation.timestamp = std::chrono::system_clock::now();
+        return;
+    }
+    
+    kalman_filter.update(current_data, magCalibrated);
+    current_orientation = kalman_filter.getOrientation();
+   
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+bool IMU::calibrateAccelerometer() 
+{
+  
+    int attempts = 0;
+    while (!isStationary()) 
+    {
+        std::cerr << "Waiting for device to be stationary..." << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        attempts++;
+        if (attempts > 30)
+        {
+            std::cerr << "Could not calibrate accelerometer, timed out waiting for device to be stationary" << std::endl;
+            return false;
+        }
+    }
+    
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    
+    // Make a local copy of the deque to reduce mutex lock time
+    std::deque<IMUData> calibration_data;
+    {
+        std::lock_guard<std::mutex> lock(data_mutex);
+        calibration_data = data_history; // Copy the deque
+    }
+    
+    float sumX = 0.0f, sumY = 0.0f, sumZ = 0.0f;
+    size_t count = 0;
+    
+    // Use copied data for calculations (no mutex needed)
+    for (int i = 0; i < calibration_data.size(); i++) 
+    {
+        if(calibration_data[i].valid)
+        {
+            sumX += calibration_data[i].ax;
+            sumY += calibration_data[i].ay;
+            sumZ += calibration_data[i].az;
+            count++;
+        }
+    }
+        
+    // Calculate average offsets
+    float avgX = (sumX / count);
+    float avgY = (sumY / count);
+    float avgZ = (sumZ / count);
+    float desiredZ = -1; // -1g for Z axis when flat
+    
+    std::cerr << "Current average readings (g): X=" << avgX << ", Y=" << avgY 
+              << ", Z=" << avgZ << std::endl;
+    
+    // Read current USR_OFF_W setting (weight of the offset)
+    uint8_t ctrl6_c = readRegister(lsm6ds3_fd, LSM6DS3::Reg::CTRL6_C);
+    bool high_weight = (ctrl6_c & LSM6DS3::SB_MASK::CTRL6_USR_OFF_W) > 0;
+    
+    // Scale factor for offset registers
+    // 2^(-6) g/LSB when USR_OFF_W=1, 2^(-10) g/LSB when USR_OFF_W=0
+    float scale_factor = high_weight ? (1.0f / 64.0f) : (1.0f / 1024.0f);
+    
+    // Calculate offset values in register units (signed 8-bit values)
+    int8_t offsetX = -static_cast<int8_t>(avgX / scale_factor);
+    int8_t offsetY = -static_cast<int8_t>(avgY / scale_factor);
+    int8_t offsetZ = -static_cast<int8_t>((avgZ - desiredZ) / scale_factor);
+    
+    // Ensure values are within valid range (-127 to +127)
+    offsetX = std::max(std::min(offsetX, static_cast<int8_t>(127)), static_cast<int8_t>(-127));
+    offsetY = std::max(std::min(offsetY, static_cast<int8_t>(127)), static_cast<int8_t>(-127));
+    offsetZ = std::max(std::min(offsetZ, static_cast<int8_t>(127)), static_cast<int8_t>(-127));
+    
+    std::cerr << "Writing offsets: X=" << static_cast<int>(offsetX) 
+              << ", Y=" << static_cast<int>(offsetY) 
+              << ", Z=" << static_cast<int>(offsetZ) << std::endl;
+    
+    // Write offsets to registers
+    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::X_OFS_USR, static_cast<uint8_t>(offsetX));
+    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::Y_OFS_USR, static_cast<uint8_t>(offsetY));
+    writeRegister(lsm6ds3_fd, LSM6DS3::Reg::Z_OFS_USR, static_cast<uint8_t>(offsetZ));
+    
+    std::cerr << "Accelerometer calibration complete" << std::endl;
+    
+    accelCalibrated = true;
+    return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+bool IMU::calibrateMagnetometer()
+{
+    std::cerr << "Starting magnetometer calibration..." << std::endl;
+    std::cerr << "Please rotate the robot slowly around its Z axis (full 360° rotation)" << std::endl;
+    
+    std::deque<IMUData> calibration_data;
+
+    // Collection variables
+    float min_mx = std::numeric_limits<float>::max();
+    float max_mx = std::numeric_limits<float>::lowest();
+    float min_my = std::numeric_limits<float>::max();
+    float max_my = std::numeric_limits<float>::lowest();
+    float min_mz = std::numeric_limits<float>::max();
+    float max_mz = std::numeric_limits<float>::lowest();
+
+    bool calibration_started = false;
+    float gyro_rotation = 0.0f;
+
+
+    const float gyro_threshold = 0.5f; // dps - adjust based on your observations
+    const float required_rotation = 360.0f; // degrees
+    const int calibration_timeout = 60000; // 60 seconds timeout
+
+    const int update_interval_ms = 200; // 1 second
+  
+    
+    
+    std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
+    std::chrono::system_clock::time_point last_update_time = start_time;
+    std::chrono::system_clock::time_point last_progress_time = start_time;
+    
+    
+    std::cerr << "Starting calibration - rotate robot slowly..." << std::endl;
+    
+    while (std::chrono::duration_cast<std::chrono::milliseconds>(
+           std::chrono::system_clock::now() - start_time).count() < calibration_timeout) 
+    {
+       
+        std::lock_guard<std::mutex> lock(data_mutex);
+    
+        if (!current_data.valid) 
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            continue;
+        }
+        
+        // Calculate time delta for gyro integration
+        auto current_time = current_data.timestamp;
+        float dt = std::chrono::duration<float>(current_time - last_update_time).count();
+        last_update_time = current_time;
+        
+        // Check if rotation has started (using gyro)
+        if (!calibration_started && std::abs(current_data.gz) > gyro_threshold)
+        {
+            calibration_started = true;
+            std::cerr << "Rotation detected! Beginning calibration..." << std::endl;
+        }
+    
+        if(!calibration_started) 
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            continue;
+        }
+
+        if (std::abs(current_data.gz) > gyro_threshold)
+        {
+       
+            gyro_rotation += std::abs(current_data.gz) * dt;
+
+            min_mx = std::min(min_mx, current_data.mx);
+            max_mx = std::max(max_mx, current_data.mx);
+            min_my = std::min(min_my, current_data.my);
+            max_my = std::max(max_my, current_data.my);
+            min_mz = std::min(min_mz, current_data.mz);
+            max_mz = std::max(max_mz, current_data.mz);
+        }
+        
+
+        
+        // Show progress updates at regular intervals
+        std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_progress_time).count() > update_interval_ms) 
+        {
+            std::cout << "Rotation progress: " << gyro_rotation << "° / " << required_rotation << "°" << std::endl;
+            std::cout << "Current min/max - X: [" << min_mx << ", " << max_mx << ", " << "], Y: [" 
+                      << min_my << ", " << max_my << "]" << std::endl;
+            
+            last_progress_time = now;
+        }
+        
+      
+        if (gyro_rotation >= required_rotation) 
+        {
+            std::cout << "Full rotation detected! Gyro-based rotation: " << gyro_rotation << "°" << std::endl;
+            break;
+        }
+        
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    
+    // Check if we completed a full rotation
+    if (gyro_rotation < required_rotation) 
+    {
+        std::cerr << "Calibration incomplete. Only " << gyro_rotation 
+                  << "° rotation detected (required: " << required_rotation << "°)" << std::endl;
+        return false;
+    }
+    
+    // Calculate center offsets (hard iron distortion)
+    float offset_x = (min_mx + max_mx) / 2.0f;
+    float offset_y = (min_my + max_my) / 2.0f;
+    float offset_z = (min_mz + max_mz) / 2.0f;
+    
+    std::cout << "Magnetometer calibration complete:" << std::endl;
+    std::cout << "Hard iron offsets: X=" << offset_x << ", Y=" << offset_y << ", Z=" << offset_z << std::endl;
+    
+    // Convert offsets to register values
+    int16_t raw_offset_x = static_cast<int16_t>(offset_x * mag_scale);
+    int16_t raw_offset_y = static_cast<int16_t>(offset_y * mag_scale);
+    int16_t raw_offset_z = static_cast<int16_t>(offset_z * mag_scale);
+    
+    // Write offsets to the magnetometer registers
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::OFFSET_X_REG_L_M, raw_offset_x & 0xFF);
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::OFFSET_X_REG_H_M, (raw_offset_x >> 8) & 0xFF);
+    
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::OFFSET_Y_REG_L_M, raw_offset_y & 0xFF);
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::OFFSET_Y_REG_H_M, (raw_offset_y >> 8) & 0xFF);
+    
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::OFFSET_Z_REG_L_M, raw_offset_z & 0xFF);
+    writeRegister(lis3mdl_fd, LIS3MDL::Reg::OFFSET_Z_REG_H_M, (raw_offset_z >> 8) & 0xFF);
+    
+    std::cout << "Magnetometer offset registers updated" << std::endl;
+    
+    // Calculate scaling factors (soft iron distortion)
+    float radius_x = (max_mx - min_mx) / 2.0f;
+    float radius_y = (max_my - min_my) / 2.0f;
+    float avg_radius = (radius_x + radius_y) / 2.0f;
+    
+    float scale_factor_x = avg_radius / radius_x;
+    float scale_factor_y = avg_radius / radius_y;
+    
+    std::cout << "Soft iron scaling: X=" << scale_factor_x << ", Y=" << scale_factor_y << std::endl;
+    
+    // Set scaling factors in Kalman filter (since hardware doesn't handle scaling)
+    kalman_filter.setMagneticOffsets(0.0f, 0.0f, 0.0f); // Zero since hardware registers handle offsets
+    kalman_filter.setMagneticScaling(scale_factor_x, scale_factor_y, 1.0f);
+    
+    // Calculate and report the fit quality (how close to a circle)
+    float circle_error = std::abs(radius_x - radius_y) / avg_radius * 100.0f;
+    std::cout << "Circle fit quality: " << (100.0f - circle_error) << "% (closer to 100% is better)" << std::endl;
+    
+    magCalibrated = true;
+    return true;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -391,19 +918,27 @@ bool IMU::readData()
 
 bool IMU::isStationary(float threshold) const 
 {
+    std::deque<IMUData> smaples; 
     std::lock_guard<std::mutex> lock(data_mutex);
     
     // Need a minimum number of samples
-    if (data_history.size() < 10) {
+    if (data_history.size() < HISTORY_BUFFER_SIZE) 
+    {
+        std::cerr << "Not enough samples in deque to determine if device is stationary" << std::endl;
         return false;
     }
-    
+    else
+    {
+        smaples = data_history; // Copy the deque
+    }
+
     // Calculate variance of angular velocity
     float sum_gx = 0.0f, sum_gy = 0.0f, sum_gz = 0.0f;
     float sum_gx2 = 0.0f, sum_gy2 = 0.0f, sum_gz2 = 0.0f;
     
     // Calculate means and squared values
-    for (const auto& data : data_history) {
+    for (const auto& data : smaples) 
+    {
         sum_gx += data.gx;
         sum_gy += data.gy;
         sum_gz += data.gz;
@@ -434,564 +969,93 @@ bool IMU::isStationary(float threshold) const
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// bool IMU::updateOrientation() 
-// {
-//     std::lock_guard<std::mutex> lock(data_mutex);
-    
-//     if (!current_data.valid) {
-//         current_orientation.valid = false;
-//         current_orientation.timestamp = std::chrono::system_clock::now();
-//         return false;
-//     }
-    
-//     // Static variables to track last update time and integrated angles
-//     static std::chrono::steady_clock::time_point last_update_time = 
-//         std::chrono::steady_clock::now();
-//     static float integrated_roll = 0.0f;
-//     static float integrated_pitch = 0.0f;
-//     static float integrated_yaw = 0.0f;
-    
-//     // Calculate time delta
-//     auto current_time = std::chrono::steady_clock::now();
-//     float dt = std::chrono::duration<float>(current_time - last_update_time).count();
-//     last_update_time = current_time;
-    
-//     // Skip if this is the first update or timing is off
-//     if (dt > 0.5f || dt <= 0.0f) 
-//     {
-//         dt = 0.01f; // Default to 10ms if timing seems wrong
-//     }
-    
-//     // Get current sensor data
-//     float ax = current_data.ax;
-//     float ay = current_data.ay;
-//     float az = current_data.az;
-//     float gx = current_data.gx;
-//     float gy = current_data.gy;
-//     float gz = current_data.gz;
-//     float mx = current_data.mx;
-//     float my = current_data.my;
-//     float mz = current_data.mz;
-    
-//     // Calculate accel-based pitch and roll (in radians)
-//     float accel_roll = atan2(ay, az);
-//     float accel_pitch = atan2(-ax, sqrt(ay * ay + az * az));
-    
-//     // Integrate gyro data (in degrees)
-//     integrated_roll += gx * dt;
-//     integrated_pitch += gy * dt;
-//     integrated_yaw += gz * dt;
-    
-//     // Calculate tilt-compensated magnetometer heading
-//     // Apply the tilt compensation to magnetometer readings
-//     float tilt_comp_mx = mx * cos(accel_pitch) + mz * sin(accel_pitch);
-//     float tilt_comp_my = mx * sin(accel_roll) * sin(accel_pitch) + 
-//                          my * cos(accel_roll) - 
-//                          mz * sin(accel_roll) * cos(accel_pitch);
-    
-//     // // Calculate the raw mag heading (0-360 degrees)
-//     // float mag_heading = atan2(tilt_comp_my, tilt_comp_mx) * RAD_TO_DEG;
-//     // if (mag_heading < 0) mag_heading += 360.0f;
-    
-//     // // Normalize to 0-360
-//     // while (mag_heading < 0) mag_heading += 360.0f;
-//     // while (mag_heading >= 360.0f) mag_heading -= 360.0f;
-    
-//     // Complementary filter to combine gyro and accel/mag data
-//     const float alpha = 0.98f;
-    
-//     // Convert accel values to degrees
-//     float roll_deg = accel_roll * RAD_TO_DEG;
-//     float pitch_deg = accel_pitch * RAD_TO_DEG;
-    
-//     // Apply complementary filter for roll and pitch
-//     float roll = alpha * integrated_roll + (1.0f - alpha) * roll_deg;
-//     float pitch = alpha * integrated_pitch + (1.0f - alpha) * pitch_deg;
-    
-//     // For yaw/heading, use a complementary filter between gyro and magnetometer
-//     // First calculate the difference between mag and gyro
-//     float yaw_error = mag_heading - integrated_yaw;
-//     // Normalize the error to -180 to +180
-//     if (yaw_error > 180.0f) yaw_error -= 360.0f;
-//     if (yaw_error < -180.0f) yaw_error += 360.0f;
-    
-//     // Apply the filter with a smaller alpha for heading (more magnetometer influence)
-//     // Gyro provides short-term accuracy, mag provides long-term stability
-//     float yaw = integrated_yaw + (1.0f - alpha) * yaw_error;
-    
-//     // Normalize yaw to 0-360
-//     if (yaw < 0) yaw += 360.0f;
-//     if (yaw >= 360.0f) yaw -= 360.0f;
-    
-//     // Save the new integrated values
-//     integrated_roll = roll;
-//     integrated_pitch = pitch;
-//     integrated_yaw = yaw;
-    
-//     // The absolute heading is the same as the yaw for a robot
-//     float heading = yaw;
-    
-//     // Convert to radians for quaternion calculation
-//     float roll_rad = roll * DEG_TO_RAD;
-//     float pitch_rad = pitch * DEG_TO_RAD;
-//     float yaw_rad = yaw * DEG_TO_RAD;
-    
-//     // Convert Euler angles to quaternion
-//     // Calculate half angles
-//     float cr = cos(roll_rad * 0.5f);
-//     float sr = sin(roll_rad * 0.5f);
-//     float cp = cos(pitch_rad * 0.5f);
-//     float sp = sin(pitch_rad * 0.5f);
-//     float cy = cos(yaw_rad * 0.5f);
-//     float sy = sin(yaw_rad * 0.5f);
-    
-//     // Quaternion
-//     float qw = cr * cp * cy + sr * sp * sy;
-//     float qx = sr * cp * cy - cr * sp * sy;
-//     float qy = cr * sp * cy + sr * cp * sy;
-//     float qz = cr * cp * sy - sr * sp * cy;
-    
-//     // Update orientation structure
-//     current_orientation.roll = roll;
-//     current_orientation.pitch = pitch;
-//     current_orientation.yaw = yaw;
-//     current_orientation.qw = qw;
-//     current_orientation.qx = qx;
-//     current_orientation.qy = qy;
-//     current_orientation.qz = qz;
-//     current_orientation.timestamp = std::chrono::system_clock::now();
-//     current_orientation.valid = true;
-    
-//     return true;
-// }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// bool IMU::calibrateAccelerometer() {
-//     if (!running || !initialized) {
-//         last_error = "IMU must be running and initialized to calibrate";
-//         std::cerr << last_error << std::endl;
-//         return false;
-//     }
-    
-//     // Wait for the sensor to be stationary
-//     int attempts = 0;
-//     while (!isStationary() && attempts < 30) {
-//         std::cerr << "Waiting for device to be stationary..." << std::endl;
-//         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//         attempts++;
-//     }
-    
-//     if (attempts >= 30) {
-//         last_error = "Timed out waiting for device to be stationary";
-//         std::cerr << last_error << std::endl;
-//         return false;
-//     }
-    
-//     // Once stationary, wait a bit longer to collect more stable data
-//     std::cerr << "Device is stationary. Collecting stable data for calibration..." << std::endl;
-//     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    
-//     // Make a local copy of the deque to reduce mutex lock time
-//     std::deque<IMUData> calibration_data;
-//     {
-//         std::lock_guard<std::mutex> lock(data_mutex);
-//         calibration_data = data_history; // Copy the deque
-//     }
-    
-//     if (calibration_data.size() < 50) {
-//         last_error = "Not enough data for calibration, need at least 50 samples";
-//         std::cerr << last_error << std::endl;
-//         return false;
-//     }
-    
-//     float sumX = 0.0f, sumY = 0.0f, sumZ = 0.0f;
-//     size_t count = 0;
-    
-//     // Use copied data for calculations (no mutex needed)
-//     for (const auto& data : calibration_data) {
-//         sumX += data.ax;
-//         sumY += data.ay;
-//         sumZ += data.az;
-//         count++;
-//     }
-    
-//     float new_offset_x = sumX / count;
-//     float new_offset_y = sumY / count;
-//     float new_offset_z = (sumZ / count) - 1.0f;  // Remove gravity (1g)
-    
-//     // Lock mutex again just to update the offsets
-//     {
-//         std::lock_guard<std::mutex> lock(data_mutex);
-//         accel_offset_x = new_offset_x;
-//         accel_offset_y = new_offset_y;
-//         accel_offset_z = new_offset_z;
-//     }
-    
-//     std::cerr << "Accelerometer calibration: offsets = ("
-//               << accel_offset_x << ", " << accel_offset_y << ", "
-//               << accel_offset_z << ") using " << count << " samples" << std::endl;
-    
-//     return true;
-// }
-
-// bool IMU::calibrateMagnetometer() {
-//     if (!running || !initialized) {
-//         last_error = "IMU must be running and initialized to calibrate";
-//         std::cerr << last_error << std::endl;
-//         return false;
-//     }
-    
-//     // For proper magnetometer calibration, the device should be rotated in figure-8 patterns
-//     // to collect samples across all orientations. Here we'll do a simpler calibration.
-    
-//     // Make a local copy of the deque to reduce mutex lock time
-//     std::deque<IMUData> calibration_data;
-//     {
-//         std::lock_guard<std::mutex> lock(data_mutex);
-//         calibration_data = data_history; // Copy the deque
-//     }
-    
-//     if (calibration_data.size() < 50) {
-//         last_error = "Not enough data for calibration, need at least 50 samples";
-//         std::cerr << last_error << std::endl;
-//         return false;
-//     }
-    
-//     // Find min and max values for each axis to determine the center of the sphere
-//     float min_x = FLT_MAX, max_x = -FLT_MAX;
-//     float min_y = FLT_MAX, max_y = -FLT_MAX;
-//     float min_z = FLT_MAX, max_z = -FLT_MAX;
-    
-//     for (const auto& data : calibration_data) {
-//         min_x = std::min(min_x, data.mx);
-//         max_x = std::max(max_x, data.mx);
-//         min_y = std::min(min_y, data.my);
-//         max_y = std::max(max_y, data.my);
-//         min_z = std::min(min_z, data.mz);
-//         max_z = std::max(max_z, data.mz);
-//     }
-    
-//     // Calculate offsets (center of the sphere)
-//     float new_offset_x = (min_x + max_x) / 2.0f;
-//     float new_offset_y = (min_y + max_y) / 2.0f;
-//     float new_offset_z = (min_z + max_z) / 2.0f;
-    
-//     // Lock mutex again just to update the offsets
-//     {
-//         std::lock_guard<std::mutex> lock(data_mutex);
-//         mag_offset_x = new_offset_x;
-//         mag_offset_y = new_offset_y;
-//         mag_offset_z = new_offset_z;
-//     }
-    
-//     std::cerr << "Magnetometer calibration: offsets = ("
-//               << mag_offset_x << ", " << mag_offset_y << ", "
-//               << mag_offset_z << ") using " << calibration_data.size() << " samples" << std::endl;
-    
-//     return true;
-// }
-
-    
 
 
- 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
- 
-// void IMU::configureRanges(ACCEL_RAMGE a_range, GYRO_RANGE g_range, MAG_RANGE m_range) {
-//     // Configure accelerometer range
-//     uint8_t accel_reg_value = 0;
-//     switch (a_range) {
-//         case ACCEL_RAMGE::ACCEL_RANGE_2_G:
-//             accel_scale = 0.061f; // mg/LSB
-//             accel_reg_value = 0x00;
-//             break;
-//         case ACCEL_RAMGE::ACCEL_RANGE_4_G:
-//             accel_scale = 0.122f; // mg/LSB
-//             accel_reg_value = 0x08;
-//             break;
-//         case ACCEL_RAMGE::ACCEL_RANGE_8_G:
-//             accel_scale = 0.244f; // mg/LSB
-//             accel_reg_value = 0x0C;
-//             break;
-//         case ACCEL_RAMGE::ACCEL_RANGE_16_G:
-//             accel_scale = 0.488f; // mg/LSB
-//             accel_reg_value = 0x04;
-//             break;
-//     }
-    
-//     // Read current value to preserve data rate bits
-//     uint8_t current_ctrl1 = 0;
-//     readBytes(LSM6DS3_ADDR, LSM6DS_CTRL1_XL, &current_ctrl1, 1);
-//     // Clear range bits and set new range
-//     current_ctrl1 = (current_ctrl1 & 0xF3) | accel_reg_value;
-//     writeByte(LSM6DS3_ADDR, LSM6DS_CTRL1_XL, current_ctrl1);
-    
-//     // Configure gyroscope range
-//     uint8_t gyro_reg_value = 0;
-//     switch (g_range) {
-//         case GYRO_RANGE::GYRO_RANGE_125_DPS:
-//             gyro_scale = 4.375f; // mdps/LSB
-//             gyro_reg_value = 0x02;
-//             break;
-//         case GYRO_RANGE::GYRO_RANGE_250_DPS:
-//             gyro_scale = 8.75f; // mdps/LSB
-//             gyro_reg_value = 0x00;
-//             break;
-//         case GYRO_RANGE::GYRO_RANGE_500_DPS:
-//             gyro_scale = 17.5f; // mdps/LSB
-//             gyro_reg_value = 0x04;
-//             break;
-//         case GYRO_RANGE::GYRO_RANGE_1000_DPS:
-//             gyro_scale = 35.0f; // mdps/LSB
-//             gyro_reg_value = 0x08;
-//             break;
-//         case GYRO_RANGE::GYRO_RANGE_2000_DPS:
-//             gyro_scale = 70.0f; // mdps/LSB
-//             gyro_reg_value = 0x0C;
-//             break;
-//     }
-    
-//     // Read current value to preserve data rate bits
-//     uint8_t current_ctrl2 = 0;
-//     readBytes(LSM6DS3_ADDR, LSM6DS_CTRL2_G, &current_ctrl2, 1);
-//     // Clear range bits and set new range
-//     current_ctrl2 = (current_ctrl2 & 0xF0) | gyro_reg_value;
-//     writeByte(LSM6DS3_ADDR, LSM6DS_CTRL2_G, current_ctrl2);
-    
-//     // Configure magnetometer range
-//     uint8_t mag_reg_value = 0;
-//     switch (m_range) {
-//         case MAG_RANGE::LIS3MDL_RANGE_4_GAUSS:
-//             mag_scale = 1.0f / 6842.0f; // gauss/LSB (from Adafruit driver)
-//             mag_reg_value = 0x00;
-//             break;
-//         case MAG_RANGE::LIS3MDL_RANGE_8_GAUSS:
-//             mag_scale = 1.0f / 3421.0f; // gauss/LSB
-//             mag_reg_value = 0x20;
-//             break;
-//         case MAG_RANGE::LIS3MDL_RANGE_12_GAUSS:
-//             mag_scale = 1.0f / 2281.0f; // gauss/LSB
-//             mag_reg_value = 0x40;
-//             break;
-//         case MAG_RANGE::LIS3MDL_RANGE_16_GAUSS:
-//             mag_scale = 1.0f / 1711.0f; // gauss/LSB
-//             mag_reg_value = 0x60;
-//             break;
-//     }
-    
-//     writeByte(LIS3MDL_ADDR, LIS3MDL_REG_CTRL_REG2, mag_reg_value);
-// }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// void IMU::configureLSM6DS3() 
-// {
-//     // Configure data rate for accelerometer and gyroscope
-//     uint8_t rate_bits = 0;
-//     switch (data_rate) {
-//         case LSM6DS_DATA_RATE::RATE_SHUTDOWN:
-//             rate_bits = 0x00;
-//             break;
-//         case LSM6DS_DATA_RATE::RATE_12_5_HZ:
-//             rate_bits = 0x10;
-//             break;
-//         case LSM6DS_DATA_RATE::RATE_26_HZ:
-//             rate_bits = 0x20;
-//             break;
-//         case LSM6DS_DATA_RATE::RATE_52_HZ:
-//             rate_bits = 0x30;
-//             break;
-//         case LSM6DS_DATA_RATE::RATE_104_HZ:
-//             rate_bits = 0x40;
-//             break;
-//         case LSM6DS_DATA_RATE::RATE_208_HZ:
-//             rate_bits = 0x50;
-//             break;
-//         case LSM6DS_DATA_RATE::RATE_416_HZ:
-//             rate_bits = 0x60;
-//             break;
-//         case LSM6DS_DATA_RATE::RATE_833_HZ:
-//             rate_bits = 0x70;
-//             break;
-//         case LSM6DS_DATA_RATE::RATE_1_66K_HZ:
-//             rate_bits = 0x80;
-//             break;
-//         case LSM6DS_DATA_RATE::RATE_3_33K_HZ:
-//             rate_bits = 0x90;
-//             break;
-//         case LSM6DS_DATA_RATE::RATE_6_66K_HZ:
-//             rate_bits = 0xA0;
-//             break;
-//     }
-    
-//     // Set accelerometer data rate (preserve range bits)
-//     uint8_t current_ctrl1 = 0;
-//     readBytes(LSM6DS3_ADDR, LSM6DS_CTRL1_XL, &current_ctrl1, 1);
-//     current_ctrl1 = (current_ctrl1 & 0x0F) | rate_bits;
-//     writeByte(LSM6DS3_ADDR, LSM6DS_CTRL1_XL, current_ctrl1);
-    
-//     // Set gyroscope data rate (preserve range bits)
-//     uint8_t current_ctrl2 = 0;
-//     readBytes(LSM6DS3_ADDR, LSM6DS_CTRL2_G, &current_ctrl2, 1);
-//     current_ctrl2 = (current_ctrl2 & 0x0F) | rate_bits;
-//     writeByte(LSM6DS3_ADDR, LSM6DS_CTRL2_G, current_ctrl2);
-    
-//     // Configure high-pass filter for accelerometer
-//     uint8_t hpf_bits = 0;
-//     switch (hpf_range) {
-//         case LSM6DS_HPF_RAMGE::HPF_ODR_DIV_50:
-//             hpf_bits = 0x00;
-//             break;
-//         case LSM6DS_HPF_RAMGE::HPF_ODR_DIV_100:
-//             hpf_bits = 0x20;
-//             break;
-//         case LSM6DS_HPF_RAMGE::HPF_ODR_DIV_9:
-//             hpf_bits = 0x40;
-//             break;
-//         case LSM6DS_HPF_RAMGE::HPF_ODR_DIV_400:
-//             hpf_bits = 0x60;
-//             break;
-//     }
-    
-//     // Enable high-pass filter
-//     writeByte(LSM6DS3_ADDR, LSM6DS_CTRL8_XL, 0x04 | hpf_bits);
-    
-//     // Set Block Data Update bit to prevent register corruption during reading
-//     writeByte(LSM6DS3_ADDR, LSM6DS_CTRL3_C, 0x40);
-// }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// void IMU::configureLIS3MDL() 
-// {
-//     // Configure performance mode and data rate
-//     uint8_t ctrl_reg1_value = 0;
-//     uint8_t fast_odr = 0;
-    
-//     // Set performance mode bits
-//     switch (p_mode) {
-//         case LIS3MDL_PERF_MODE::LIS3MDL_LOWPOWERMODE:
-//             ctrl_reg1_value = 0x00;
-//             break;
-//         case LIS3MDL_PERF_MODE::LIS3MDL_MEDIUMMODE:
-//             ctrl_reg1_value = 0x20;
-//             break;
-//         case LIS3MDL_PERF_MODE::LIS3MDL_HIGHMODE:
-//             ctrl_reg1_value = 0x40;
-//             break;
-//         case LIS3MDL_PERF_MODE::LIS3MDL_ULTRAHIGHMODE:
-//             ctrl_reg1_value = 0x60;
-//             break;
-//     }
-    
-//     // Set data rate bits
-//     switch (data_rate) {
-//         case LIS3MDL_DATA_RATE::RATE_0_625_HZ:
-//             ctrl_reg1_value |= 0x00;
-//             break;
-//         case LIS3MDL_DATA_RATE::RATE_1_25_HZ:
-//             ctrl_reg1_value |= 0x04;
-//             break;
-//         case LIS3MDL_DATA_RATE::RATE_2_5_HZ:
-//             ctrl_reg1_value |= 0x08;
-//             break;
-//         case LIS3MDL_DATA_RATE::RATE_5_HZ:
-//             ctrl_reg1_value |= 0x0C;
-//             break;
-//         case LIS3MDL_DATA_RATE::RATE_10_HZ:
-//             ctrl_reg1_value |= 0x10;
-//             break;
-//         case LIS3MDL_DATA_RATE::RATE_20_HZ:
-//             ctrl_reg1_value |= 0x14;
-//             break;
-//         case LIS3MDL_DATA_RATE::RATE_40_HZ:
-//             ctrl_reg1_value |= 0x18;
-//             break;
-//         case LIS3MDL_DATA_RATE::RATE_80_HZ:
-//             ctrl_reg1_value |= 0x1C;
-//             break;
-//         case LIS3MDL_DATA_RATE::RATE_155_HZ:
-//             ctrl_reg1_value |= 0x02; // FAST_ODR = 1, DO = 00
-//             fast_odr = 1;
-//             break;
-//         case LIS3MDL_DATA_RATE::RATE_300_HZ:
-//             ctrl_reg1_value |= 0x02; // FAST_ODR = 1, DO = 00
-//             fast_odr = 1;
-//             break;
-//         case LIS3MDL_DATA_RATE::RATE_560_HZ:
-//             ctrl_reg1_value |= 0x02; // FAST_ODR = 1, DO = 00
-//             fast_odr = 1;
-//             break;
-//         case LIS3MDL_DATA_RATE::RATE_1000_HZ:
-//             ctrl_reg1_value |= 0x02; // FAST_ODR = 1, DO = 00
-//             fast_odr = 1;
-//             break;
-//     }
-    
-//     // Set FAST_ODR bit
-//     if (fast_odr) {
-//         ctrl_reg1_value |= 0x02;
-//     }
-    
-//     // Enable temperature sensor
-//     ctrl_reg1_value |= 0x80;
-    
-//     // Write to CTRL_REG1
-//     writeByte(LIS3MDL_ADDR, LIS3MDL_REG_CTRL_REG1, ctrl_reg1_value);
-    
-//     // Set operation mode
-//     uint8_t ctrl_reg3_value = 0;
-//     switch (op_mode) {
-//         case LIS3MDL_OPER_MODE::LIS3MDL_CONTINUOUSMODE:
-//             ctrl_reg3_value = 0x00;
-//             break;
-//         case LIS3MDL_OPER_MODE::LIS3MDL_SINGLEMODE:
-//             ctrl_reg3_value = 0x01;
-//             break;
-//         case LIS3MDL_OPER_MODE::LIS3MDL_POWERDOWNMODE:
-//             ctrl_reg3_value = 0x03;
-//             break;
-//     }
-    
-//     // Write to CTRL_REG3
-//     writeByte(LIS3MDL_ADDR, LIS3MDL_REG_CTRL_REG3, ctrl_reg3_value);
-    
-//     // Configure performance mode for Z axis (should match X and Y axes)
-//     uint8_t ctrl_reg4_value = 0;
-//     switch (p_mode) {
-//         case LIS3MDL_PERF_MODE::LIS3MDL_LOWPOWERMODE:
-//             ctrl_reg4_value = 0x00;
-//             break;
-//         case LIS3MDL_PERF_MODE::LIS3MDL_MEDIUMMODE:
-//             ctrl_reg4_value = 0x04;
-//             break;
-//         case LIS3MDL_PERF_MODE::LIS3MDL_HIGHMODE:
-//             ctrl_reg4_value = 0x08;
-//             break;
-//         case LIS3MDL_PERF_MODE::LIS3MDL_ULTRAHIGHMODE:
-//             ctrl_reg4_value = 0x0C;
-//             break;
-//     }
-    
-//     // Write to CTRL_REG4
-//     writeByte(LIS3MDL_ADDR, LIS3MDL_REG_CTRL_REG4, ctrl_reg4_value);
-// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1018,3 +1082,7 @@ OrientationData IMU::getOrientationData() const
     return current_orientation;
 }
 
+void IMU::setHeading(float yaw_degrees)
+{
+    kalman_filter.setYaw(yaw_degrees);
+}

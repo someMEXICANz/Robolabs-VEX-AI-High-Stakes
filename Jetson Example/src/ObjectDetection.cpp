@@ -39,6 +39,8 @@ float ObjectDetection::sigmoid(float x)
     return 1.0f / (1.0f + exp(-x));
 }
 
+
+
 void ObjectDetection::processDetections(const std::vector<float>& output, int gridH, int gridW, int maskIndex, std::vector<DetectedObject>& detections) 
 {
     int numAnchors = 3;
@@ -49,9 +51,12 @@ void ObjectDetection::processDetections(const std::vector<float>& output, int gr
 
     std::vector<int> mask = yolo_masks[maskIndex]; // Select correct anchor mask
 
-    for (int h = 0; h < gridH; h++) {
-        for (int w = 0; w < gridW; w++) {
-            for (int anchorIdx = 0; anchorIdx < numAnchors; anchorIdx++) {
+    for (int h = 0; h < gridH; h++) 
+    {
+        for (int w = 0; w < gridW; w++) 
+        {
+            for (int anchorIdx = 0; anchorIdx < numAnchors; anchorIdx++) 
+            {
                 int anchor = mask[anchorIdx];  
                 float anchor_w = yolo_anchors[anchor].first;
                 float anchor_h = yolo_anchors[anchor].second;
@@ -60,7 +65,8 @@ void ObjectDetection::processDetections(const std::vector<float>& output, int gr
                 int confidenceIndex = ((anchorIdx * numAttributes + 4) * gridH + h) * gridW + w;
                 float confidence = sigmoid(output[confidenceIndex]); 
 
-                if (confidence < confidenceThreshold) continue; 
+                if (confidence < confidenceThreshold) 
+                    continue; 
 
                
                 int class1Index = ((anchorIdx * numAttributes + 5) * gridH + h) * gridW + w;
@@ -77,7 +83,8 @@ void ObjectDetection::processDetections(const std::vector<float>& output, int gr
                 int best_class = std::distance(class_probs.begin(), std::max_element(class_probs.begin(), class_probs.end()));
                 
                 float best_confidence = class_probs[best_class];
-                if ((best_confidence ) < object_thresholds[best_class]) continue;
+                if ((best_confidence ) < object_thresholds[best_class]) 
+                    continue;
 
                 int xIndex = ((anchorIdx * numAttributes + 0) * gridH + h) * gridW + w;
                 int yIndex = ((anchorIdx * numAttributes + 1) * gridH + h) * gridW + w;
@@ -89,7 +96,7 @@ void ObjectDetection::processDetections(const std::vector<float>& output, int gr
                 float w_raw = output[wIndex];
                 float h_raw = output[hIndex];
 
-                // ✅ Apply YOLO decoding (grid-scale positioning)
+                // Apply YOLO decoding (grid-scale positioning)
                 float x_center = (sigmoid(x_raw) + w) * (raw_width / gridW);
                 float y_center = (sigmoid(y_raw) + h) * (raw_height / gridH);
                 float width = exp(w_raw) * anchor_w * scale_x;
@@ -98,7 +105,7 @@ void ObjectDetection::processDetections(const std::vector<float>& output, int gr
                 float x = x_center - width / 2.0f;
                 float y = y_center - height / 2.0f;
 
-                // ✅ Store valid detection
+                // Store valid detection
                 cv::Rect box(x, y, width, height);
                 DetectedObject Detected;
                 Detected.bbox = box;

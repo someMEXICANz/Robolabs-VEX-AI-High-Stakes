@@ -75,7 +75,10 @@
         "__locale": "cpp",
         "core": "cpp",
         "__config": "cpp",
-        "__string": "cpp"
+        "__string": "cpp",
+        "__bit_reference": "cpp",
+        "__functional_base": "cpp",
+        "__memory": "cpp"
     }
 
 

@@ -6,9 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # This is important for VSCode
 
-# Find CUDA
-find_package(CUDAToolkit REQUIRED)
-set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
+# # Find CUDA
+# find_package(CUDAToolkit REQUIRED)
+# set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
 
 # Find Boost
 find_package(Boost REQUIRED COMPONENTS thread system)
@@ -52,7 +52,6 @@ add_executable(CameraTest
     src/BrainCommStats.cpp
     src/BrainComm.cpp
     src/IMU.cpp
-    src/KalmanIMU.cpp
     src/UPS.cpp
     src/FieldMapper.cpp
 )

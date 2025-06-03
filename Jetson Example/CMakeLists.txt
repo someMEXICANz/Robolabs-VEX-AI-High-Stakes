@@ -28,10 +28,6 @@ find_package(OpenCV REQUIRED)
 # Find Open3D
 find_package(Open3D REQUIRED)
 
-# Find Eigen3
-find_package(Eigen3 REQUIRED)
-add_definitions(-DEIGEB_USE_THREADS)
-
 # Find RealSense
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(REALSENSE2 REQUIRED realsense2)

@@ -1,4 +1,5 @@
 #include <Camera.h>
+using namespace rs2;
 
 Camera::Camera()
     : align_to(RS2_STREAM_COLOR),
@@ -87,6 +88,8 @@ void Camera::initialize()
     else
     {
         pipe.set_device(device);
+    
+
         // Configure the pipeline for color and depth streams
         config.enable_stream(RS2_STREAM_COLOR, frame_width, frame_height, RS2_FORMAT_BGR8, 30);
         config.enable_stream(RS2_STREAM_DEPTH, frame_width, frame_height, RS2_FORMAT_Z16, 30);

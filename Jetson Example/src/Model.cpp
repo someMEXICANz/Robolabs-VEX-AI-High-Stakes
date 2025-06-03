@@ -129,6 +129,8 @@ bool Model::buildEngine()
     parser->destroy();
     builder->destroy();
     config->destroy();
+    
+    return true;
 
 }
 

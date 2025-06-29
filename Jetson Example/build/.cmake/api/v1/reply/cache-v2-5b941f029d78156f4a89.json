@@ -1494,6 +1494,18 @@
 			"value" : "/usr/lib/aarch64-linux-gnu/libcuda.so"
 		},
 		{
+			"name" : "CUDA_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "The directory containing a CMake configuration file for CUDA."
+				}
+			],
+			"type" : "PATH",
+			"value" : "CUDA_DIR-NOTFOUND"
+		},
+		{
 			"name" : "CUDA_GENERATED_OUTPUT_DIR",
 			"properties" : 
 			[
@@ -2867,7 +2879,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "[/usr/local/cuda][/usr/local/cuda/bin/nvcc][/usr/local/cuda/include][/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcudart_static.a][v10.2(10.2)]"
+			"value" : "[/usr/local/cuda][/usr/local/cuda/bin/nvcc][/usr/local/cuda/include][/usr/local/cuda/lib64/libcudart.so][v10.2(10.2)]"
 		},
 		{
 			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_CUDAToolkit",

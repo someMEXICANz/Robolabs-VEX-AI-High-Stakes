@@ -83,8 +83,8 @@ int main()
     IMU imu; // (threaded)
     std::this_thread::sleep_for(std::chrono::seconds(1));
     
-    // Camera camera; // (threaded)
-    // std::this_thread::sleep_for(std::chrono::seconds(1));
+    Camera camera; // (threaded)
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     // Brain::BrainComm brain(myService); // (threaded)
     // std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -104,25 +104,7 @@ int main()
 
     imu.calibrateAccelerometer();
     
-    
-    for(int i = 5; i > 0; i--)
-    {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        std::cerr << i << ", ";
-        
-    }
-    
-    imu.calibrateMagnetometer(/*brain*/);
-
-
-
-    for(int i = 5; i > 0; i--)
-    {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        std::cerr << i << ", ";
-        
-    }
-    imu.setHeading(0.0f);
+ 
 
 
     

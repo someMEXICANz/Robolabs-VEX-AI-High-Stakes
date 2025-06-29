@@ -92,13 +92,16 @@ void FieldMapper::updateLoop()
             std::this_thread::sleep_for(std::chrono::milliseconds(250));
             continue;
         }
+        else if(!initialized)
+        {
+            initialize();
+        }
         
         if(processRGBDImage())
         {
-            if(initialize())
-            {
-                computeOdometry();
-            }
+          
+            computeOdometry();
+
         }
         process_count++;
         current_time = std::chrono::high_resolution_clock::now();
@@ -142,7 +145,9 @@ bool FieldMapper::initialize()
     prevoius_transform = current_transform.Clone();
     std::cerr << "Field Mapper has been initialized" << std::endl;
     initialized = true;
+    processRGBDImage();
     return true;
+
     
 }
 

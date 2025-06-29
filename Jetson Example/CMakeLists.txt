@@ -1,12 +1,20 @@
 cmake_minimum_required(VERSION 3.19)
 project(CameraTest)
 
-# Set C++ standard (still keeping this for compatibility, but will also use target_compile_features)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # This is important for VSCode
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON) 
+set(CMAKE_POLICY_DEFAULT_CM)
+
+cmake_policy(SET CMP0167 NEW)
+cmake_policy(SET CMP0072 NEW)
+
+# Find CUDA
+find_package(CUDAToolkit REQUIRED)
+set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
 
 # Find OpenCV
+set(WITH_CUDA ON)
 find_package(OpenCV REQUIRED)
 
 # Find Open3D
@@ -16,16 +24,11 @@ find_package(Open3D REQUIRED)
 find_package(Eigen3 REQUIRED)
 add_definitions(-DEIGEN_USE_THREADS) 
 
-# Find CUDA
-find_package(CUDAToolkit REQUIRED)
-set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
-
 find_package(Boost REQUIRED COMPONENTS system thread)
 
 #Find RealSense
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(REALSENSE2 REQUIRED realsense2)
-
 
 include_directories(CameraTest PRIVATE
     ${CMAKE_SOURCE_DIR}/include
@@ -50,15 +53,10 @@ add_executable(CameraTest
     src/FieldMapper.cpp
 )
 
-# Modern approach: target-specific compile options
-target_compile_options(CameraTest PRIVATE
-    -Wno-deprecated-declarations
-)
+target_compile_options(CameraTest PRIVATE -Wno-deprecated-declarations)
 
-# Modern approach: target-specific compile features
 target_compile_features(CameraTest PRIVATE cxx_std_17)
 
-# Link libraries
 target_link_libraries(CameraTest PRIVATE
     ${OpenCV_LIBS}
     ${LIBSERIAL_LIBRARIES}

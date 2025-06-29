@@ -11,12 +11,13 @@
 #include "open3d/Open3D.h"
 #include <librealsense2/rs.hpp>
 #include <librealsense2/rs.h>
-#include <opencv2/opencv.hpp>
+#include <opencv4/opencv2/opencv.hpp>
 #include <ObjectDetection.h>
 #include <open3d/t/geometry/RGBDImage.h>
 #include <open3d/t/geometry/PointCloud.h>
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <librealsense2/h/rs_types.h>
+#include <open3d/Open3DConfig.h>
 
 
 
@@ -44,8 +45,6 @@ public:
     std::shared_ptr<open3d::geometry::RGBDImage> getRGBDImage();
     
 
-
-    
 
     // Thread Operations
     bool start();
@@ -76,6 +75,8 @@ private:
     std::shared_ptr<open3d::geometry::RGBDImage> current_RGBDImage;   
                   
     open3d::camera::PinholeCameraIntrinsic intrinsic;
+    open3d::core::
+    
     
     int FPS;
     float depth_scale;

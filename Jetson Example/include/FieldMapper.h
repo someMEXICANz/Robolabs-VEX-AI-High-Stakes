@@ -7,8 +7,8 @@
 #include <vector>
 #include <map>
 #include <open3d/Open3D.h>
-#include <Eigen/Dense>
-#include <opencv2/opencv.hpp>
+#include <eigen3/Eigen/Dense>
+#include <opencv4/opencv2/opencv.hpp>
 #include "Camera.h"
 #include "RobotPosition.h"
 

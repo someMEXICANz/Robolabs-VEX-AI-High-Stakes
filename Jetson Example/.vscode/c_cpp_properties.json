@@ -1,32 +1,116 @@
+// {
+//   "configurations": [
+//     {
+//       "name": "Linux-GCC",
+//       "includePath": ["${workspaceFolder}/**"],
+//       "defines": [],
+//       "compilerPath": "/usr/bin/g++",
+//       "cStandard": "c17",
+//       "cppStandard": "c++17",
+//       "intelliSenseMode": "linux-gcc-arm64",
+//       "browse": {
+//         "path": ["${workspaceFolder}/include/**",
+//                  "/usr/include/opencv4/opencv2",
+//                  "/usr/include/eigen3/Eigen"
+//                 ],
+//         "limitSymbolsToIncludedHeaders": false,
+//         "databaseFilename": ""
+//       }
+//     }
+//   ],
+//   "version": 4
+// }
+
+
+
 {
     "configurations": [
         {
-            "name": "Linux",
+            "name": "Linux ARM64",
             "includePath": [
-                "${workspaceFolder}/**",
-                "/usr/local/include/open3d/**",
-                "/usr/local/include",  // Add this line
-                "/usr/local/cuda/include",
+                "${workspaceFolder}/include/**",
+                "/usr/local/include",
+                "/usr/local/include/open3d",
+                "/usr/local/include/open3d/3rdparty",
                 "/usr/include/opencv4",
                 "/usr/include/eigen3",
-                "/usr/include/boost",
-                "/usr/include/aarch64-linux-gnu"
+                "/usr/local/cuda/include"
             ],
-            // Remove this line as it's not needed for includes
-            // "/usr/local/lib/cmake/Open3D",
-            "defines": [],
-            "compilerPath": "/usr/bin/g++-7",
+            "defines": [
+                "EIGEN_USE_THREADS"
+            ],
+            "compilerPath": "/usr/bin/g++",
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "linux-gcc-arm64",
-            "compileCommands": [
-                "${workspaceFolder}/build/compile_commands.json"
-            ],
-            "configurationProvider": "ms-vscode.cmake-tools",
-            "recursiveIncludes": {
-                "priority": "${default}"
-            }
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
         }
     ],
     "version": 4
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// {
+//     "configurations": [
+//         {
+//             "name": "Linux",
+//             "includePath": [
+//                 "${workspaceFolder}/**",
+//                 "/usr/local/include/open3d/**",
+//                 "/usr/local/include",  // Add this line
+//                 "/usr/local/cuda/include",
+//                 "/usr/include/opencv4",
+//                 "/usr/include/eigen3",
+//                 "/usr/include/boost",
+//                 "/usr/include/aarch64-linux-gnu"
+//             ],
+//             // Remove this line as it's not needed for includes
+//             // "/usr/local/lib/cmake/Open3D",
+//             "defines": [],
+//             "compilerPath": "/usr/bin/g++-7",
+//             "cStandard": "c17",
+//             "cppStandard": "c++17",
+//             "intelliSenseMode": "linux-gcc-arm64",
+//             "compileCommands": [
+//                 "${workspaceFolder}/build/compile_commands.json"
+//             ],
+//             "configurationProvider": "ms-vscode.cmake-tools",
+//             "recursiveIncludes": {
+//                 "priority": "${default}"
+//             }
+//         }
+//     ],
+//     "version": 4
+// }

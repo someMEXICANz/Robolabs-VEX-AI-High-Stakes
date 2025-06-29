@@ -2,102 +2,6 @@
 	"entries" : 
 	[
 		{
-			"name" : "Boost_ATOMIC_LIBRARY_DEBUG",
-			"properties" : 
-			[
-				{
-					"name" : "ADVANCED",
-					"value" : "1"
-				},
-				{
-					"name" : "HELPSTRING",
-					"value" : "Boost atomic library (debug)"
-				}
-			],
-			"type" : "FILEPATH",
-			"value" : "/usr/lib/aarch64-linux-gnu/libboost_atomic.so"
-		},
-		{
-			"name" : "Boost_ATOMIC_LIBRARY_RELEASE",
-			"properties" : 
-			[
-				{
-					"name" : "ADVANCED",
-					"value" : "1"
-				},
-				{
-					"name" : "HELPSTRING",
-					"value" : "Boost atomic library (release)"
-				}
-			],
-			"type" : "FILEPATH",
-			"value" : "/usr/lib/aarch64-linux-gnu/libboost_atomic.so"
-		},
-		{
-			"name" : "Boost_CHRONO_LIBRARY_DEBUG",
-			"properties" : 
-			[
-				{
-					"name" : "ADVANCED",
-					"value" : "1"
-				},
-				{
-					"name" : "HELPSTRING",
-					"value" : "Boost chrono library (debug)"
-				}
-			],
-			"type" : "FILEPATH",
-			"value" : "/usr/lib/aarch64-linux-gnu/libboost_chrono.so"
-		},
-		{
-			"name" : "Boost_CHRONO_LIBRARY_RELEASE",
-			"properties" : 
-			[
-				{
-					"name" : "ADVANCED",
-					"value" : "1"
-				},
-				{
-					"name" : "HELPSTRING",
-					"value" : "Boost chrono library (release)"
-				}
-			],
-			"type" : "FILEPATH",
-			"value" : "/usr/lib/aarch64-linux-gnu/libboost_chrono.so"
-		},
-		{
-			"name" : "Boost_DATE_TIME_LIBRARY_DEBUG",
-			"properties" : 
-			[
-				{
-					"name" : "ADVANCED",
-					"value" : "1"
-				},
-				{
-					"name" : "HELPSTRING",
-					"value" : "Boost date_time library (debug)"
-				}
-			],
-			"type" : "FILEPATH",
-			"value" : "/usr/lib/aarch64-linux-gnu/libboost_date_time.so"
-		},
-		{
-			"name" : "Boost_DATE_TIME_LIBRARY_RELEASE",
-			"properties" : 
-			[
-				{
-					"name" : "ADVANCED",
-					"value" : "1"
-				},
-				{
-					"name" : "HELPSTRING",
-					"value" : "Boost date_time library (release)"
-				}
-			],
-			"type" : "FILEPATH",
-			"value" : "/usr/lib/aarch64-linux-gnu/libboost_date_time.so"
-		},
-		{
 			"name" : "Boost_DIR",
 			"properties" : 
 			[
@@ -111,16 +15,12 @@
 				}
 			],
 			"type" : "PATH",
-			"value" : "Boost_DIR-NOTFOUND"
+			"value" : "/usr/lib/aarch64-linux-gnu/cmake/Boost-1.71.0"
 		},
 		{
 			"name" : "Boost_INCLUDE_DIR",
 			"properties" : 
 			[
-				{
-					"name" : "ADVANCED",
-					"value" : "1"
-				},
 				{
 					"name" : "HELPSTRING",
 					"value" : "Path to a file."
@@ -128,38 +28,6 @@
 			],
 			"type" : "PATH",
 			"value" : "/usr/include"
-		},
-		{
-			"name" : "Boost_LIBRARY_DIR_DEBUG",
-			"properties" : 
-			[
-				{
-					"name" : "ADVANCED",
-					"value" : "1"
-				},
-				{
-					"name" : "HELPSTRING",
-					"value" : "Boost library directory DEBUG"
-				}
-			],
-			"type" : "PATH",
-			"value" : "/usr/lib/aarch64-linux-gnu"
-		},
-		{
-			"name" : "Boost_LIBRARY_DIR_RELEASE",
-			"properties" : 
-			[
-				{
-					"name" : "ADVANCED",
-					"value" : "1"
-				},
-				{
-					"name" : "HELPSTRING",
-					"value" : "Boost library directory RELEASE"
-				}
-			],
-			"type" : "PATH",
-			"value" : "/usr/lib/aarch64-linux-gnu"
 		},
 		{
 			"name" : "Boost_SYSTEM_LIBRARY_DEBUG",
@@ -175,7 +43,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/lib/aarch64-linux-gnu/libboost_system.so"
+			"value" : "Boost_SYSTEM_LIBRARY_DEBUG-NOTFOUND"
 		},
 		{
 			"name" : "Boost_SYSTEM_LIBRARY_RELEASE",
@@ -187,11 +55,11 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "Boost system library (release)"
+					"value" : ""
 				}
 			],
-			"type" : "FILEPATH",
-			"value" : "/usr/lib/aarch64-linux-gnu/libboost_system.so"
+			"type" : "STRING",
+			"value" : "/usr/lib/aarch64-linux-gnu/libboost_system.so.1.71.0"
 		},
 		{
 			"name" : "Boost_THREAD_LIBRARY_DEBUG",
@@ -207,7 +75,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/lib/aarch64-linux-gnu/libboost_thread.so"
+			"value" : "Boost_THREAD_LIBRARY_DEBUG-NOTFOUND"
 		},
 		{
 			"name" : "Boost_THREAD_LIBRARY_RELEASE",
@@ -219,11 +87,11 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "Boost thread library (release)"
+					"value" : ""
 				}
 			],
-			"type" : "FILEPATH",
-			"value" : "/usr/lib/aarch64-linux-gnu/libboost_thread.so"
+			"type" : "STRING",
+			"value" : "/usr/lib/aarch64-linux-gnu/libboost_thread.so.1.71.0"
 		},
 		{
 			"name" : "CMAKE_ADDR2LINE",
@@ -279,7 +147,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build"
+			"value" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example/build"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -303,7 +171,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "19"
+			"value" : "30"
 		},
 		{
 			"name" : "CMAKE_CACHE_PATCH_VERSION",
@@ -315,7 +183,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "8"
+			"value" : "9"
 		},
 		{
 			"name" : "CMAKE_COMMAND",
@@ -327,7 +195,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/local/bin/cmake"
+			"value" : "/usr/bin/cmake"
 		},
 		{
 			"name" : "CMAKE_CPACK_COMMAND",
@@ -339,7 +207,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/local/bin/cpack"
+			"value" : "/usr/bin/cpack"
 		},
 		{
 			"name" : "CMAKE_CTEST_COMMAND",
@@ -351,7 +219,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/local/bin/ctest"
+			"value" : "/usr/bin/ctest"
 		},
 		{
 			"name" : "CMAKE_CXX_COMPILER",
@@ -367,7 +235,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/bin/aarch64-linux-gnu-g++"
+			"value" : "/usr/bin/aarch64-linux-gnu-g++-8"
 		},
 		{
 			"name" : "CMAKE_CXX_COMPILER_AR",
@@ -383,7 +251,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/bin/aarch64-linux-gnu-gcc-ar-7"
+			"value" : "/usr/bin/aarch64-linux-gnu-gcc-ar-8"
 		},
 		{
 			"name" : "CMAKE_CXX_COMPILER_RANLIB",
@@ -399,7 +267,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/bin/aarch64-linux-gnu-gcc-ranlib-7"
+			"value" : "/usr/bin/aarch64-linux-gnu-gcc-ranlib-8"
 		},
 		{
 			"name" : "CMAKE_CXX_FLAGS",
@@ -495,7 +363,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/bin/aarch64-linux-gnu-gcc"
+			"value" : "/usr/bin/aarch64-linux-gnu-gcc-8"
 		},
 		{
 			"name" : "CMAKE_C_COMPILER_AR",
@@ -511,7 +379,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/bin/aarch64-linux-gnu-gcc-ar-7"
+			"value" : "/usr/bin/aarch64-linux-gnu-gcc-ar-8"
 		},
 		{
 			"name" : "CMAKE_C_COMPILER_RANLIB",
@@ -527,7 +395,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/bin/aarch64-linux-gnu-gcc-ranlib-7"
+			"value" : "/usr/bin/aarch64-linux-gnu-gcc-ranlib-8"
 		},
 		{
 			"name" : "CMAKE_C_FLAGS",
@@ -742,6 +610,18 @@
 			"value" : ""
 		},
 		{
+			"name" : "CMAKE_FIND_PACKAGE_REDIRECTS_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake."
+				}
+			],
+			"type" : "STATIC",
+			"value" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example/build/CMakeFiles/pkgRedirects"
+		},
+		{
 			"name" : "CMAKE_GENERATOR",
 			"properties" : 
 			[
@@ -850,18 +730,6 @@
 			"value" : "1"
 		},
 		{
-			"name" : "CMAKE_HAVE_PTHREAD_H",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Have include pthread.h"
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "1"
-		},
-		{
 			"name" : "CMAKE_HAVE_REMOVE",
 			"properties" : 
 			[
@@ -895,7 +763,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example"
+			"value" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -1195,7 +1063,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/local/share/cmake-3.19"
+			"value" : "/usr/share/cmake-3.30"
 		},
 		{
 			"name" : "CMAKE_SHARED_LINKER_FLAGS",
@@ -1406,6 +1274,22 @@
 			"value" : "/usr/bin/aarch64-linux-gnu-strip"
 		},
 		{
+			"name" : "CMAKE_TAPI",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a program."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "CMAKE_TAPI-NOTFOUND"
+		},
+		{
 			"name" : "CMAKE_UNAME",
 			"properties" : 
 			[
@@ -1448,6 +1332,22 @@
 			],
 			"type" : "PATH",
 			"value" : "/usr/local/cuda/bin"
+		},
+		{
+			"name" : "CUDAToolkit_CUPTI_INCLUDE_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "/usr/local/cuda/targets/aarch64-linux/include"
 		},
 		{
 			"name" : "CUDAToolkit_NVCC_EXECUTABLE",
@@ -1635,7 +1535,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/bin/aarch64-linux-gnu-gcc"
+			"value" : "/usr/bin/aarch64-linux-gnu-gcc-8"
 		},
 		{
 			"name" : "CUDA_NVCC_EXECUTABLE",
@@ -1743,7 +1643,7 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "\"OpenCL\" library"
+					"value" : "Path to a library."
 				}
 			],
 			"type" : "FILEPATH",
@@ -1858,6 +1758,18 @@
 			"value" : "/usr/local/cuda"
 		},
 		{
+			"name" : "CUDA_USE_STATIC_CUDA_RUNTIME",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Use the static version of the CUDA runtime library if available"
+				}
+			],
+			"type" : "BOOL",
+			"value" : "ON"
+		},
+		{
 			"name" : "CUDA_VERBOSE_BUILD",
 			"properties" : 
 			[
@@ -1903,7 +1815,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcublasLt.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcublasLt.so"
 		},
 		{
 			"name" : "CUDA_cublasLt_static_LIBRARY",
@@ -1919,7 +1831,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcublasLt_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcublasLt_static.a"
 		},
 		{
 			"name" : "CUDA_cublas_LIBRARY",
@@ -1931,11 +1843,11 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "\"cublas\" library"
+					"value" : "Path to a library."
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcublas.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcublas.so"
 		},
 		{
 			"name" : "CUDA_cublas_static_LIBRARY",
@@ -1951,7 +1863,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcublas_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcublas_static.a"
 		},
 		{
 			"name" : "CUDA_cuda_driver_LIBRARY",
@@ -1967,7 +1879,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/lib/aarch64-linux-gnu/libcuda.so"
+			"value" : "/usr/local/cuda/targets/aarch64-linux/lib/stubs/libcuda.so"
 		},
 		{
 			"name" : "CUDA_cudadevrt_LIBRARY",
@@ -1999,7 +1911,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcudart.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcudart.so"
 		},
 		{
 			"name" : "CUDA_cudart_static_LIBRARY",
@@ -2011,11 +1923,11 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "static CUDA runtime library"
+					"value" : "Path to a library."
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcudart_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcudart_static.a"
 		},
 		{
 			"name" : "CUDA_cufft_LIBRARY",
@@ -2027,11 +1939,11 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "\"cufft\" library"
+					"value" : "Path to a library."
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcufft.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcufft.so"
 		},
 		{
 			"name" : "CUDA_cufft_static_LIBRARY",
@@ -2047,7 +1959,23 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcufft_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcufft_static.a"
+		},
+		{
+			"name" : "CUDA_cufft_static_nocallback_LIBRARY",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcufft_static_nocallback.a"
 		},
 		{
 			"name" : "CUDA_cufftw_LIBRARY",
@@ -2063,7 +1991,23 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcufftw.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcufftw.so"
+		},
+		{
+			"name" : "CUDA_cufftw_static_LIBRARY",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcufftw_static.a"
 		},
 		{
 			"name" : "CUDA_culibos_LIBRARY",
@@ -2079,7 +2023,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libculibos.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libculibos.a"
 		},
 		{
 			"name" : "CUDA_cupti_LIBRARY",
@@ -2091,11 +2035,11 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "\"cupti\" library"
+					"value" : "Path to a library."
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcupti.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcupti.so"
 		},
 		{
 			"name" : "CUDA_cupti_static_LIBRARY",
@@ -2123,11 +2067,11 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "\"curand\" library"
+					"value" : "Path to a library."
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcurand.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcurand.so"
 		},
 		{
 			"name" : "CUDA_curand_static_LIBRARY",
@@ -2143,7 +2087,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcurand_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcurand_static.a"
 		},
 		{
 			"name" : "CUDA_cusolver_LIBRARY",
@@ -2155,11 +2099,27 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "\"cusolver\" library"
+					"value" : "Path to a library."
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcusolver.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcusolver.so"
+		},
+		{
+			"name" : "CUDA_cusolver_lapack_static_LIBRARY",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/liblapack_static.a"
 		},
 		{
 			"name" : "CUDA_cusolver_static_LIBRARY",
@@ -2175,7 +2135,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcusolver_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcusolver_static.a"
 		},
 		{
 			"name" : "CUDA_cusparse_LIBRARY",
@@ -2187,11 +2147,11 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "\"cusparse\" library"
+					"value" : "Path to a library."
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcusparse.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcusparse.so"
 		},
 		{
 			"name" : "CUDA_cusparse_static_LIBRARY",
@@ -2207,7 +2167,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libcusparse_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcusparse_static.a"
 		},
 		{
 			"name" : "CUDA_make2cmake",
@@ -2219,7 +2179,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/local/share/cmake-3.19/Modules/FindCUDA/make2cmake.cmake"
+			"value" : "/usr/share/cmake-3.30/Modules/FindCUDA/make2cmake.cmake"
 		},
 		{
 			"name" : "CUDA_nppc_LIBRARY",
@@ -2231,11 +2191,11 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "\"nppc\" library"
+					"value" : "Path to a library."
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppc.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppc.so"
 		},
 		{
 			"name" : "CUDA_nppc_static_LIBRARY",
@@ -2251,7 +2211,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppc_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppc_static.a"
 		},
 		{
 			"name" : "CUDA_nppi_LIBRARY",
@@ -2283,7 +2243,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppial.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppial.so"
 		},
 		{
 			"name" : "CUDA_nppial_static_LIBRARY",
@@ -2299,7 +2259,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppial_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppial_static.a"
 		},
 		{
 			"name" : "CUDA_nppicc_LIBRARY",
@@ -2315,7 +2275,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppicc.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppicc.so"
 		},
 		{
 			"name" : "CUDA_nppicc_static_LIBRARY",
@@ -2331,7 +2291,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppicc_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppicc_static.a"
 		},
 		{
 			"name" : "CUDA_nppicom_LIBRARY",
@@ -2347,7 +2307,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppicom.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppicom.so"
 		},
 		{
 			"name" : "CUDA_nppicom_static_LIBRARY",
@@ -2363,7 +2323,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppicom_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppicom_static.a"
 		},
 		{
 			"name" : "CUDA_nppidei_LIBRARY",
@@ -2379,7 +2339,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppidei.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppidei.so"
 		},
 		{
 			"name" : "CUDA_nppidei_static_LIBRARY",
@@ -2395,7 +2355,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppidei_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppidei_static.a"
 		},
 		{
 			"name" : "CUDA_nppif_LIBRARY",
@@ -2411,7 +2371,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppif.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppif.so"
 		},
 		{
 			"name" : "CUDA_nppif_static_LIBRARY",
@@ -2427,7 +2387,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppif_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppif_static.a"
 		},
 		{
 			"name" : "CUDA_nppig_LIBRARY",
@@ -2443,7 +2403,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppig.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppig.so"
 		},
 		{
 			"name" : "CUDA_nppig_static_LIBRARY",
@@ -2459,7 +2419,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppig_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppig_static.a"
 		},
 		{
 			"name" : "CUDA_nppim_LIBRARY",
@@ -2475,7 +2435,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppim.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppim.so"
 		},
 		{
 			"name" : "CUDA_nppim_static_LIBRARY",
@@ -2491,7 +2451,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppim_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppim_static.a"
 		},
 		{
 			"name" : "CUDA_nppist_LIBRARY",
@@ -2507,7 +2467,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppist.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppist.so"
 		},
 		{
 			"name" : "CUDA_nppist_static_LIBRARY",
@@ -2523,7 +2483,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppist_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppist_static.a"
 		},
 		{
 			"name" : "CUDA_nppisu_LIBRARY",
@@ -2539,7 +2499,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppisu.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppisu.so"
 		},
 		{
 			"name" : "CUDA_nppisu_static_LIBRARY",
@@ -2555,7 +2515,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppisu_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppisu_static.a"
 		},
 		{
 			"name" : "CUDA_nppitc_LIBRARY",
@@ -2571,7 +2531,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppitc.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppitc.so"
 		},
 		{
 			"name" : "CUDA_nppitc_static_LIBRARY",
@@ -2587,7 +2547,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnppitc_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppitc_static.a"
 		},
 		{
 			"name" : "CUDA_npps_LIBRARY",
@@ -2599,11 +2559,11 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "\"npps\" library"
+					"value" : "Path to a library."
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnpps.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnpps.so"
 		},
 		{
 			"name" : "CUDA_npps_static_LIBRARY",
@@ -2619,7 +2579,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnpps_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnpps_static.a"
 		},
 		{
 			"name" : "CUDA_nvToolsExt_LIBRARY",
@@ -2631,11 +2591,11 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "\"nvToolsExt\" library"
+					"value" : "Path to a library."
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnvToolsExt.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnvToolsExt.so"
 		},
 		{
 			"name" : "CUDA_nvgraph_LIBRARY",
@@ -2651,7 +2611,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnvgraph.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnvgraph.so"
 		},
 		{
 			"name" : "CUDA_nvgraph_static_LIBRARY",
@@ -2667,7 +2627,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnvgraph_static.a"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnvgraph_static.a"
 		},
 		{
 			"name" : "CUDA_nvjpeg_LIBRARY",
@@ -2715,7 +2675,55 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/stubs/libnvidia-ml.so"
+			"value" : "/usr/local/cuda/targets/aarch64-linux/lib/stubs/libnvidia-ml.so"
+		},
+		{
+			"name" : "CUDA_nvperf_host_LIBRARY",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnvperf_host.so"
+		},
+		{
+			"name" : "CUDA_nvperf_host_static_LIBRARY",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "CUDA_nvperf_host_static_LIBRARY-NOTFOUND"
+		},
+		{
+			"name" : "CUDA_nvperf_target_LIBRARY",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnvperf_target.so"
 		},
 		{
 			"name" : "CUDA_nvrtc_LIBRARY",
@@ -2731,7 +2739,23 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/local/cuda/lib64/libnvrtc.so"
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnvrtc.so"
+		},
+		{
+			"name" : "CUDA_nvrtc_builtins_LIBRARY",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnvrtc-builtins.so"
 		},
 		{
 			"name" : "CUDA_parse_cubin",
@@ -2743,7 +2767,23 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/local/share/cmake-3.19/Modules/FindCUDA/parse_cubin.cmake"
+			"value" : "/usr/share/cmake-3.30/Modules/FindCUDA/parse_cubin.cmake"
+		},
+		{
+			"name" : "CUDA_rt_LIBRARY",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "/usr/lib/aarch64-linux-gnu/librt.so"
 		},
 		{
 			"name" : "CUDA_run_nvcc",
@@ -2755,7 +2795,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/local/share/cmake-3.19/Modules/FindCUDA/run_nvcc.cmake"
+			"value" : "/usr/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
 		},
 		{
 			"name" : "CameraTest_BINARY_DIR",
@@ -2767,7 +2807,19 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example/build"
+			"value" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example/build"
+		},
+		{
+			"name" : "CameraTest_IS_TOP_LEVEL",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "ON"
 		},
 		{
 			"name" : "CameraTest_SOURCE_DIR",
@@ -2779,7 +2831,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/robolabs/Robolabs-VEX-AI-High-Stakes/Jetson Example"
+			"value" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example"
 		},
 		{
 			"name" : "Eigen3_DIR",
@@ -2803,7 +2855,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "[/usr/include][cfound components: thread system chrono date_time atomic ][v1.65.1()]"
+			"value" : "[/usr/lib/aarch64-linux-gnu/cmake/Boost-1.71.0/BoostConfig.cmake][cfound components: system thread ][v1.71.0()]"
 		},
 		{
 			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_CUDA",
@@ -2815,7 +2867,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "[/usr/local/cuda][/usr/local/cuda/bin/nvcc][/usr/local/cuda/include][/usr/local/cuda/lib64/libcudart.so][v10.2(10.2)]"
+			"value" : "[/usr/local/cuda][/usr/local/cuda/bin/nvcc][/usr/local/cuda/include][/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcudart_static.a][v10.2(10.2)]"
 		},
 		{
 			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_CUDAToolkit",
@@ -2827,7 +2879,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "[/usr/local/cuda/include][/usr/local/cuda/lib64/libcudart.so][/usr/local/cuda/bin][v10.2.300()]"
+			"value" : "[/usr/local/cuda/targets/aarch64-linux/include][/usr/local/cuda/lib64/libcudart.so][/usr/local/cuda/bin][v10.2.300()]"
 		},
 		{
 			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_Open3D",
@@ -2851,7 +2903,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "[/usr/local][v4.1.1()]"
+			"value" : "[/usr][v4.8.0()]"
 		},
 		{
 			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_OpenGL",
@@ -2887,7 +2939,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "[-fopenmp][/usr/lib/gcc/aarch64-linux-gnu/7/libgomp.so][/usr/lib/aarch64-linux-gnu/libpthread.so][v4.5()]"
+			"value" : "[-fopenmp][/usr/lib/gcc/aarch64-linux-gnu/8/libgomp.so][/usr/lib/aarch64-linux-gnu/libpthread.so][v4.5()]"
 		},
 		{
 			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_OpenMP_CXX",
@@ -2899,7 +2951,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "[-fopenmp][/usr/lib/gcc/aarch64-linux-gnu/7/libgomp.so][/usr/lib/aarch64-linux-gnu/libpthread.so][v4.5()]"
+			"value" : "[-fopenmp][/usr/lib/gcc/aarch64-linux-gnu/8/libgomp.so][/usr/lib/aarch64-linux-gnu/libpthread.so][v4.5()]"
 		},
 		{
 			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_PkgConfig",
@@ -3043,430 +3095,58 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/lib/aarch64-linux-gnu/libi2c.so"
-		},
-		{
-			"name" : "OPEN3D_CFLAGS",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "-I/usr/local/include;-I/usr/include/eigen3"
-		},
-		{
-			"name" : "OPEN3D_CFLAGS_I",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_CFLAGS_OTHER",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_FOUND",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "1"
-		},
-		{
-			"name" : "OPEN3D_INCLUDEDIR",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "/usr/local/include"
-		},
-		{
-			"name" : "OPEN3D_INCLUDE_DIRS",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "/usr/local/include;/usr/include/eigen3"
-		},
-		{
-			"name" : "OPEN3D_LDFLAGS",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "-L/usr/local/lib;-lOpen3D;-lOpen3D_3rdparty_fmt;-lOpen3D_3rdparty_glew;-lOpen3D_3rdparty_glfw;-lOpen3D_3rdparty_imgui;-lOpen3D_3rdparty_jpeg;-lOpen3D_3rdparty_jsoncpp;-lOpen3D_3rdparty_png;-lOpen3D_3rdparty_tinyfiledialogs;-lOpen3D_3rdparty_zlib"
-		},
-		{
-			"name" : "OPEN3D_LDFLAGS_OTHER",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_LIBDIR",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "/usr/local/lib"
-		},
-		{
-			"name" : "OPEN3D_LIBRARIES",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "Open3D;Open3D_3rdparty_fmt;Open3D_3rdparty_glew;Open3D_3rdparty_glfw;Open3D_3rdparty_imgui;Open3D_3rdparty_jpeg;Open3D_3rdparty_jsoncpp;Open3D_3rdparty_png;Open3D_3rdparty_tinyfiledialogs;Open3D_3rdparty_zlib"
-		},
-		{
-			"name" : "OPEN3D_LIBRARY_DIRS",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "/usr/local/lib"
-		},
-		{
-			"name" : "OPEN3D_LIBS",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_LIBS_L",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_LIBS_OTHER",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_LIBS_PATHS",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_MODULE_NAME",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "open3d"
-		},
-		{
-			"name" : "OPEN3D_PREFIX",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "/usr/local"
-		},
-		{
-			"name" : "OPEN3D_STATIC_CFLAGS",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "-I/usr/local/include;-I/usr/include/eigen3"
-		},
-		{
-			"name" : "OPEN3D_STATIC_CFLAGS_I",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_STATIC_CFLAGS_OTHER",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_STATIC_INCLUDE_DIRS",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "/usr/local/include;/usr/include/eigen3"
-		},
-		{
-			"name" : "OPEN3D_STATIC_LDFLAGS",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "-L/usr/local/lib;-lOpen3D;-lOpen3D_3rdparty_fmt;-lOpen3D_3rdparty_glew;-lOpen3D_3rdparty_glfw;-lOpen3D_3rdparty_imgui;-lOpen3D_3rdparty_jpeg;-lOpen3D_3rdparty_jsoncpp;-lOpen3D_3rdparty_png;-lOpen3D_3rdparty_tinyfiledialogs;-lOpen3D_3rdparty_zlib;-lOpen3D_3rdparty_assimp;-lOpen3D_3rdparty_blas;-lOpen3D_3rdparty_curl;-lOpen3D_3rdparty_embree_embree3;-lOpen3D_3rdparty_filament_backend;-lOpen3D_3rdparty_filament_filament;-lOpen3D_3rdparty_qhull_r;-lOpen3D_3rdparty_vtk_vtkCommonCore-9.1"
-		},
-		{
-			"name" : "OPEN3D_STATIC_LDFLAGS_OTHER",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_STATIC_LIBDIR",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_STATIC_LIBRARIES",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "Open3D;Open3D_3rdparty_fmt;Open3D_3rdparty_glew;Open3D_3rdparty_glfw;Open3D_3rdparty_imgui;Open3D_3rdparty_jpeg;Open3D_3rdparty_jsoncpp;Open3D_3rdparty_png;Open3D_3rdparty_tinyfiledialogs;Open3D_3rdparty_zlib;Open3D_3rdparty_assimp;Open3D_3rdparty_blas;Open3D_3rdparty_curl;Open3D_3rdparty_embree_embree3;Open3D_3rdparty_filament_backend;Open3D_3rdparty_filament_filament;Open3D_3rdparty_qhull_r;Open3D_3rdparty_vtk_vtkCommonCore-9.1"
-		},
-		{
-			"name" : "OPEN3D_STATIC_LIBRARY_DIRS",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "/usr/local/lib"
-		},
-		{
-			"name" : "OPEN3D_STATIC_LIBS",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_STATIC_LIBS_L",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_STATIC_LIBS_OTHER",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_STATIC_LIBS_PATHS",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_VERSION",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "0.18.0"
-		},
-		{
-			"name" : "OPEN3D_open3d_INCLUDEDIR",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_open3d_LIBDIR",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_open3d_PREFIX",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "OPEN3D_open3d_VERSION",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
+			"value" : "I2C_LIBRARY-NOTFOUND"
 		},
 		{
 			"name" : "OPENGL_EGL_INCLUDE_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "/usr/include"
+		},
+		{
+			"name" : "OPENGL_GLES2_INCLUDE_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "/usr/include"
+		},
+		{
+			"name" : "OPENGL_GLES3_INCLUDE_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "/usr/include"
+		},
+		{
+			"name" : "OPENGL_GLU_INCLUDE_DIR",
 			"properties" : 
 			[
 				{
@@ -3544,6 +3224,38 @@
 			],
 			"type" : "FILEPATH",
 			"value" : "/usr/lib/aarch64-linux-gnu/libGL.so"
+		},
+		{
+			"name" : "OPENGL_gles2_LIBRARY",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "/usr/lib/aarch64-linux-gnu/libGLESv2.so"
+		},
+		{
+			"name" : "OPENGL_gles3_LIBRARY",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "/usr/lib/aarch64-linux-gnu/libGLESv2.so"
 		},
 		{
 			"name" : "OPENGL_glu_LIBRARY",
@@ -3631,7 +3343,7 @@
 				}
 			],
 			"type" : "PATH",
-			"value" : "/usr/local/lib/cmake/opencv4"
+			"value" : "/usr/lib/aarch64-linux-gnu/cmake/opencv4"
 		},
 		{
 			"name" : "OpenMP_COMPILE_RESULT_CXX_fopenmp",
@@ -3783,7 +3495,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/lib/gcc/aarch64-linux-gnu/7/libgomp.so"
+			"value" : "/usr/lib/gcc/aarch64-linux-gnu/8/libgomp.so"
 		},
 		{
 			"name" : "OpenMP_pthread_LIBRARY",
@@ -3800,6 +3512,22 @@
 			],
 			"type" : "FILEPATH",
 			"value" : "/usr/lib/aarch64-linux-gnu/libpthread.so"
+		},
+		{
+			"name" : "PKG_CONFIG_ARGN",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Arguments to supply to pkg-config"
+				}
+			],
+			"type" : "STRING",
+			"value" : ""
 		},
 		{
 			"name" : "PKG_CONFIG_EXECUTABLE",
@@ -3827,7 +3555,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "-I/usr/include/freetype2;-I/usr/include/libpng16;-I/usr/include/freetype2;-I/usr/include/libpng16"
+			"value" : "-I/usr/include;-I/usr/include/uuid;-I/usr/include;-I/usr/include/freetype2;-I/usr/include/libpng16;-I/usr/include"
 		},
 		{
 			"name" : "PKG_FONTCONFIG_CFLAGS_I",
@@ -3887,7 +3615,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/include/freetype2;/usr/include/libpng16;/usr/include/freetype2;/usr/include/libpng16"
+			"value" : "/usr/include;/usr/include/uuid;/usr/include;/usr/include/freetype2;/usr/include/libpng16;/usr/include"
 		},
 		{
 			"name" : "PKG_FONTCONFIG_LDFLAGS",
@@ -3899,7 +3627,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "-lfontconfig;-lfreetype"
+			"value" : "-L/usr/lib/aarch64-linux-gnu;-lfontconfig;-lfreetype"
 		},
 		{
 			"name" : "PKG_FONTCONFIG_LDFLAGS_OTHER",
@@ -3947,7 +3675,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : ""
+			"value" : "/usr/lib/aarch64-linux-gnu"
 		},
 		{
 			"name" : "PKG_FONTCONFIG_LIBS",
@@ -4031,7 +3759,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "-I/usr/include/freetype2;-I/usr/include/libpng16;-I/usr/include/freetype2;-I/usr/include/libpng16"
+			"value" : "-I/usr/include;-I/usr/include/uuid;-I/usr/include;-I/usr/include/freetype2;-I/usr/include/libpng16;-I/usr/include"
 		},
 		{
 			"name" : "PKG_FONTCONFIG_STATIC_CFLAGS_I",
@@ -4067,7 +3795,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/include/freetype2;/usr/include/libpng16;/usr/include/freetype2;/usr/include/libpng16"
+			"value" : "/usr/include;/usr/include/uuid;/usr/include;/usr/include/freetype2;/usr/include/libpng16;/usr/include"
 		},
 		{
 			"name" : "PKG_FONTCONFIG_STATIC_LDFLAGS",
@@ -4079,7 +3807,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "-lfontconfig;-lexpat;-lfreetype;-lexpat;-lfreetype;-lpng16;-lm;-lz;-lm;-lz"
+			"value" : "-L/usr/lib/aarch64-linux-gnu;-lfontconfig;-luuid;-lexpat;-lfreetype;-lpng16;-lm;-lz;-lm;-lz"
 		},
 		{
 			"name" : "PKG_FONTCONFIG_STATIC_LDFLAGS_OTHER",
@@ -4115,7 +3843,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "fontconfig;expat;freetype;expat;freetype;png16;m;z;m;z"
+			"value" : "fontconfig;uuid;expat;freetype;png16;m;z;m;z"
 		},
 		{
 			"name" : "PKG_FONTCONFIG_STATIC_LIBRARY_DIRS",
@@ -4127,7 +3855,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : ""
+			"value" : "/usr/lib/aarch64-linux-gnu"
 		},
 		{
 			"name" : "PKG_FONTCONFIG_STATIC_LIBS",
@@ -4187,7 +3915,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "2.12.6"
+			"value" : "2.13.1"
 		},
 		{
 			"name" : "PKG_FONTCONFIG_fontconfig_INCLUDEDIR",
@@ -4607,7 +4335,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "2.56.3"
+			"value" : "2.55.1"
 		},
 		{
 			"name" : "REALSENSE2_realsense2_INCLUDEDIR",
@@ -4939,7 +4667,7 @@
 				}
 			],
 			"type" : "PATH",
-			"value" : "X11_Xaw_INCLUDE_PATH-NOTFOUND"
+			"value" : "/usr/include"
 		},
 		{
 			"name" : "X11_Xaw_LIB",
@@ -5052,6 +4780,22 @@
 			],
 			"type" : "FILEPATH",
 			"value" : "/usr/lib/aarch64-linux-gnu/libXdamage.so"
+		},
+		{
+			"name" : "X11_Xdbe_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "/usr/include"
 		},
 		{
 			"name" : "X11_Xdmcp_INCLUDE_PATH",
@@ -5694,9 +5438,301 @@
 			"value" : "/usr/lib/aarch64-linux-gnu/libxcb.so"
 		},
 		{
+			"name" : "X11_xcb_composite_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_composite_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_composite_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_composite_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_cursor_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_cursor_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_cursor_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_cursor_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_damage_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_damage_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_damage_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_damage_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_dpms_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_dpms_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_dpms_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_dpms_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_dri2_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_dri2_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_dri2_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_dri2_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_dri3_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_dri3_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_dri3_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_dri3_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_errors_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_errors_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_errors_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_errors_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_ewmh_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_ewmh_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_ewmh_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_ewmh_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_glx_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_glx_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_glx_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_glx_LIB-NOTFOUND"
+		},
+		{
 			"name" : "X11_xcb_icccm_INCLUDE_PATH",
 			"properties" : 
 			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
 				{
 					"name" : "HELPSTRING",
 					"value" : "Path to a file."
@@ -5710,6 +5746,10 @@
 			"properties" : 
 			[
 				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
 					"name" : "HELPSTRING",
 					"value" : "Path to a library."
 				}
@@ -5718,9 +5758,397 @@
 			"value" : "X11_xcb_icccm_LIB-NOTFOUND"
 		},
 		{
+			"name" : "X11_xcb_image_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_image_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_image_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_image_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_keysyms_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_keysyms_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_keysyms_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_keysyms_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_present_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_present_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_present_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_present_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_randr_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_randr_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_randr_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_randr_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_record_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_record_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_record_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_record_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_render_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "/usr/include"
+		},
+		{
+			"name" : "X11_xcb_render_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "/usr/lib/aarch64-linux-gnu/libxcb-render.so"
+		},
+		{
+			"name" : "X11_xcb_render_util_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_render_util_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_render_util_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_render_util_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_res_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_res_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_res_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_res_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_screensaver_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_screensaver_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_screensaver_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_screensaver_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_shape_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_shape_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_shape_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_shape_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_shm_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "/usr/include"
+		},
+		{
+			"name" : "X11_xcb_shm_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "/usr/lib/aarch64-linux-gnu/libxcb-shm.so"
+		},
+		{
+			"name" : "X11_xcb_sync_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_sync_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_sync_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_sync_LIB-NOTFOUND"
+		},
+		{
 			"name" : "X11_xcb_util_INCLUDE_PATH",
 			"properties" : 
 			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
 				{
 					"name" : "HELPSTRING",
 					"value" : "Path to a file."
@@ -5734,6 +6162,10 @@
 			"properties" : 
 			[
 				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
 					"name" : "HELPSTRING",
 					"value" : "Path to a library."
 				}
@@ -5742,7 +6174,135 @@
 			"value" : "X11_xcb_util_LIB-NOTFOUND"
 		},
 		{
+			"name" : "X11_xcb_xf86dri_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_xf86dri_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_xf86dri_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_xf86dri_LIB-NOTFOUND"
+		},
+		{
 			"name" : "X11_xcb_xfixes_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_xfixes_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_xfixes_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_xfixes_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_xinerama_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_xinerama_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_xinerama_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_xinerama_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_xinput_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_xinput_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_xinput_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_xinput_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_xkb_INCLUDE_PATH",
 			"properties" : 
 			[
 				{
@@ -5751,19 +6311,7 @@
 				}
 			],
 			"type" : "PATH",
-			"value" : "/usr/include"
-		},
-		{
-			"name" : "X11_xcb_xfixes_LIB",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Path to a library."
-				}
-			],
-			"type" : "FILEPATH",
-			"value" : "/usr/lib/aarch64-linux-gnu/libxcb-xfixes.so"
+			"value" : "X11_xcb_xkb_INCLUDE_PATH-NOTFOUND"
 		},
 		{
 			"name" : "X11_xcb_xkb_LIB",
@@ -5780,6 +6328,134 @@
 			],
 			"type" : "FILEPATH",
 			"value" : "X11_xcb_xkb_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_xrm_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_xrm_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_xrm_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_xrm_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_xtest_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_xtest_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_xtest_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_xtest_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_xv_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_xv_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_xv_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_xv_LIB-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_xvmc_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_xcb_xvmc_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_xcb_xvmc_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_xcb_xvmc_LIB-NOTFOUND"
 		},
 		{
 			"name" : "X11_xkbcommon_INCLUDE_PATH",
@@ -5878,88 +6554,16 @@
 			"value" : "/usr/lib/aarch64-linux-gnu/libxkbfile.so"
 		},
 		{
-			"name" : "_Boost_COMPONENTS_SEARCHED",
+			"name" : "_CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED",
 			"properties" : 
 			[
 				{
 					"name" : "HELPSTRING",
-					"value" : "Components requested for this build tree."
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "atomic;chrono;date_time;system;thread"
-		},
-		{
-			"name" : "_Boost_INCLUDE_DIR_LAST",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Last used Boost_INCLUDE_DIR value."
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "/usr/include"
-		},
-		{
-			"name" : "_Boost_LIBRARY_DIR_DEBUG_LAST",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Last used Boost_LIBRARY_DIR_DEBUG value."
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "/usr/lib/aarch64-linux-gnu"
-		},
-		{
-			"name" : "_Boost_LIBRARY_DIR_RELEASE_LAST",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Last used Boost_LIBRARY_DIR_RELEASE value."
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "/usr/lib/aarch64-linux-gnu"
-		},
-		{
-			"name" : "_Boost_NAMESPACE_LAST",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Last used Boost_NAMESPACE value."
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "boost"
-		},
-		{
-			"name" : "_Boost_USE_MULTITHREADED_LAST",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Last used Boost_USE_MULTITHREADED value."
+					"value" : "linker supports push/pop state"
 				}
 			],
 			"type" : "INTERNAL",
 			"value" : "TRUE"
-		},
-		{
-			"name" : "__pkg_config_arguments_OPEN3D",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "REQUIRED;open3d"
 		},
 		{
 			"name" : "__pkg_config_arguments_PKG_FONTCONFIG",
@@ -5986,18 +6590,6 @@
 			"value" : "REQUIRED;realsense2"
 		},
 		{
-			"name" : "__pkg_config_checked_OPEN3D",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "1"
-		},
-		{
 			"name" : "__pkg_config_checked_PKG_FONTCONFIG",
 			"properties" : 
 			[
@@ -6022,39 +6614,31 @@
 			"value" : "1"
 		},
 		{
-			"name" : "pkgcfg_lib_OPEN3D_Open3D",
+			"name" : "_cmake_CUDAToolkit_implicit_link_directories",
 			"properties" : 
 			[
 				{
-					"name" : "ADVANCED",
-					"value" : "1"
-				},
-				{
 					"name" : "HELPSTRING",
-					"value" : "Path to a library."
+					"value" : "CUDAToolkit internal list of implicit link directories"
 				}
 			],
-			"type" : "FILEPATH",
-			"value" : "/usr/local/lib/libOpen3D.a"
+			"type" : "INTERNAL",
+			"value" : "/usr/local/cuda/targets/aarch64-linux/lib/stubs;/usr/local/cuda/targets/aarch64-linux/lib"
 		},
 		{
-			"name" : "pkgcfg_lib_OPEN3D_Open3D_3rdparty_fmt",
+			"name" : "_cmake_CUDAToolkit_include_directories",
 			"properties" : 
 			[
 				{
-					"name" : "ADVANCED",
-					"value" : "1"
-				},
-				{
 					"name" : "HELPSTRING",
-					"value" : "Path to a library."
+					"value" : "CUDAToolkit internal list of include directories"
 				}
 			],
-			"type" : "FILEPATH",
-			"value" : "/usr/local/lib/libOpen3D_3rdparty_fmt.a"
+			"type" : "INTERNAL",
+			"value" : "/usr/local/cuda/targets/aarch64-linux/include"
 		},
 		{
-			"name" : "pkgcfg_lib_OPEN3D_Open3D_3rdparty_glew",
+			"name" : "boost_atomic_DIR",
 			"properties" : 
 			[
 				{
@@ -6063,14 +6647,14 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "Path to a library."
+					"value" : "The directory containing a CMake configuration file for boost_atomic."
 				}
 			],
-			"type" : "FILEPATH",
-			"value" : "/usr/local/lib/libOpen3D_3rdparty_glew.a"
+			"type" : "PATH",
+			"value" : "/usr/lib/aarch64-linux-gnu/cmake/boost_atomic-1.71.0"
 		},
 		{
-			"name" : "pkgcfg_lib_OPEN3D_Open3D_3rdparty_glfw",
+			"name" : "boost_headers_DIR",
 			"properties" : 
 			[
 				{
@@ -6079,14 +6663,14 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "Path to a library."
+					"value" : "The directory containing a CMake configuration file for boost_headers."
 				}
 			],
-			"type" : "FILEPATH",
-			"value" : "/usr/local/lib/libOpen3D_3rdparty_glfw.a"
+			"type" : "PATH",
+			"value" : "/usr/lib/aarch64-linux-gnu/cmake/boost_headers-1.71.0"
 		},
 		{
-			"name" : "pkgcfg_lib_OPEN3D_Open3D_3rdparty_imgui",
+			"name" : "boost_system_DIR",
 			"properties" : 
 			[
 				{
@@ -6095,14 +6679,14 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "Path to a library."
+					"value" : "The directory containing a CMake configuration file for boost_system."
 				}
 			],
-			"type" : "FILEPATH",
-			"value" : "/usr/local/lib/libOpen3D_3rdparty_imgui.a"
+			"type" : "PATH",
+			"value" : "/usr/lib/aarch64-linux-gnu/cmake/boost_system-1.71.0"
 		},
 		{
-			"name" : "pkgcfg_lib_OPEN3D_Open3D_3rdparty_jpeg",
+			"name" : "boost_thread_DIR",
 			"properties" : 
 			[
 				{
@@ -6111,75 +6695,11 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "Path to a library."
+					"value" : "The directory containing a CMake configuration file for boost_thread."
 				}
 			],
-			"type" : "FILEPATH",
-			"value" : "/usr/local/lib/libOpen3D_3rdparty_jpeg.a"
-		},
-		{
-			"name" : "pkgcfg_lib_OPEN3D_Open3D_3rdparty_jsoncpp",
-			"properties" : 
-			[
-				{
-					"name" : "ADVANCED",
-					"value" : "1"
-				},
-				{
-					"name" : "HELPSTRING",
-					"value" : "Path to a library."
-				}
-			],
-			"type" : "FILEPATH",
-			"value" : "/usr/local/lib/libOpen3D_3rdparty_jsoncpp.a"
-		},
-		{
-			"name" : "pkgcfg_lib_OPEN3D_Open3D_3rdparty_png",
-			"properties" : 
-			[
-				{
-					"name" : "ADVANCED",
-					"value" : "1"
-				},
-				{
-					"name" : "HELPSTRING",
-					"value" : "Path to a library."
-				}
-			],
-			"type" : "FILEPATH",
-			"value" : "/usr/local/lib/libOpen3D_3rdparty_png.a"
-		},
-		{
-			"name" : "pkgcfg_lib_OPEN3D_Open3D_3rdparty_tinyfiledialogs",
-			"properties" : 
-			[
-				{
-					"name" : "ADVANCED",
-					"value" : "1"
-				},
-				{
-					"name" : "HELPSTRING",
-					"value" : "Path to a library."
-				}
-			],
-			"type" : "FILEPATH",
-			"value" : "/usr/local/lib/libOpen3D_3rdparty_tinyfiledialogs.a"
-		},
-		{
-			"name" : "pkgcfg_lib_OPEN3D_Open3D_3rdparty_zlib",
-			"properties" : 
-			[
-				{
-					"name" : "ADVANCED",
-					"value" : "1"
-				},
-				{
-					"name" : "HELPSTRING",
-					"value" : "Path to a library."
-				}
-			],
-			"type" : "FILEPATH",
-			"value" : "/usr/local/lib/libOpen3D_3rdparty_zlib.a"
+			"type" : "PATH",
+			"value" : "/usr/lib/aarch64-linux-gnu/cmake/boost_thread-1.71.0"
 		},
 		{
 			"name" : "pkgcfg_lib_PKG_FONTCONFIG_fontconfig",
@@ -6239,7 +6759,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/lib/aarch64-linux-gnu"
+			"value" : "/usr/local/lib/x86_64-linux-gnu"
 		},
 		{
 			"name" : "realsense2_DIR",

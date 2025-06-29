@@ -86,7 +86,7 @@ void Camera::initialize()
     }
     else
     {
-        pipe.set_device(device);
+
         // Configure the pipeline for color and depth streams
         config.enable_stream(RS2_STREAM_COLOR, frame_width, frame_height, RS2_FORMAT_BGR8, 30);
         config.enable_stream(RS2_STREAM_DEPTH, frame_width, frame_height, RS2_FORMAT_Z16, 30);
@@ -195,8 +195,8 @@ void Camera::updateLoop()
 
         }
 
-        int64 elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_time).count();
-
+        uint64 elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_time).count();
+        
         if (elapsed >= 1000)
         {
             FPS = static_cast<int>(frame_count * 1000 / elapsed);
@@ -268,6 +268,7 @@ bool Camera::getInferFrame(std::vector<float> &output)
     }
     else
     {
+
         std::lock_guard<std::mutex> lock(stream_mutex);
         cv::Mat color_mat = cv::Mat(cv::Size(frame_width, frame_height), CV_8UC3, (void *)color_frame.get_data(), cv::Mat::AUTO_STEP);
 

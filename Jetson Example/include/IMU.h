@@ -20,7 +20,7 @@
 #include <iomanip>
 #include <LSM6DS3.h>
 #include <LIS3MDL.h>
-#include "KalmanIMU.h"
+// #include "KalmanIMU.h"
 #include "IMUDataTypes.h"  
 #include "BrainComm.h"
 
@@ -110,7 +110,7 @@ class IMU
     static constexpr float DEG_TO_RAD = M_PI / 180.0f;
     static constexpr float GRAVITY_STD = 9.80665f;
 
-    KalmanFilter::KalmanIMU kalman_filter;
+    // KalmanFilter::KalmanIMU kalman_filter;
 
     
 

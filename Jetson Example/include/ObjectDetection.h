@@ -1,14 +1,12 @@
 #ifndef OBJECT_DETECTION_H
 #define OBJECT_DETECTION_H
 
-#include <opencv2/opencv.hpp>
+#include <opencv4/opencv2/opencv.hpp>
 #include <vector>
 #include <string>
 #include <cmath>
 #include <algorithm>
 #include <iostream>
-
-
 
 struct DetectedObject
 {

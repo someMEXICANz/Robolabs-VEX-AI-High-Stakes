@@ -239,7 +239,7 @@ bool IMU::initialize()
     }
 
     configureSettings();
-    kalman_filter.initialize();
+   
 
     initialized = true;
     return true;
@@ -659,8 +659,7 @@ void IMU::updateOrientation()
         return;
     }
     
-    kalman_filter.update(current_data, magCalibrated);
-    current_orientation = kalman_filter.getOrientation();
+
    
 }
 
@@ -900,10 +899,6 @@ bool IMU::calibrateMagnetometer()
     
     std::cout << "Soft iron scaling: X=" << scale_factor_x << ", Y=" << scale_factor_y << std::endl;
     
-    // Set scaling factors in Kalman filter (since hardware doesn't handle scaling)
-    kalman_filter.setMagneticOffsets(0.0f, 0.0f, 0.0f); // Zero since hardware registers handle offsets
-    kalman_filter.setMagneticScaling(scale_factor_x, scale_factor_y, 1.0f);
-    
     // Calculate and report the fit quality (how close to a circle)
     float circle_error = std::abs(radius_x - radius_y) / avg_radius * 100.0f;
     std::cout << "Circle fit quality: " << (100.0f - circle_error) << "% (closer to 100% is better)" << std::endl;
@@ -1084,5 +1079,4 @@ OrientationData IMU::getOrientationData() const
 
 void IMU::setHeading(float yaw_degrees)
 {
-    kalman_filter.setYaw(yaw_degrees);
 }

@@ -6,17 +6,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # This is important for VSCode
 
-
-
-# Find the i2c library - consolidated to a single search
-# find_library(I2C_LIBRARY 
-#     NAMES i2c
-#     PATHS /usr/lib/aarch64-linux-gnu
-# )
-# if(NOT I2C_LIBRARY)
-#     message(FATAL_ERROR "libi2c not found, please install 'libi2c-dev' package")
-# endif()
-
 # Find OpenCV
 find_package(OpenCV REQUIRED)
 
@@ -61,15 +50,6 @@ add_executable(CameraTest
     src/FieldMapper.cpp
 )
 
-
-
-# # Modern approach: target-specific link directories
-# target_link_directories(CameraTest PRIVATE
-#     ${OpenCV_LIBRARY_DIRS}
-#     Open3D::Open3D
-
-# )
-
 # Modern approach: target-specific compile options
 target_compile_options(CameraTest PRIVATE
     -Wno-deprecated-declarations
@@ -83,7 +63,6 @@ target_link_libraries(CameraTest PRIVATE
     ${OpenCV_LIBS}
     ${LIBSERIAL_LIBRARIES}
     ${Boost_LIBRARIES}  
-    # ${I2C_LIBRARY}
     Open3D::Open3D
     cudart
     nvinfer

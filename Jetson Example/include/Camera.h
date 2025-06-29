@@ -75,7 +75,6 @@ private:
     std::shared_ptr<open3d::geometry::RGBDImage> current_RGBDImage;   
                   
     open3d::camera::PinholeCameraIntrinsic intrinsic;
-    open3d::core::
     
     
     int FPS;

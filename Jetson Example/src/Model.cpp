@@ -92,14 +92,12 @@ bool Model::buildEngine()
     nvinfer1::IBuilder* builder = nvinfer1::createInferBuilder(logger);
     nvinfer1::IBuilderConfig* config = builder->createBuilderConfig();
 
-   
-
     const int32_t explicitBatch = 1;
     size_t maxWSsize = 1U << 28;
     builder->setMaxBatchSize(explicitBatch);
     config->setMaxWorkspaceSize(maxWSsize);
 
-     unsigned int flags = 1U << static_cast<unsigned int>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
+    unsigned int flags = 1U << static_cast<unsigned int>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
     nvinfer1::INetworkDefinition* network = builder->createNetworkV2(flags);
     
     std::cerr << "Loading and parsing onnx file:" << onnxPath << std::endl;
@@ -129,6 +127,8 @@ bool Model::buildEngine()
     parser->destroy();
     builder->destroy();
     config->destroy();
+
+    return true;
 
 }
 

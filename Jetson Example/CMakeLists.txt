@@ -32,6 +32,7 @@ pkg_check_modules(REALSENSE2 REQUIRED realsense2)
 
 include_directories(CameraTest PRIVATE
     ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include/SH2
     ${OpenCV_INCLUDE_DIRS}
     ${Open3D_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
@@ -44,13 +45,19 @@ add_executable(CameraTest
     src/Model.cpp
     src/ObjectDetection.cpp
     src/GPS.cpp
-    src/Position.cpp
-    src/RobotPosition.cpp
+    # src/Position.cpp
+    # src/RobotPosition.cpp
     src/BrainCommStats.cpp
     src/BrainComm.cpp
-    src/IMU.cpp
-    src/UPS.cpp
-    src/FieldMapper.cpp
+    src/I2C_Device.cpp
+    # src/IMU.cpp
+    src/WS_UPS.cpp
+    # src/FieldMapper.cpp
+    src/BNO085.cpp
+    src/SH2/shtp.c
+    src/SH2/sh2.c
+    src/SH2/sh2_util.c
+    src/SH2/sh2_SensorValue.c
 )
 
 target_compile_options(CameraTest PRIVATE -Wno-deprecated-declarations)

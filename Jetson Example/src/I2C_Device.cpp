@@ -1,0 +1,245 @@
+#include "I2C_Device.h"
+#include <iostream>
+#include <cstring>
+#include <errno.h>
+
+I2CDevice::I2CDevice(const std::string& device_path, uint8_t address)
+    : device_path(device_path), device_address(address), fd(-1) {
+}
+
+I2CDevice::~I2CDevice() {
+    close();
+}
+
+bool I2CDevice::open() {
+    std::lock_guard<std::mutex> lock(i2c_mutex);
+    
+    if (fd >= 0) {
+        return true;  // Already open
+    }
+    
+    fd = ::open(device_path.c_str(), O_RDWR);
+    if (fd < 0) {
+        setError("Failed to open " + device_path + ": " + std::strerror(errno));
+        return false;
+    }
+    
+    if (!setSlaveAddress()) {
+        ::close(fd);
+        fd = -1;
+        return false;
+    }
+    
+    return true;
+}
+
+void I2CDevice::close() {
+    std::lock_guard<std::mutex> lock(i2c_mutex);
+    
+    if (fd >= 0) {
+        ::close(fd);
+        fd = -1;
+    }
+}
+
+bool I2CDevice::setSlaveAddress() {
+    if (ioctl(fd, I2C_SLAVE, device_address) < 0) {
+        setError("Failed to set I2C slave address 0x" + 
+                std::to_string(device_address) + ": " + std::strerror(errno));
+        return false;
+    }
+    return true;
+}
+
+bool I2CDevice::writeByte(uint8_t reg, uint8_t data) {
+    std::lock_guard<std::mutex> lock(i2c_mutex);
+    
+    if (fd < 0) {
+        setError("Device not open");
+        return false;
+    }
+    
+    if (!setSlaveAddress()) return false;
+    
+    uint8_t buffer[2] = {reg, data};
+    if (write(fd, buffer, 2) != 2) {
+        setError("Failed to write byte to register 0x" + std::to_string(reg));
+        return false;
+    }
+    
+    return true;
+}
+
+bool I2CDevice::writeWord(uint8_t reg, uint16_t data) {
+    std::lock_guard<std::mutex> lock(i2c_mutex);
+    
+    if (fd < 0) {
+        setError("Device not open");
+        return false;
+    }
+    
+    if (!setSlaveAddress()) return false;
+    
+    uint8_t buffer[3];
+    buffer[0] = reg;
+    buffer[1] = (data >> 8) & 0xFF;  // MSB first
+    buffer[2] = data & 0xFF;         // LSB
+    
+    if (write(fd, buffer, 3) != 3) {
+        setError("Failed to write word to register 0x" + std::to_string(reg));
+        return false;
+    }
+    
+    return true;
+}
+
+bool I2CDevice::writeBytes(uint8_t reg, const uint8_t* data, size_t length) {
+    std::lock_guard<std::mutex> lock(i2c_mutex);
+    
+    if (fd < 0) {
+        setError("Device not open");
+        return false;
+    }
+    
+    if (!setSlaveAddress()) return false;
+    
+    // Create buffer with register + data
+    uint8_t* buffer = new uint8_t[length + 1];
+    buffer[0] = reg;
+    std::memcpy(buffer + 1, data, length);
+    
+    bool success = (write(fd, buffer, length + 1) == static_cast<ssize_t>(length + 1));
+    
+    delete[] buffer;
+    
+    if (!success) {
+        setError("Failed to write " + std::to_string(length) + " bytes to register 0x" + std::to_string(reg));
+        return false;
+    }
+    
+    return true;
+}
+
+bool I2CDevice::readByte(uint8_t reg, uint8_t& data) {
+    std::lock_guard<std::mutex> lock(i2c_mutex);
+    
+    if (fd < 0) {
+        setError("Device not open");
+        return false;
+    }
+    
+    if (!setSlaveAddress()) return false;
+    
+    // Write register address
+    if (write(fd, &reg, 1) != 1) {
+        setError("Failed to write register address");
+        return false;
+    }
+    
+    // Read data
+    if (read(fd, &data, 1) != 1) {
+        setError("Failed to read byte from register 0x" + std::to_string(reg));
+        return false;
+    }
+    
+    return true;
+}
+
+bool I2CDevice::readWord(uint8_t reg, uint16_t& data) {
+    std::lock_guard<std::mutex> lock(i2c_mutex);
+    
+    if (fd < 0) {
+        setError("Device not open");
+        return false;
+    }
+    
+    if (!setSlaveAddress()) return false;
+    
+    // Write register address
+    if (write(fd, &reg, 1) != 1) {
+        setError("Failed to write register address");
+        return false;
+    }
+    
+    // Read data (2 bytes)
+    uint8_t buffer[2];
+    if (read(fd, buffer, 2) != 2) {
+        setError("Failed to read word from register 0x" + std::to_string(reg));
+        return false;
+    }
+    
+    data = (buffer[0] << 8) | buffer[1];  // MSB first
+    return true;
+}
+
+bool I2CDevice::readBytes(uint8_t reg, uint8_t* data, size_t length) {
+    std::lock_guard<std::mutex> lock(i2c_mutex);
+    
+    if (fd < 0) {
+        setError("Device not open");
+        return false;
+    }
+    
+    if (!setSlaveAddress()) return false;
+    
+    // Write register address
+    if (write(fd, &reg, 1) != 1) {
+        setError("Failed to write register address");
+        return false;
+    }
+    
+    // Read data
+    if (read(fd, data, length) != static_cast<ssize_t>(length)) {
+        setError("Failed to read " + std::to_string(length) + " bytes from register 0x" + std::to_string(reg));
+        return false;
+    }
+    
+    return true;
+}
+
+bool I2CDevice::writeRaw(const uint8_t* data, size_t length) {
+    std::lock_guard<std::mutex> lock(i2c_mutex);
+    
+    if (fd < 0) {
+        setError("Device not open");
+        return false;
+    }
+    
+    if (!setSlaveAddress()) return false;
+    
+    if (write(fd, data, length) != static_cast<ssize_t>(length)) {
+        setError("Failed to write " + std::to_string(length) + " raw bytes");
+        return false;
+    }
+    
+    return true;
+}
+
+bool I2CDevice::readRaw(uint8_t* data, size_t length) {
+    std::lock_guard<std::mutex> lock(i2c_mutex);
+    
+    if (fd < 0) {
+        setError("Device not open");
+        return false;
+    }
+    
+    if (!setSlaveAddress()) return false;
+    
+    if (read(fd, data, length) != static_cast<ssize_t>(length)) {
+        setError("Failed to read " + std::to_string(length) + " raw bytes");
+        return false;
+    }
+    
+    return true;
+}
+
+bool I2CDevice::isDevicePresent() {
+    uint8_t dummy;
+    return readByte(0x00, dummy);  // Try to read from register 0
+}
+
+void I2CDevice::setError(const std::string& error) {
+    last_error = error;
+    std::cerr << "I2C Device Error (0x" << std::hex << static_cast<int>(device_address) 
+              << "): " << error << std::endl;
+}

@@ -159,7 +159,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "3"
+			"value" : "4"
 		},
 		{
 			"name" : "CMAKE_CACHE_MINOR_VERSION",
@@ -171,7 +171,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "30"
+			"value" : "0"
 		},
 		{
 			"name" : "CMAKE_CACHE_PATCH_VERSION",
@@ -183,7 +183,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "9"
+			"value" : "3"
 		},
 		{
 			"name" : "CMAKE_COMMAND",
@@ -586,6 +586,22 @@
 			"value" : ""
 		},
 		{
+			"name" : "CMAKE_EXPORT_BUILD_DATABASE",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Enable/Disable output of build database during the build."
+				}
+			],
+			"type" : "BOOL",
+			"value" : ""
+		},
+		{
 			"name" : "CMAKE_EXPORT_COMPILE_COMMANDS",
 			"properties" : 
 			[
@@ -816,6 +832,18 @@
 			],
 			"type" : "FILEPATH",
 			"value" : "/usr/bin/aarch64-linux-gnu-ld"
+		},
+		{
+			"name" : "CMAKE_LIST_FILE_NAME",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Name of CMakeLists files to read"
+				}
+			],
+			"type" : "INTERNAL",
+			"value" : "CMakeLists.txt"
 		},
 		{
 			"name" : "CMAKE_MAKE_PROGRAM",
@@ -1063,7 +1091,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/share/cmake-3.30"
+			"value" : "/usr/share/cmake-4.0"
 		},
 		{
 			"name" : "CMAKE_SHARED_LINKER_FLAGS",
@@ -2191,7 +2219,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/share/cmake-3.30/Modules/FindCUDA/make2cmake.cmake"
+			"value" : "/usr/share/cmake-4.0/Modules/FindCUDA/make2cmake.cmake"
 		},
 		{
 			"name" : "CUDA_nppc_LIBRARY",
@@ -2690,6 +2718,22 @@
 			"value" : "/usr/local/cuda/targets/aarch64-linux/lib/stubs/libnvidia-ml.so"
 		},
 		{
+			"name" : "CUDA_nvml_static_LIBRARY",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "CUDA_nvml_static_LIBRARY-NOTFOUND"
+		},
+		{
 			"name" : "CUDA_nvperf_host_LIBRARY",
 			"properties" : 
 			[
@@ -2779,7 +2823,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/share/cmake-3.30/Modules/FindCUDA/parse_cubin.cmake"
+			"value" : "/usr/share/cmake-4.0/Modules/FindCUDA/parse_cubin.cmake"
 		},
 		{
 			"name" : "CUDA_rt_LIBRARY",
@@ -2807,7 +2851,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/share/cmake-3.30/Modules/FindCUDA/run_nvcc.cmake"
+			"value" : "/usr/share/cmake-4.0/Modules/FindCUDA/run_nvcc.cmake"
 		},
 		{
 			"name" : "CameraTest_BINARY_DIR",
@@ -2927,7 +2971,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "[/usr/lib/aarch64-linux-gnu/libOpenGL.so][/usr/lib/aarch64-linux-gnu/libGLX.so][/usr/include][c ][v()]"
+			"value" : "[/usr/lib/aarch64-linux-gnu/libOpenGL.so][/usr/lib/aarch64-linux-gnu/libGLX.so][/usr/include][ ][v()]"
 		},
 		{
 			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_OpenMP",
@@ -2939,7 +2983,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "[TRUE][TRUE][c ][v4.5()]"
+			"value" : "[TRUE][TRUE][ ][v4.5()]"
 		},
 		{
 			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_OpenMP_C",
@@ -2999,7 +3043,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "[/usr/include][/usr/lib/aarch64-linux-gnu/libX11.so][c ][v()]"
+			"value" : "[/usr/include][/usr/lib/aarch64-linux-gnu/libX11.so][ ][v()]"
 		},
 		{
 			"name" : "FREETYPE_INCLUDE_DIR_freetype2",
@@ -5112,6 +5156,38 @@
 			],
 			"type" : "FILEPATH",
 			"value" : "/usr/lib/aarch64-linux-gnu/libXpm.so"
+		},
+		{
+			"name" : "X11_Xpresent_INCLUDE_PATH",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "X11_Xpresent_INCLUDE_PATH-NOTFOUND"
+		},
+		{
+			"name" : "X11_Xpresent_LIB",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "X11_Xpresent_LIB-NOTFOUND"
 		},
 		{
 			"name" : "X11_Xrandr_INCLUDE_PATH",

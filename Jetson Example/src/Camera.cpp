@@ -227,6 +227,7 @@ float Camera::getDepthScale()
     if(!initialized)
     {
         std::cerr << "Could not retrieve depth scale, camera is not initialized" << std::endl;
+        return -1.0;
     }
     else
     {

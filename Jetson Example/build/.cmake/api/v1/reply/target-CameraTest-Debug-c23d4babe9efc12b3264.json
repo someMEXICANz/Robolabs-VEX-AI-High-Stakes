@@ -33,12 +33,12 @@
 			"/usr/lib/aarch64-linux-gnu/cmake/Boost-1.71.0/BoostConfig.cmake",
 			"/usr/local/lib/cmake/Open3D/Open3DTargets.cmake",
 			"/usr/local/lib/cmake/Open3D/Open3DConfig.cmake",
-			"/usr/share/cmake-3.30/Modules/FindOpenMP.cmake",
-			"/usr/share/cmake-3.30/Modules/CMakeFindDependencyMacro.cmake",
+			"/usr/share/cmake-4.0/Modules/FindOpenMP.cmake",
+			"/usr/share/cmake-4.0/Modules/CMakeFindDependencyMacro.cmake",
 			"/usr/local/lib/cmake/realsense2/realsense2Targets.cmake",
 			"/usr/local/lib/cmake/realsense2/realsense2Config.cmake",
-			"/usr/share/cmake-3.30/Modules/FindCUDAToolkit.cmake",
-			"/usr/share/cmake-3.30/Modules/FindThreads.cmake"
+			"/usr/share/cmake-4.0/Modules/FindCUDAToolkit.cmake",
+			"/usr/share/cmake-4.0/Modules/FindThreads.cmake"
 		],
 		"nodes" : 
 		[
@@ -48,13 +48,13 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 41,
+				"line" : 42,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 60,
+				"line" : 67,
 				"parent" : 0
 			},
 			{
@@ -230,7 +230,7 @@
 			{
 				"command" : 3,
 				"file" : 7,
-				"line" : 76,
+				"line" : 78,
 				"parent" : 32
 			},
 			{
@@ -240,7 +240,7 @@
 			{
 				"command" : 4,
 				"file" : 6,
-				"line" : 639,
+				"line" : 690,
 				"parent" : 34
 			},
 			{
@@ -258,7 +258,7 @@
 			{
 				"command" : 3,
 				"file" : 7,
-				"line" : 76,
+				"line" : 78,
 				"parent" : 37
 			},
 			{
@@ -300,13 +300,13 @@
 			{
 				"command" : 9,
 				"file" : 10,
-				"line" : 1275,
+				"line" : 1309,
 				"parent" : 45
 			},
 			{
 				"command" : 1,
 				"file" : 10,
-				"line" : 1164,
+				"line" : 1198,
 				"parent" : 46
 			},
 			{
@@ -336,7 +336,7 @@
 			{
 				"command" : 3,
 				"file" : 10,
-				"line" : 1185,
+				"line" : 1219,
 				"parent" : 45
 			},
 			{
@@ -364,7 +364,7 @@
 			{
 				"command" : 10,
 				"file" : 0,
-				"line" : 56,
+				"line" : 63,
 				"parent" : 0
 			},
 			{
@@ -382,7 +382,7 @@
 			{
 				"command" : 13,
 				"file" : 0,
-				"line" : 58,
+				"line" : 65,
 				"parent" : 0
 			}
 		]
@@ -459,6 +459,10 @@
 				},
 				{
 					"backtrace" : 59,
+					"path" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example/include/SH2"
+				},
+				{
+					"backtrace" : 59,
 					"path" : "/usr/include/eigen3"
 				},
 				{
@@ -498,9 +502,107 @@
 				6,
 				7,
 				8,
-				9,
+				9
+			]
+		},
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g"
+				},
+				{
+					"backtrace" : 57,
+					"fragment" : "-Wno-deprecated-declarations"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 2,
+					"define" : "BOOST_ALL_NO_LIB"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "BOOST_ATOMIC_DYN_LINK"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "BOOST_SYSTEM_DYN_LINK"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "BOOST_THREAD_DYN_LINK"
+				},
+				{
+					"backtrace" : 58,
+					"define" : "EIGEN_USE_THREADS"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "FMT_HEADER_ONLY=0"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "FMT_STRING_ALIAS=1"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "FMT_USE_WINDOWS_H=0"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "OPEN3D_STATIC"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "_GLIBCXX_USE_CXX11_ABI=1"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 59,
+					"path" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example/CameraTest"
+				},
+				{
+					"backtrace" : 59,
+					"path" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example/PRIVATE"
+				},
+				{
+					"backtrace" : 59,
+					"path" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example/include"
+				},
+				{
+					"backtrace" : 59,
+					"path" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example/include/SH2"
+				},
+				{
+					"backtrace" : 59,
+					"path" : "/usr/include/eigen3"
+				},
+				{
+					"backtrace" : 59,
+					"path" : "/usr/local/cuda/targets/aarch64-linux/include"
+				},
+				{
+					"backtrace" : 59,
+					"isSystem" : true,
+					"path" : "/usr/include/opencv4"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/usr/local/include/open3d/3rdparty"
+				}
+			],
+			"language" : "C",
+			"sourceIndexes" : 
+			[
 				10,
-				11
+				11,
+				12,
+				13
 			]
 		}
 	],
@@ -511,10 +613,6 @@
 		[
 			{
 				"fragment" : "-g",
-				"role" : "flags"
-			},
-			{
-				"fragment" : "",
 				"role" : "flags"
 			},
 			{
@@ -1491,7 +1589,9 @@
 				8,
 				9,
 				10,
-				11
+				11,
+				12,
+				13
 			]
 		}
 	],
@@ -1530,18 +1630,6 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/Position.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "src/RobotPosition.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
 			"path" : "src/BrainCommStats.cpp",
 			"sourceGroupIndex" : 0
 		},
@@ -1554,19 +1642,43 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/IMU.cpp",
+			"path" : "src/I2C_Device.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/UPS.cpp",
+			"path" : "src/WS_UPS.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/FieldMapper.cpp",
+			"path" : "src/BNO085.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "src/SH2/shtp.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "src/SH2/sh2.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "src/SH2/sh2_util.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "src/SH2/sh2_SensorValue.c",
 			"sourceGroupIndex" : 0
 		}
 	],

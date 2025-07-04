@@ -2,6 +2,7 @@
 
     
     "files.associations": {
+        "*.h": "cpp",
         "bitset": "cpp",
         "memory": "cpp",
         "optional": "cpp",
@@ -78,7 +79,8 @@
         "__string": "cpp",
         "__bit_reference": "cpp",
         "__functional_base": "cpp",
-        "__memory": "cpp"
+        "__memory": "cpp",
+        "bit": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/gcc-8"
 

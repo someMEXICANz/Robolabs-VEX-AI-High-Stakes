@@ -544,7 +544,11 @@ const std::string& BNO085::getLastError() const {
     return last_error;
 }
 
-void BNO085::setError(const std::string& error)
+void BNO085::setError(const std::string& error) 
 {
-
+    {
+        std::lock_guard<std::mutex> lock(error_mutex);
+        last_error = error;
+    }
+    std::cerr << "BNO085 Error: " << error << std::endl;
 }

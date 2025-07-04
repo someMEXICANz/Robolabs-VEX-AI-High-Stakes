@@ -146,7 +146,6 @@ private:
     // Helper functions
     void processSensorEvent(const sh2_SensorValue_t& sensor_value);
     void setError(const std::string& error);
-    static float quaternionToEuler(float qw, float qx, float qy, float qz, int axis);
     
     // Hardware interface
     I2CDevice i2c_device;

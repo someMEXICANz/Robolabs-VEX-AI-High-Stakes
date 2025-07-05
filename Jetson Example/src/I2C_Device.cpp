@@ -206,46 +206,7 @@ bool I2CDevice::readBytes(uint8_t reg, uint8_t* data, size_t length) {
 }
 
 
-bool I2CDevice::writeRaw(const uint8_t* data, size_t length) {
-    std::lock_guard<std::mutex> lock(i2c_mutex);
-    
-    if (fd < 0) {
-        setError("Device not open");
-        return false;
-    }
-    
-    if (!setSlaveAddress()) return false;
-    
-    if (write(fd, data, length) != static_cast<ssize_t>(length)) {
-        setError("Failed to write " + std::to_string(length) + " raw bytes");
-        return false;
-    }
-    
-    return true;
-}
 
-bool I2CDevice::readRaw(uint8_t* data, size_t length) {
-    std::lock_guard<std::mutex> lock(i2c_mutex);
-    
-    if (fd < 0) {
-        setError("Device not open");
-        return false;
-    }
-    
-    if (!setSlaveAddress()) return false;
-    
-    ssize_t bytes_read = read(fd, data, length);
-    if (bytes_read != static_cast<ssize_t>(length)) {
-        if (bytes_read < 0) {
-            setError("Failed to read " + std::to_string(length) + " raw bytes: " + std::strerror(errno));
-        } else {
-            setError("Partial read: expected " + std::to_string(length) + " bytes, got " + std::to_string(bytes_read));
-        }
-        return false;
-    }
-    
-    return true;
-}
 
 
 bool I2CDevice::isDevicePresent() {

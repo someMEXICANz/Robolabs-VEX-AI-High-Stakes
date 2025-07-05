@@ -29,12 +29,7 @@ public:
     bool readByte(uint8_t reg, uint8_t& data);
     bool readWord(uint8_t reg, uint16_t& data);
     bool readBytes(uint8_t reg, uint8_t* data, size_t length);
-    
-    bool writeRaw(const uint8_t* data, size_t length);
-    bool readRaw(uint8_t* data, size_t length);
 
-
-    
     // Utility functions
     bool isDevicePresent();
     uint8_t getAddress() const { return device_address; }

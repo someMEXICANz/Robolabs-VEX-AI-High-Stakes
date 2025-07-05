@@ -1,12 +1,6 @@
 #include "I2C_HAL.h"
 #include <iostream>
 #include <thread>
-#include <cstring>
-#include <iomanip>
-
-// Static member definitions
-std::mutex I2C_HAL::instances_mutex;
-std::unordered_map<sh2_Hal_t*, I2C_HAL*> I2C_HAL::hal_instances;
 
 I2C_HAL::I2C_HAL(const std::string& i2c_device_path, uint8_t i2c_address) 
     : start_time(std::chrono::steady_clock::now()) {
@@ -21,32 +15,16 @@ I2C_HAL::I2C_HAL(const std::string& i2c_device_path, uint8_t i2c_address)
     hal_interface.write = hal_write;
     hal_interface.getTimeUs = hal_getTimeUs;
     
-    // Register this instance for callback lookups
-    registerInstance();
+    // Store pointer to this instance in HAL structure
+    // We'll use a hack: store 'this' pointer in an unused field
+    // (This is a common pattern for C callback interfaces)
+    hal_interface.cookie = this;  // Assuming there's a cookie field, or we can add one
 }
 
 I2C_HAL::~I2C_HAL() {
-    unregisterInstance();
-    
     if (i2c_device && i2c_device->isOpen()) {
         i2c_device->close();
     }
-}
-
-void I2C_HAL::registerInstance() {
-    std::lock_guard<std::mutex> lock(instances_mutex);
-    hal_instances[&hal_interface] = this;
-}
-
-void I2C_HAL::unregisterInstance() {
-    std::lock_guard<std::mutex> lock(instances_mutex);
-    hal_instances.erase(&hal_interface);
-}
-
-I2C_HAL* I2C_HAL::getHalInstance(sh2_Hal_t *self) {
-    std::lock_guard<std::mutex> lock(instances_mutex);
-    auto it = hal_instances.find(self);
-    return (it != hal_instances.end()) ? it->second : nullptr;
 }
 
 bool I2C_HAL::testConnection() {
@@ -55,10 +33,15 @@ bool I2C_HAL::testConnection() {
         return false;
     }
     
+    // Try to detect if device is present
     return i2c_device->isDevicePresent();
 }
 
-
+I2C_HAL* I2C_HAL::getHalInstance(sh2_Hal_t *self) {
+    // We need to store 'this' pointer somewhere in sh2_Hal_t
+    // Let's check if there's a cookie field we can use, or we might need to modify sh2_hal.h
+    return static_cast<I2C_HAL*>(self->cookie);
+}
 
 uint32_t I2C_HAL::getCurrentTimeUs() {
     auto now = std::chrono::steady_clock::now();
@@ -79,7 +62,7 @@ int I2C_HAL::hal_open(sh2_Hal_t *self) {
     }
     
     // BNO085 requires a soft reset sequence over I2C
-    // According to the Adafruit code: {5, 0, 1, 0, 1}
+    // According to the Adafruit code, we need to send: {5, 0, 1, 0, 1}
     uint8_t softreset_pkt[] = {5, 0, 1, 0, 1};
     
     // Try multiple attempts like the Arduino code does
@@ -127,11 +110,6 @@ int I2C_HAL::hal_read(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len, uint32_t 
         return 0;
     }
     
-    if (packet_size < 4) {
-        std::cerr << "HAL: Invalid packet size: " << packet_size << std::endl;
-        return 0;
-    }
-    
     // Copy header to output buffer
     std::memcpy(pBuffer, header, 4);
     
@@ -141,19 +119,6 @@ int I2C_HAL::hal_read(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len, uint32_t 
             std::cerr << "HAL: Failed to read packet payload" << std::endl;
             return 0;
         }
-    }
-    
-    // Debug: Print packet contents for advertisement analysis
-    static int packet_count = 0;
-    packet_count++;
-    
-    if (packet_count <= 20) {  // Only show first 20 packets
-        std::cout << "Packet " << packet_count << " (size=" << packet_size << "): ";
-        for (int i = 0; i < std::min((int)packet_size, 16); i++) {
-            std::cout << std::hex << std::setfill('0') << std::setw(2) << (int)pBuffer[i] << " ";
-        }
-        if (packet_size > 16) std::cout << "...";
-        std::cout << std::dec << std::endl;
     }
     
     return packet_size;

@@ -28,9 +28,6 @@ private:
     sh2_Hal_t hal_interface;
     std::chrono::steady_clock::time_point start_time;
     
-    // Thread-safe instance management
-    static std::mutex instances_mutex;
-    static std::unordered_map<sh2_Hal_t*, I2C_HAL*> hal_instances;
     
     // Static callback functions for SH2 HAL interface
     static int hal_open(sh2_Hal_t *self);
@@ -44,8 +41,7 @@ private:
     
     // Internal methods
     uint32_t getCurrentTimeUs();
-    void registerInstance();
-    void unregisterInstance();
+    
 };
 
 #endif // I2C_HAL_H

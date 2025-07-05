@@ -2,6 +2,14 @@
 #include <iostream>
 #include <cstring>
 #include <errno.h>
+#include <string>
+#include <cstdint>
+#include <thread>
+#include <mutex>
+#include <chrono>
+#include <atomic>
+#include <memory>
+#include <functional>
 
 I2CDevice::I2CDevice(const std::string& device_path, uint8_t address)
     : device_path(device_path), device_address(address), fd(-1) {
@@ -197,6 +205,7 @@ bool I2CDevice::readBytes(uint8_t reg, uint8_t* data, size_t length) {
     return true;
 }
 
+
 bool I2CDevice::writeRaw(const uint8_t* data, size_t length) {
     std::lock_guard<std::mutex> lock(i2c_mutex);
     
@@ -225,13 +234,19 @@ bool I2CDevice::readRaw(uint8_t* data, size_t length) {
     
     if (!setSlaveAddress()) return false;
     
-    if (read(fd, data, length) != static_cast<ssize_t>(length)) {
-        setError("Failed to read " + std::to_string(length) + " raw bytes");
+    ssize_t bytes_read = read(fd, data, length);
+    if (bytes_read != static_cast<ssize_t>(length)) {
+        if (bytes_read < 0) {
+            setError("Failed to read " + std::to_string(length) + " raw bytes: " + std::strerror(errno));
+        } else {
+            setError("Partial read: expected " + std::to_string(length) + " bytes, got " + std::to_string(bytes_read));
+        }
         return false;
     }
     
     return true;
 }
+
 
 bool I2CDevice::isDevicePresent() {
     uint8_t dummy;

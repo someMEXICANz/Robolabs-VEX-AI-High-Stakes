@@ -1,0 +1,1575 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "CameraTest"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_executable",
+			"target_link_libraries",
+			"link_directories",
+			"find_package",
+			"set_property",
+			"boost_find_component",
+			"set_target_properties",
+			"include",
+			"find_dependency",
+			"_CUDAToolkit_find_and_add_import_lib",
+			"target_compile_options",
+			"add_definitions",
+			"include_directories",
+			"target_compile_features"
+		],
+		"files" : 
+		[
+			"CMakeLists.txt",
+			"/usr/lib/aarch64-linux-gnu/cmake/opencv4/OpenCVConfig.cmake",
+			"/usr/lib/aarch64-linux-gnu/cmake/boost_thread-1.71.0/boost_thread-config.cmake",
+			"/usr/lib/aarch64-linux-gnu/cmake/Boost-1.71.0/BoostConfig.cmake",
+			"/usr/local/lib/cmake/Open3D/Open3DTargets.cmake",
+			"/usr/local/lib/cmake/Open3D/Open3DConfig.cmake",
+			"/usr/share/cmake-4.0/Modules/FindOpenMP.cmake",
+			"/usr/share/cmake-4.0/Modules/CMakeFindDependencyMacro.cmake",
+			"/usr/local/lib/cmake/realsense2/realsense2Targets.cmake",
+			"/usr/local/lib/cmake/realsense2/realsense2Config.cmake",
+			"/usr/share/cmake-4.0/Modules/FindCUDAToolkit.cmake",
+			"/usr/share/cmake-4.0/Modules/FindThreads.cmake"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 52,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 69,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 22,
+				"parent" : 0
+			},
+			{
+				"file" : 1,
+				"parent" : 3
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 143,
+				"parent" : 4
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 31,
+				"parent" : 0
+			},
+			{
+				"file" : 3,
+				"parent" : 6
+			},
+			{
+				"command" : 5,
+				"file" : 3,
+				"line" : 182,
+				"parent" : 7
+			},
+			{
+				"command" : 3,
+				"file" : 3,
+				"line" : 117,
+				"parent" : 8
+			},
+			{
+				"file" : 2,
+				"parent" : 9
+			},
+			{
+				"command" : 4,
+				"file" : 2,
+				"line" : 92,
+				"parent" : 10
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 25,
+				"parent" : 0
+			},
+			{
+				"file" : 5,
+				"parent" : 12
+			},
+			{
+				"command" : 7,
+				"file" : 5,
+				"line" : 28,
+				"parent" : 13
+			},
+			{
+				"file" : 4,
+				"parent" : 14
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 68,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 123,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 130,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 355,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 164,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 157,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 179,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 171,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 230,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 277,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 288,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 296,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 304,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 318,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 340,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 347,
+				"parent" : 15
+			},
+			{
+				"command" : 8,
+				"file" : 5,
+				"line" : 25,
+				"parent" : 13
+			},
+			{
+				"command" : 3,
+				"file" : 7,
+				"line" : 78,
+				"parent" : 32
+			},
+			{
+				"file" : 6,
+				"parent" : 33
+			},
+			{
+				"command" : 4,
+				"file" : 6,
+				"line" : 690,
+				"parent" : 34
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 150,
+				"parent" : 15
+			},
+			{
+				"command" : 8,
+				"file" : 5,
+				"line" : 25,
+				"parent" : 13
+			},
+			{
+				"command" : 3,
+				"file" : 7,
+				"line" : 78,
+				"parent" : 37
+			},
+			{
+				"file" : 9,
+				"parent" : 38
+			},
+			{
+				"command" : 7,
+				"file" : 9,
+				"line" : 35,
+				"parent" : 39
+			},
+			{
+				"file" : 8,
+				"parent" : 40
+			},
+			{
+				"command" : 6,
+				"file" : 8,
+				"line" : 74,
+				"parent" : 41
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 326,
+				"parent" : 15
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 17,
+				"parent" : 0
+			},
+			{
+				"file" : 10,
+				"parent" : 44
+			},
+			{
+				"command" : 9,
+				"file" : 10,
+				"line" : 1309,
+				"parent" : 45
+			},
+			{
+				"command" : 1,
+				"file" : 10,
+				"line" : 1198,
+				"parent" : 46
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 333,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 115,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 82,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 240,
+				"parent" : 15
+			},
+			{
+				"command" : 3,
+				"file" : 10,
+				"line" : 1219,
+				"parent" : 45
+			},
+			{
+				"file" : 11,
+				"parent" : 52
+			},
+			{
+				"command" : 4,
+				"file" : 11,
+				"line" : 238,
+				"parent" : 53
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 262,
+				"parent" : 15
+			},
+			{
+				"command" : 6,
+				"file" : 4,
+				"line" : 270,
+				"parent" : 15
+			},
+			{
+				"command" : 10,
+				"file" : 0,
+				"line" : 65,
+				"parent" : 0
+			},
+			{
+				"command" : 11,
+				"file" : 0,
+				"line" : 29,
+				"parent" : 0
+			},
+			{
+				"command" : 12,
+				"file" : 0,
+				"line" : 43,
+				"parent" : 0
+			},
+			{
+				"command" : 13,
+				"file" : 0,
+				"line" : 67,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g -std=gnu++17"
+				},
+				{
+					"backtrace" : 57,
+					"fragment" : "-Wno-deprecated-declarations"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 2,
+					"define" : "BOOST_ALL_NO_LIB"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "BOOST_ATOMIC_DYN_LINK"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "BOOST_SYSTEM_DYN_LINK"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "BOOST_THREAD_DYN_LINK"
+				},
+				{
+					"backtrace" : 58,
+					"define" : "EIGEN_USE_THREADS"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "FMT_HEADER_ONLY=0"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "FMT_STRING_ALIAS=1"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "FMT_USE_WINDOWS_H=0"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "OPEN3D_STATIC"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "_GLIBCXX_USE_CXX11_ABI=1"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 59,
+					"path" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example/CameraTest"
+				},
+				{
+					"backtrace" : 59,
+					"path" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example/PRIVATE"
+				},
+				{
+					"backtrace" : 59,
+					"path" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example/include"
+				},
+				{
+					"backtrace" : 59,
+					"path" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example/build/_deps/sh2-src"
+				},
+				{
+					"backtrace" : 59,
+					"path" : "/usr/include/eigen3"
+				},
+				{
+					"backtrace" : 59,
+					"path" : "/usr/local/cuda/targets/aarch64-linux/include"
+				},
+				{
+					"backtrace" : 59,
+					"isSystem" : true,
+					"path" : "/usr/include/opencv4"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/usr/local/include/open3d/3rdparty"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					60,
+					2,
+					2
+				],
+				"standard" : "17"
+			},
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 2,
+			"id" : "sh2_lib::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "CameraTest::@6890427a1f51a3e7e1df",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "-g",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libz.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libzmq.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libvtkFiltersGeneral-9.1.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libvtkFiltersSources-9.1.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libvtkFiltersModeling-9.1.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libvtkFiltersCore-9.1.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libvtkCommonExecutionModel-9.1.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libvtkCommonDataModel-9.1.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libvtkCommonTransforms-9.1.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libvtkCommonMath-9.1.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libvtkCommonMisc-9.1.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libvtkCommonSystem-9.1.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libvtkCommonCore-9.1.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libvtkkissfft-9.1.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libvtkpugixml-9.1.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libvtksys-9.1.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libUVAtlas.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libopenblas.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libembree3.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libsimd.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,liblexers.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libsys.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libmath.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-Wl,--exclude-libs,libtasking.a",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 5,
+				"fragment" : "-L/usr/local/cuda/lib64",
+				"role" : "libraryPath"
+			},
+			{
+				"backtrace" : 5,
+				"fragment" : "-L/usr/local/cuda-10.2/targets/aarch64-linux/lib",
+				"role" : "libraryPath"
+			},
+			{
+				"fragment" : "-L/usr/lib/llvm-10/lib",
+				"role" : "libraryPath"
+			},
+			{
+				"fragment" : "-Wl,-rpath,/usr/local/cuda/lib64:/usr/local/cuda-10.2/targets/aarch64-linux/lib:/usr/local/lib:/usr/lib/llvm-10/lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_gapi.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_stitching.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_alphamat.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_aruco.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_bgsegm.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_bioinspired.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_ccalib.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_cudabgsegm.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_cudafeatures2d.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_cudaobjdetect.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_cudastereo.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_dnn_objdetect.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_dnn_superres.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_dpm.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_face.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_freetype.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_fuzzy.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_hdf.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_hfs.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_img_hash.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_intensity_transform.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_line_descriptor.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_mcc.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_quality.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_rapid.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_reg.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_rgbd.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_saliency.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_sfm.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_stereo.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_structured_light.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_superres.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_surface_matching.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_tracking.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_videostab.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_wechat_qrcode.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_xfeatures2d.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_xobjdetect.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_xphoto.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lrealsense2",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libboost_system.so.1.71.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libboost_thread.so.1.71.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/local/lib/libOpen3D.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "libsh2_lib.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lcudart",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lnvinfer",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lnvonnxparser",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lrt",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lpthread",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_shape.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_highgui.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_datasets.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_plot.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_text.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_ml.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_phase_unwrapping.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_cudacodec.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_videoio.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_cudaoptflow.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_cudalegacy.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_cudawarping.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_optflow.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_ximgproc.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_video.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_imgcodecs.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_objdetect.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_calib3d.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_dnn.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_features2d.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_flann.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_photo.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_cudaimgproc.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_cudafilters.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_imgproc.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_cudaarithm.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_core.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libopencv_cudev.so.4.8.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 11,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libboost_atomic.so.1.71.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 16,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_assimp.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 17,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_jpeg.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 18,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_jsoncpp.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 19,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_liblzf.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 20,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_curl.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 21,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_openssl_ssl.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 21,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_openssl_crypto.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 22,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_png.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 23,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_zlib.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 19,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_rply.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 19,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_tinyfiledialogs.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 19,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_qhullcpp.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 24,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_qhull_r.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 19,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_imgui.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 25,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_zeromq.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 26,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_vtk_vtkFiltersGeneral-9.1.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 26,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_vtk_vtkFiltersSources-9.1.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 26,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_vtk_vtkFiltersModeling-9.1.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 26,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_vtk_vtkFiltersCore-9.1.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 26,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_vtk_vtkCommonExecutionModel-9.1.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 26,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_vtk_vtkCommonDataModel-9.1.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 26,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_vtk_vtkCommonTransforms-9.1.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 26,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_vtk_vtkCommonMath-9.1.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 26,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_vtk_vtkCommonMisc-9.1.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 26,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_vtk_vtkCommonSystem-9.1.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 26,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_vtk_vtkCommonCore-9.1.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 26,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_vtk_vtkkissfft-9.1.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 26,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_vtk_vtkpugixml-9.1.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 26,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_vtk_vtksys-9.1.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 27,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_uvatlas.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 28,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_tbb_tbb_static.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 28,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_tbb_tbbmalloc_static.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 29,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_blas.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 29,
+				"fragment" : "/usr/lib/gcc/aarch64-linux-gnu/9/libgfortran.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 29,
+				"fragment" : "/usr/lib/gcc/aarch64-linux-gnu/9/libgcc.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 30,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_stdgpu.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 31,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_embree_embree3.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 31,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_embree_simd.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 31,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_embree_lexers.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 31,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_embree_sys.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 31,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_embree_math.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 31,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_embree_tasking.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 35,
+				"fragment" : "/usr/lib/gcc/aarch64-linux-gnu/8/libgomp.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 35,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libpthread.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 36,
+				"fragment" : "/usr/local/lib/librealsense2.so.2.55.1",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 42,
+				"fragment" : "/usr/local/lib/librsutils.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 43,
+				"fragment" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcusolver_static.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 47,
+				"fragment" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/liblapack_static.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 43,
+				"fragment" : "/usr/local/cuda/lib64/liblapack_static.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 43,
+				"fragment" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcusparse_static.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 43,
+				"fragment" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcublas_static.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 43,
+				"fragment" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libcublasLt_static.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 48,
+				"fragment" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppicc_static.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 48,
+				"fragment" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppif_static.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 48,
+				"fragment" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppig_static.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 48,
+				"fragment" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppim_static.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 48,
+				"fragment" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppial_static.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 48,
+				"fragment" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libnppc_static.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 43,
+				"fragment" : "/usr/local/cuda-10.2/targets/aarch64-linux/lib/libculibos.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 19,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_glew.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 19,
+				"fragment" : "-lstdc++fs",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 49,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_glfw.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 49,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/librt.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 49,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libm.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 50,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libX11.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 51,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_fmt.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 54,
+				"fragment" : "-lpthread",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_filament_filameshio.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_filament_filament.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_filament_filamat_lite.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_filament_filamat.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_filament_filaflat.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_filament_filabridge.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_filament_geometry.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_filament_backend.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_filament_bluegl.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_filament_ibl.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_filament_image.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_filament_meshoptimizer.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_filament_smol-v.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "/usr/local/lib/libOpen3D_3rdparty_filament_utils.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 26,
+				"fragment" : "-ldl",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "-lstdc++",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lc++",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 55,
+				"fragment" : "/usr/lib/llvm-10/lib/libc++abi.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 56,
+				"fragment" : "/usr/lib/aarch64-linux-gnu/libGL.so",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "CameraTest",
+	"nameOnDisk" : "CameraTest",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/main.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/Camera.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/Model.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/ObjectDetection.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/GPS.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/BrainCommStats.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/BrainComm.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/I2C_Device.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/I2C_HAL.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/WS_UPS.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "EXECUTABLE"
+}

@@ -7,47 +7,52 @@
 #include <Model.h>
 #include <ObjectDetection.h>
 #include <Camera.h>
+#include "I2C_HAL.h"
+#include "sh2.h"
+#include "sh2_err.h"
 
-#include <BNO085.h>
 
 
 
 using namespace std;
 
 void printUPSdata(UPS &ups);
-void printIMUData(BNO085 &imu);
+// void printIMUData(BNO085 &imu);
+
+
+
 
 
 
 int main() 
 {
     //UPS ups; // (threaded)
-    BNO085 imu; // (threaded)
+    // BNO085 imu; // (threaded)
     std::this_thread::sleep_for(std::chrono::seconds(2)); // Give IMU more time to initialize
 
     // Enable sensors with 100Hz rate (10000 microseconds = 10ms)
-    if (imu.isInitialized()) {
-        std::cout << "Enabling IMU sensors..." << std::endl;
-        imu.enableAccelerometer(10000);
-        imu.enableGyroscope(10000);
-        imu.enableMagnetometer(10000);
-        imu.enableRotationVector(10000);
-        imu.enableLinearAcceleration(10000);
-        imu.enableGravity(10000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
+    // if (imu.isInitialized()) {
+    //     std::cout << "Enabling IMU sensors..." << std::endl;
+    //     imu.enableAccelerometer(10000);
+    //     imu.enableGyroscope(10000);
+    //     imu.enableMagnetometer(10000);
+    //     imu.enableRotationVector(10000);
+    //     imu.enableLinearAcceleration(10000);
+    //     imu.enableGravity(10000);
+    //     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    // }
 
     while (true) 
     {
    
         // if(ups.isRunning())
         //     printUPSdata(ups);
-        if(imu.isRunning())
-            printIMUData(imu);
+        // if(imu.isRunning())
+        //     printIMUData(imu);
         std::this_thread::sleep_for(std::chrono::milliseconds(250));    
     }
     //ups.stop();
-    imu.stop();
+    // imu.stop();
     return 0;
 }
 
@@ -81,70 +86,70 @@ void printUPSdata(UPS &ups)
 
 
 
-void printIMUData(BNO085 &imu)
-{
-    IMUData imu_data = imu.getIMUData();
-    CalibrationStatus cal_status = imu.getCalibrationStatus();
+// void printIMUData(BNO085 &imu)
+// {
+//     IMUData imu_data = imu.getIMUData();
+//     CalibrationStatus cal_status = imu.getCalibrationStatus();
 
-    std::cout << "============================================" << std::endl;
-    std::cout << "BNO085 IMU DATA" << std::endl;
-    std::cout << "============================================" << std::endl;
+//     std::cout << "============================================" << std::endl;
+//     std::cout << "BNO085 IMU DATA" << std::endl;
+//     std::cout << "============================================" << std::endl;
 
-    std::cout << "Last Error: " << imu.getLastError() << std::endl;
-    std::cout << "Data Valid: " << (imu_data.valid ? "TRUE" : "FALSE") << std::endl;
-    std::cout << "Accuracy: " << static_cast<int>(imu_data.accuracy) << "/3" << std::endl;
-    std::cout << "Calibrated: " << (cal_status.is_calibrated ? "TRUE" : "FALSE") << std::endl;
+//     std::cout << "Last Error: " << imu.getLastError() << std::endl;
+//     std::cout << "Data Valid: " << (imu_data.valid ? "TRUE" : "FALSE") << std::endl;
+//     std::cout << "Accuracy: " << static_cast<int>(imu_data.accuracy) << "/3" << std::endl;
+//     std::cout << "Calibrated: " << (cal_status.is_calibrated ? "TRUE" : "FALSE") << std::endl;
     
-    if (imu_data.valid) {
-        std::cout << std::fixed << std::setprecision(3);
+//     if (imu_data.valid) {
+//         std::cout << std::fixed << std::setprecision(3);
         
-        // Raw Accelerometer (m/s²)
-        std::cout << "Accel (m/s²):  X: " << std::setw(8) << imu_data.accel_x 
-                  << "  Y: " << std::setw(8) << imu_data.accel_y 
-                  << "  Z: " << std::setw(8) << imu_data.accel_z << std::endl;
+//         // Raw Accelerometer (m/s²)
+//         std::cout << "Accel (m/s²):  X: " << std::setw(8) << imu_data.accel_x 
+//                   << "  Y: " << std::setw(8) << imu_data.accel_y 
+//                   << "  Z: " << std::setw(8) << imu_data.accel_z << std::endl;
         
-        // Raw Gyroscope (rad/s)
-        std::cout << "Gyro (rad/s):  X: " << std::setw(8) << imu_data.gyro_x 
-                  << "  Y: " << std::setw(8) << imu_data.gyro_y 
-                  << "  Z: " << std::setw(8) << imu_data.gyro_z << std::endl;
+//         // Raw Gyroscope (rad/s)
+//         std::cout << "Gyro (rad/s):  X: " << std::setw(8) << imu_data.gyro_x 
+//                   << "  Y: " << std::setw(8) << imu_data.gyro_y 
+//                   << "  Z: " << std::setw(8) << imu_data.gyro_z << std::endl;
         
-        // Raw Magnetometer (µTesla)
-        std::cout << "Mag (µT):      X: " << std::setw(8) << imu_data.mag_x 
-                  << "  Y: " << std::setw(8) << imu_data.mag_y 
-                  << "  Z: " << std::setw(8) << imu_data.mag_z << std::endl;
+//         // Raw Magnetometer (µTesla)
+//         std::cout << "Mag (µT):      X: " << std::setw(8) << imu_data.mag_x 
+//                   << "  Y: " << std::setw(8) << imu_data.mag_y 
+//                   << "  Z: " << std::setw(8) << imu_data.mag_z << std::endl;
         
-        // Linear Acceleration (m/s²)
-        std::cout << "Lin Accel:     X: " << std::setw(8) << imu_data.linear_accel_x 
-                  << "  Y: " << std::setw(8) << imu_data.linear_accel_y 
-                  << "  Z: " << std::setw(8) << imu_data.linear_accel_z << std::endl;
+//         // Linear Acceleration (m/s²)
+//         std::cout << "Lin Accel:     X: " << std::setw(8) << imu_data.linear_accel_x 
+//                   << "  Y: " << std::setw(8) << imu_data.linear_accel_y 
+//                   << "  Z: " << std::setw(8) << imu_data.linear_accel_z << std::endl;
         
-        // Gravity (m/s²)
-        std::cout << "Gravity:       X: " << std::setw(8) << imu_data.gravity_x 
-                  << "  Y: " << std::setw(8) << imu_data.gravity_y 
-                  << "  Z: " << std::setw(8) << imu_data.gravity_z << std::endl;
+//         // Gravity (m/s²)
+//         std::cout << "Gravity:       X: " << std::setw(8) << imu_data.gravity_x 
+//                   << "  Y: " << std::setw(8) << imu_data.gravity_y 
+//                   << "  Z: " << std::setw(8) << imu_data.gravity_z << std::endl;
         
-        // Euler Angles (degrees)
-        std::cout << std::fixed << std::setprecision(1);
-        std::cout << "Euler (deg):   Roll: " << std::setw(7) << imu_data.euler_roll 
-                  << "  Pitch: " << std::setw(7) << imu_data.euler_pitch 
-                  << "  Yaw: " << std::setw(7) << imu_data.euler_yaw << std::endl;
+//         // Euler Angles (degrees)
+//         std::cout << std::fixed << std::setprecision(1);
+//         std::cout << "Euler (deg):   Roll: " << std::setw(7) << imu_data.euler_roll 
+//                   << "  Pitch: " << std::setw(7) << imu_data.euler_pitch 
+//                   << "  Yaw: " << std::setw(7) << imu_data.euler_yaw << std::endl;
         
-        // Quaternion
-        std::cout << std::fixed << std::setprecision(4);
-        std::cout << "Quaternion:    I: " << std::setw(7) << imu_data.quat_i 
-                  << "  J: " << std::setw(7) << imu_data.quat_j 
-                  << "  K: " << std::setw(7) << imu_data.quat_k 
-                  << "  Real: " << std::setw(7) << imu_data.quat_real << std::endl;
-    } else {
-        std::cout << "No valid IMU data available" << std::endl;
-        std::cout << "Last Error: " << imu.getLastError() << std::endl;
-    }
+//         // Quaternion
+//         std::cout << std::fixed << std::setprecision(4);
+//         std::cout << "Quaternion:    I: " << std::setw(7) << imu_data.quat_i 
+//                   << "  J: " << std::setw(7) << imu_data.quat_j 
+//                   << "  K: " << std::setw(7) << imu_data.quat_k 
+//                   << "  Real: " << std::setw(7) << imu_data.quat_real << std::endl;
+//     } else {
+//         std::cout << "No valid IMU data available" << std::endl;
+//         std::cout << "Last Error: " << imu.getLastError() << std::endl;
+//     }
 
-    std::time_t time = std::chrono::system_clock::to_time_t(imu_data.timestamp);
-    std::tm* tm_now = std::localtime(&time);
-    std::cout << "Timestamp: " << std::put_time(tm_now, "%Y-%m-%d %H:%M:%S") << std::endl;
-    std::cout << "============================================" << std::endl;
-}
+//     std::time_t time = std::chrono::system_clock::to_time_t(imu_data.timestamp);
+//     std::tm* tm_now = std::localtime(&time);
+//     std::cout << "Timestamp: " << std::put_time(tm_now, "%Y-%m-%d %H:%M:%S") << std::endl;
+//     std::cout << "============================================" << std::endl;
+// }
 
 
 

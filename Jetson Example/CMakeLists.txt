@@ -9,6 +9,10 @@ set(CMAKE_POLICY_DEFAULT_CM)
 cmake_policy(SET CMP0167 NEW)
 cmake_policy(SET CMP0072 NEW)
 
+include(FetchContent)
+FetchContent_Declare(sh2 GIT_REPOSITORY https://github.com/ceva-dsp/sh2.git GIT_TAG main)
+FetchContent_MakeAvailable(sh2)
+
 # Find CUDA
 find_package(CUDAToolkit REQUIRED)
 set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
@@ -30,9 +34,15 @@ find_package(Boost REQUIRED COMPONENTS system thread)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(REALSENSE2 REQUIRED realsense2)
 
+file(GLOB SH2_SOURCES "${sh2_SOURCE_DIR}/*.c")
+file(GLOB SH2_HEADERS "${sh2_SOURCE_DIR}/*.h")
+
+add_library(sh2_lib STATIC ${SH2_SOURCES})
+target_include_directories(sh2_lib PUBLIC ${sh2_SOURCE_DIR})
+
 include_directories(CameraTest PRIVATE
     ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/include/SH2
+    ${sh2_SOURCE_DIR}
     ${OpenCV_INCLUDE_DIRS}
     ${Open3D_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
@@ -45,19 +55,11 @@ add_executable(CameraTest
     src/Model.cpp
     src/ObjectDetection.cpp
     src/GPS.cpp
-    # src/Position.cpp
-    # src/RobotPosition.cpp
     src/BrainCommStats.cpp
     src/BrainComm.cpp
     src/I2C_Device.cpp
-    # src/IMU.cpp
+    src/I2C_HAL.cpp
     src/WS_UPS.cpp
-    # src/FieldMapper.cpp
-    src/BNO085.cpp
-    src/SH2/shtp.c
-    src/SH2/sh2.c
-    src/SH2/sh2_util.c
-    src/SH2/sh2_SensorValue.c
 )
 
 target_compile_options(CameraTest PRIVATE -Wno-deprecated-declarations)
@@ -67,8 +69,10 @@ target_compile_features(CameraTest PRIVATE cxx_std_17)
 target_link_libraries(CameraTest PRIVATE
     ${OpenCV_LIBS}
     ${LIBSERIAL_LIBRARIES}
+    ${REALSENSE2_LIBRARIES}
     ${Boost_LIBRARIES}  
     Open3D::Open3D
+    sh2_lib
     cudart
     nvinfer
     nvonnxparser

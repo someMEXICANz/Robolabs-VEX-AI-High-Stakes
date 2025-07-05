@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example/build/_deps/sh2-subbuild/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

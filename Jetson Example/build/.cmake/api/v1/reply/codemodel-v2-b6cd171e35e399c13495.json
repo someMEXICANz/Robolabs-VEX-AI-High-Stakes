@@ -1,0 +1,69 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.19"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "CameraTest",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "CameraTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-CameraTest-Debug-6b74fe8dd95692be101a.json",
+					"name" : "CameraTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "sh2_lib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-sh2_lib-Debug-35df10ff675748c59b98.json",
+					"name" : "sh2_lib",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example/build",
+		"source" : "/home/jetson/Documents/Robolabs-VEX-AI-High-Stakes/Jetson Example"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 8
+	}
+}

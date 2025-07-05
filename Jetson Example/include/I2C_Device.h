@@ -22,7 +22,6 @@ public:
     void close();
     bool isOpen() const { return fd >= 0; }
     
-    // Register-based operations (perfect for UPS, simple sensors)
     bool writeByte(uint8_t reg, uint8_t data);
     bool writeWord(uint8_t reg, uint16_t data);
     bool writeBytes(uint8_t reg, const uint8_t* data, size_t length);
@@ -31,9 +30,10 @@ public:
     bool readWord(uint8_t reg, uint16_t& data);
     bool readBytes(uint8_t reg, uint8_t* data, size_t length);
     
-    // Raw operations (perfect for BNO085 packet protocol)
     bool writeRaw(const uint8_t* data, size_t length);
     bool readRaw(uint8_t* data, size_t length);
+
+
     
     // Utility functions
     bool isDevicePresent();

@@ -1,0 +1,6 @@
+[submodule "Jetson Example/build/external/sh2"]
+	path = Jetson Example/build/external/sh2
+	url = https://github.com/ceva-dsp/sh2.git
+[submodule "Jetson Example/external/sh2"]
+	path = Jetson Example/external/sh2
+	url = https://github.com/ceva-dsp/sh2.git

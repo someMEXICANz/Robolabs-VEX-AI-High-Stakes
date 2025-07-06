@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <random>
 #include <chrono>
@@ -7,17 +8,15 @@
 #include <Model.h>
 #include <ObjectDetection.h>
 #include <Camera.h>
-#include "I2C_HAL.h"
-#include "sh2.h"
-#include "sh2_err.h"
+
 
 
 
 
 using namespace std;
 
-void printUPSdata(UPS &ups);
-// void printIMUData(BNO085 &imu);
+// void printUPSdata(UPS &ups);
+// // void printIMUData(BNO085 &imu);
 
 
 
@@ -59,34 +58,34 @@ int main()
 
 
 
-void printUPSdata(UPS &ups)
-{
-    UPSData ups_data = ups.getUPSData();
+// void printUPSdata(UPS &ups)
+// {
+//     UPSData ups_data = ups.getUPSData();
 
-    std::cerr << "--------------------------------------------" << std::endl;
-    // Display UPS data 
-    std::cout << "WAVESHARE UPS DATA" << std::endl;
+//     std::cerr << "--------------------------------------------" << std::endl;
+//     // Display UPS data 
+//     std::cout << "WAVESHARE UPS DATA" << std::endl;
 
-    std::cout << "Data Valid: " << (ups_data.valid ? "TRUE" : "FALSE") << std::endl;
+//     std::cout << "Data Valid: " << (ups_data.valid ? "TRUE" : "FALSE") << std::endl;
 
-    std::cerr << "Load Voltage:     " << ups_data.busVoltage  << " V" << std::endl;
-    std::cerr << "Shunt Voltage:    " << ups_data.shuntVoltage  << " mV" << std::endl;
-    std::cerr << "PSU Voltage:      " << (ups_data.busVoltage  + ups_data.shuntVoltage) << " V" << std::endl;
-    std::cerr << "Current:          " << (ups_data.current) << " mA" << std::endl;
-    std::cerr << "Power:            " << ups_data.power << " mW" << std::endl;
-    std::cerr << "Battery Level:    " << ups_data.batteryLevel << "%" << std::endl;
+//     std::cerr << "Load Voltage:     " << ups_data.busVoltage  << " V" << std::endl;
+//     std::cerr << "Shunt Voltage:    " << ups_data.shuntVoltage  << " mV" << std::endl;
+//     std::cerr << "PSU Voltage:      " << (ups_data.busVoltage  + ups_data.shuntVoltage) << " V" << std::endl;
+//     std::cerr << "Current:          " << (ups_data.current) << " mA" << std::endl;
+//     std::cerr << "Power:            " << ups_data.power << " mW" << std::endl;
+//     std::cerr << "Battery Level:    " << ups_data.batteryLevel << "%" << std::endl;
 
-    std::time_t time = std::chrono::system_clock::to_time_t(ups_data.timestamp);
-    std::tm* tm_now = std::localtime(&time);
-    // Print the formatted time                                              
-    std::cout << "--------------------------------------------" << std::endl;
-    std::cout << "Timestamp: " << std::put_time(tm_now, "%Y-%m-%d %H:%M:%S") << std::endl;
-    std::cout << "--------------------------------------------" << std::endl;
-}
+//     std::time_t time = std::chrono::system_clock::to_time_t(ups_data.timestamp);
+//     std::tm* tm_now = std::localtime(&time);
+//     // Print the formatted time                                              
+//     std::cout << "--------------------------------------------" << std::endl;
+//     std::cout << "Timestamp: " << std::put_time(tm_now, "%Y-%m-%d %H:%M:%S") << std::endl;
+//     std::cout << "--------------------------------------------" << std::endl;
+// }
 
 
 
-// void printIMUData(BNO085 &imu)
+// // void printIMUData(BNO085 &imu)
 // {
 //     IMUData imu_data = imu.getIMUData();
 //     CalibrationStatus cal_status = imu.getCalibrationStatus();

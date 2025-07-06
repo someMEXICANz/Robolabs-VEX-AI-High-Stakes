@@ -57,9 +57,15 @@ add_executable(CameraTest
     src/GPS.cpp
     src/BrainCommStats.cpp
     src/BrainComm.cpp
-    src/I2C_Device.cpp
     src/I2C_HAL.cpp
+    src/I2C_Device.cpp
     src/WS_UPS.cpp
+    external/sh2/shtp.c
+    external/sh2/sh2.c
+    external/sh2/sh2_util.c
+    external/sh2/sh2_SensorValue.c
+    external/sh2/euler.c
+
 )
 
 target_compile_options(CameraTest PRIVATE -Wno-deprecated-declarations)

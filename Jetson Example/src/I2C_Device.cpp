@@ -101,33 +101,6 @@ bool I2CDevice::writeWord(uint8_t reg, uint16_t data) {
     return true;
 }
 
-bool I2CDevice::writeBytes(uint8_t reg, const uint8_t* data, size_t length) {
-    std::lock_guard<std::mutex> lock(i2c_mutex);
-    
-    if (fd < 0) {
-        setError("Device not open");
-        return false;
-    }
-    
-    if (!setSlaveAddress()) return false;
-    
-    // Create buffer with register + data
-    uint8_t* buffer = new uint8_t[length + 1];
-    buffer[0] = reg;
-    std::memcpy(buffer + 1, data, length);
-    
-    bool success = (write(fd, buffer, length + 1) == static_cast<ssize_t>(length + 1));
-    
-    delete[] buffer;
-    
-    if (!success) {
-        setError("Failed to write " + std::to_string(length) + " bytes to register 0x" + std::to_string(reg));
-        return false;
-    }
-    
-    return true;
-}
-
 bool I2CDevice::readByte(uint8_t reg, uint8_t& data) {
     std::lock_guard<std::mutex> lock(i2c_mutex);
     
@@ -180,34 +153,30 @@ bool I2CDevice::readWord(uint8_t reg, uint16_t& data) {
     return true;
 }
 
-bool I2CDevice::readBytes(uint8_t reg, uint8_t* data, size_t length) {
-    std::lock_guard<std::mutex> lock(i2c_mutex);
+// bool I2CDevice::readBytes(uint8_t reg, uint8_t* data, size_t length) {
+//     std::lock_guard<std::mutex> lock(i2c_mutex);
     
-    if (fd < 0) {
-        setError("Device not open");
-        return false;
-    }
+//     if (fd < 0) {
+//         setError("Device not open");
+//         return false;
+//     }
     
-    if (!setSlaveAddress()) return false;
+//     if (!setSlaveAddress()) return false;
     
-    // Write register address
-    if (write(fd, &reg, 1) != 1) {
-        setError("Failed to write register address");
-        return false;
-    }
+//     // Write register address
+//     if (write(fd, &reg, 1) != 1) {
+//         setError("Failed to write register address");
+//         return false;
+//     }
     
-    // Read data
-    if (read(fd, data, length) != static_cast<ssize_t>(length)) {
-        setError("Failed to read " + std::to_string(length) + " bytes from register 0x" + std::to_string(reg));
-        return false;
-    }
+//     // Read data
+//     if (read(fd, data, length) != static_cast<ssize_t>(length)) {
+//         setError("Failed to read " + std::to_string(length) + " bytes from register 0x" + std::to_string(reg));
+//         return false;
+//     }
     
-    return true;
-}
-
-
-
-
+//     return true;
+// }
 
 bool I2CDevice::isDevicePresent() {
     uint8_t dummy;
@@ -219,3 +188,4 @@ void I2CDevice::setError(const std::string& error) {
     std::cerr << "I2C Device Error (0x" << std::hex << static_cast<int>(device_address) 
               << "): " << error << std::endl;
 }
+

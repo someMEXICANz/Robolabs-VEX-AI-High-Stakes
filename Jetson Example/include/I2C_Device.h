@@ -24,11 +24,9 @@ public:
     
     bool writeByte(uint8_t reg, uint8_t data);
     bool writeWord(uint8_t reg, uint16_t data);
-    bool writeBytes(uint8_t reg, const uint8_t* data, size_t length);
     
     bool readByte(uint8_t reg, uint8_t& data);
     bool readWord(uint8_t reg, uint16_t& data);
-    bool readBytes(uint8_t reg, uint8_t* data, size_t length);
 
     // Utility functions
     bool isDevicePresent();

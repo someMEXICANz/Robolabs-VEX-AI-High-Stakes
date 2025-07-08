@@ -65,6 +65,7 @@ add_executable(CameraTest
     external/sh2/sh2_util.c
     external/sh2/sh2_SensorValue.c
     external/sh2/euler.c
+    src/BNO085.cpp
 
 )
 

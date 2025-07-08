@@ -22,11 +22,18 @@ public:
     void close();
     bool isOpen() const { return fd >= 0; }
     
+    // Existing register-based functions
     bool writeByte(uint8_t reg, uint8_t data);
     bool writeWord(uint8_t reg, uint16_t data);
-    
     bool readByte(uint8_t reg, uint8_t& data);
     bool readWord(uint8_t reg, uint16_t& data);
+
+    // NEW: Raw I2C functions needed for BNO085 SHTP protocol
+    bool writeRaw(const uint8_t* data, size_t length);
+    bool readRaw(uint8_t* data, size_t length);
+
+    bool readRawAvailable(uint8_t* data, size_t max_length, size_t& bytes_read);
+
 
     // Utility functions
     bool isDevicePresent();

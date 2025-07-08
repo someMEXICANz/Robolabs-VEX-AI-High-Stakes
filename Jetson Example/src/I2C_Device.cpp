@@ -31,6 +31,10 @@ bool I2CDevice::open() {
         setError("Failed to open " + device_path + ": " + std::strerror(errno));
         return false;
     }
+    else
+    {
+        std::cerr << "Opened " << device_path << std::endl;
+    }
     
     if (!setSlaveAddress()) {
         ::close(fd);
@@ -58,6 +62,10 @@ bool I2CDevice::setSlaveAddress() {
     }
     return true;
 }
+
+// =============================================================================
+// ORIGINAL REGISTER-BASED FUNCTIONS
+// =============================================================================
 
 bool I2CDevice::writeByte(uint8_t reg, uint8_t data) {
     std::lock_guard<std::mutex> lock(i2c_mutex);
@@ -153,32 +161,10 @@ bool I2CDevice::readWord(uint8_t reg, uint16_t& data) {
     return true;
 }
 
-// bool I2CDevice::readBytes(uint8_t reg, uint8_t* data, size_t length) {
-//     std::lock_guard<std::mutex> lock(i2c_mutex);
-    
-//     if (fd < 0) {
-//         setError("Device not open");
-//         return false;
-//     }
-    
-//     if (!setSlaveAddress()) return false;
-    
-//     // Write register address
-//     if (write(fd, &reg, 1) != 1) {
-//         setError("Failed to write register address");
-//         return false;
-//     }
-    
-//     // Read data
-//     if (read(fd, data, length) != static_cast<ssize_t>(length)) {
-//         setError("Failed to read " + std::to_string(length) + " bytes from register 0x" + std::to_string(reg));
-//         return false;
-//     }
-    
-//     return true;
-// }
 
-bool I2CDevice::isDevicePresent() {
+
+bool I2CDevice::isDevicePresent() 
+{
     uint8_t dummy;
     return readByte(0x00, dummy);  // Try to read from register 0
 }
@@ -189,3 +175,78 @@ void I2CDevice::setError(const std::string& error) {
               << "): " << error << std::endl;
 }
 
+
+bool I2CDevice::writeRaw(const uint8_t* data, size_t length) {
+    std::lock_guard<std::mutex> lock(i2c_mutex);
+    
+    if (fd < 0) {
+        setError("Device not open");
+        return false;
+    }
+    
+    if (!setSlaveAddress()) return false;
+    
+    // Raw write - no register addressing, just send the data directly
+    ssize_t bytes_written = write(fd, data, length);
+    if (bytes_written != static_cast<ssize_t>(length)) {
+        setError("Failed to write " + std::to_string(length) + " bytes. Wrote: " + std::to_string(bytes_written));
+        return false;
+    }
+    
+    return true;
+}
+
+bool I2CDevice::readRaw(uint8_t* data, size_t length) {
+    std::lock_guard<std::mutex> lock(i2c_mutex);
+    
+    if (fd < 0) {
+        setError("Device not open");
+        return false;
+    }
+    
+    if (!setSlaveAddress()) return false;
+    
+    // Raw read - no register addressing, just read data directly
+    ssize_t bytes_read = read(fd, data, length);
+    if (bytes_read != static_cast<ssize_t>(length)) {
+        // For BNO085, sometimes there's no data available, which is normal
+        // Don't treat this as an error initially
+        if (bytes_read < 0) {
+            setError("Failed to read " + std::to_string(length) + " bytes: " + std::strerror(errno));
+            return false;
+        }
+        // If we read fewer bytes than expected, it might just mean no data available
+        return false;
+    }
+    
+    return true;
+}
+
+bool I2CDevice::readRawAvailable(uint8_t* data, size_t max_length, size_t& bytes_read) {
+    std::lock_guard<std::mutex> lock(i2c_mutex);
+    
+    if (fd < 0) {
+        setError("Device not open");
+        return false;
+    }
+    
+    if (!setSlaveAddress()) return false;
+    
+    // Try to read whatever data is available (non-blocking)
+    ssize_t result = read(fd, data, max_length);
+    
+    if (result < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            // No data available - this is normal for non-blocking I2C
+            bytes_read = 0;
+            return true;  // Not an error, just no data
+        } else {
+            setError("I2C read error: " + std::string(std::strerror(errno)));
+            bytes_read = 0;
+            return false;
+        }
+    }
+    
+    bytes_read = static_cast<size_t>(result);
+    return true;
+}

@@ -1645,7 +1645,7 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/GPS.cpp",
+			"path" : "src/V5GPS.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
@@ -1675,7 +1675,7 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/WS_UPS.cpp",
+			"path" : "src/UPS.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{

@@ -1,4 +1,4 @@
-#include <GPS.h>
+#include <V5GPS.h>
 
 GPS::GPS(boost::asio::io_service& service, const std::string& new_port)
     : 
@@ -270,7 +270,7 @@ bool GPS::readData()
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-GPSPosition GPS::getPosition() const 
+GPSData GPS::getPosition() const 
 {
     std::lock_guard<std::mutex> lock(position_mutex);
     return current_position;

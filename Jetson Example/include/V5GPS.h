@@ -1,5 +1,5 @@
-#ifndef GPS_H
-#define GPS_H
+#ifndef V5GPS_H
+#define V5GPS_H
 
 #include <boost/asio.hpp>
 #include <thread>
@@ -12,7 +12,7 @@
 
 
 
-struct GPSPosition
+struct GPSData
 {
 
     float x, y, z;
@@ -44,7 +44,7 @@ public:
     bool isRunning() const { return running; }
     bool isInitialized() const { return initialized; }
     
-    GPSPosition getPosition() const;
+    GPSData getPosition() const;
 
     // Configuration methods
     const std::string& getPort() const { return port; }
@@ -70,7 +70,7 @@ private:
     // Thread safety and state
     mutable std::mutex position_mutex;
     std::unique_ptr<std::thread> read_thread;  
-    GPSPosition current_position;
+    GPSData current_position;
     bool running;
     bool connected;
     bool initialized;
@@ -92,4 +92,4 @@ private:
     static constexpr uint32_t STATUS_KALMAN_EST   = 0x00100000;
 };
 
-#endif // GPS_H
+#endif // V5GPS_H
